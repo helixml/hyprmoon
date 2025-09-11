@@ -1,0 +1,149 @@
+FROM archlinux:latest
+
+# Setup pacman
+RUN sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf && \
+    pacman --noconfirm --noprogressbar -Syyu
+
+# Install base dependencies (from Hyprland CI)
+RUN pacman --noconfirm --noprogressbar -Sy \
+    base-devel \
+    cairo \
+    ccache \
+    clang \
+    cmake \
+    git \
+    glaze \
+    glm \
+    glslang \
+    go \
+    hyprlang \
+    hyprcursor \
+    jq \
+    libc++ \
+    libdisplay-info \
+    libdrm \
+    libepoxy \
+    libfontenc \
+    libglvnd \
+    libinput \
+    libjxl \
+    libliftoff \
+    libspng \
+    libwebp \
+    libxcursor \
+    libxcvt \
+    libxfont2 \
+    libxkbcommon \
+    libxkbfile \
+    lld \
+    meson \
+    ninja \
+    pango \
+    pixman \
+    pkgconf \
+    pugixml \
+    scdoc \
+    seatd \
+    systemd \
+    tomlplusplus \
+    wayland \
+    wayland-protocols \
+    xcb-util-errors \
+    xcb-util-renderutil \
+    xcb-util-wm \
+    xcb-util \
+    xcb-util-image \
+    libzip \
+    librsvg \
+    re2
+
+# Setup ccache for faster C++ builds
+RUN echo 'export CC="ccache gcc"' >> /etc/environment && \
+    echo 'export CXX="ccache g++"' >> /etc/environment && \
+    mkdir -p /ccache
+ENV CCACHE_DIR=/ccache
+ENV CC="ccache gcc"
+ENV CXX="ccache g++"
+
+# Install Moonlight dependencies
+RUN pacman --noconfirm --noprogressbar -Sy \
+    boost \
+    gstreamer \
+    gst-plugins-base \
+    gst-plugins-good \
+    gst-plugins-bad \
+    gst-plugins-ugly \
+    gst-libav \
+    enet \
+    fmt \
+    openssl \
+    libdrm \
+    pciutils \
+    curl \
+    icu \
+    libarchive
+
+# Install GPU acceleration dependencies (from helix example)
+RUN pacman --noconfirm --noprogressbar -Sy \
+    mesa \
+    mesa-utils \
+    libgl \
+    libglvnd \
+    libegl \
+    intel-media-driver \
+    libva-mesa-driver \
+    vulkan-intel \
+    vulkan-radeon \
+    nvidia-utils \
+    gstreamer-vaapi \
+    ffmpeg \
+    libva-utils
+
+# Install Xorg packages
+RUN pacman --noconfirm --noprogressbar -Sy \
+    xorg-fonts-encodings \
+    xorg-server-common \
+    xorg-setxkbmap \
+    xorg-xkbcomp \
+    xorg-xwayland
+
+# Get hyprwayland-scanner-git
+RUN git clone https://github.com/hyprwm/hyprwayland-scanner --recursive && \
+    cd hyprwayland-scanner && \
+    cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build && \
+    cmake --build ./build --config Release --target all -j$(nproc) && \
+    cmake --install build && \
+    cd .. && rm -rf hyprwayland-scanner
+
+# Get hyprgraphics-git
+RUN git clone https://github.com/hyprwm/hyprgraphics && \
+    cd hyprgraphics && \
+    cmake -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -B build && \
+    cmake --build build --target hyprgraphics && \
+    cmake --install build && \
+    cd .. && rm -rf hyprgraphics
+
+# Get hyprutils-git
+RUN git clone https://github.com/hyprwm/hyprutils && \
+    cd hyprutils && \
+    cmake -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -B build && \
+    cmake --build build --target hyprutils && \
+    cmake --install build && \
+    cd .. && rm -rf hyprutils
+
+# Get aquamarine-git
+RUN git clone https://github.com/hyprwm/aquamarine && \
+    cd aquamarine && \
+    cmake -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -B build && \
+    cmake --build build --target aquamarine && \
+    cmake --install build && \
+    cd .. && rm -rf aquamarine
+
+# Set working directory
+WORKDIR /workspace
+
+# Configure git for safety
+RUN git config --global --add safe.directory /workspace
+
+# Default command
+CMD ["/bin/bash"]

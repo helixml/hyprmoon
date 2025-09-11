@@ -18,6 +18,7 @@
 #include "../protocols/LayerShell.hpp"
 #include "../protocols/XDGShell.hpp"
 #include "../protocols/PresentationTime.hpp"
+#include "../moonlight/managers/MoonlightManager.hpp"
 #include "../protocols/core/DataDevice.hpp"
 #include "../protocols/core/Compositor.hpp"
 #include "../protocols/DRMSyncobj.hpp"
@@ -2279,6 +2280,13 @@ void CHyprRenderer::endRender(const std::function<void()>& renderingDoneCallback
         if (renderingDoneCallback)
             renderingDoneCallback();
 
+        // Moonlight frame callback for implicit sync path
+#ifdef WITH_MOONLIGHT
+        if (g_pMoonlightManager && m_renderMode == RENDER_MODE_NORMAL) {
+            g_pMoonlightManager->onFrameReady(PMONITOR.lock(), m_currentBuffer);
+        }
+#endif
+
         return;
     }
 
@@ -2312,6 +2320,13 @@ void CHyprRenderer::endRender(const std::function<void()>& renderingDoneCallback
         if (renderingDoneCallback)
             renderingDoneCallback();
     }
+    
+    // Moonlight frame callback
+#ifdef WITH_MOONLIGHT
+    if (g_pMoonlightManager && m_renderMode == RENDER_MODE_NORMAL) {
+        g_pMoonlightManager->onFrameReady(PMONITOR.lock(), m_currentBuffer);
+    }
+#endif
 }
 
 void CHyprRenderer::onRenderbufferDestroy(CRenderbuffer* rb) {

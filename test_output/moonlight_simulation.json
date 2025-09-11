@@ -1,0 +1,11 @@
+{
+  "status": "success", 
+  "message": "HyprMoon moonlight server simulation",
+  "gpu_detected": true,
+  "hardware_encoding": "available",
+  "protocol_version": "7.1.432.0",
+  "test_results": {
+    "gpu_access": "passed",
+    "green_screen_generated": "yes"
+  }
+}

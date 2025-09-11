@@ -15,6 +15,9 @@
 #include "managers/DonationNagManager.hpp"
 #include "managers/ANRManager.hpp"
 #include "managers/eventLoop/EventLoopManager.hpp"
+#ifdef WITH_MOONLIGHT
+#include "moonlight/managers/MoonlightManager.hpp"
+#endif
 #include "managers/permissions/DynamicPermissionManager.hpp"
 #include <algorithm>
 #include <aquamarine/output/Output.hpp>
@@ -706,6 +709,12 @@ void CCompositor::initManagers(eManagersInitStage stage) {
 
             Debug::log(LOG, "Creating the ANRManager!");
             g_pANRManager = makeUnique<CANRManager>();
+
+#ifdef WITH_MOONLIGHT
+            Debug::log(LOG, "Creating the MoonlightManager!");
+            g_pMoonlightManager = makeUnique<CMoonlightManager>();
+            g_pMoonlightManager->init();
+#endif
 
             Debug::log(LOG, "Starting XWayland");
             g_pXWayland = makeUnique<CXWayland>(g_pCompositor->m_wantsXwayland);

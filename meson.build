@@ -15,17 +15,24 @@ project(
 )
 
 datarootdir = '-DDATAROOTDIR="' + get_option('prefix') / get_option('datadir') + '"'
-add_project_arguments(
-  [
-    '-Wno-unused-parameter',
-    '-Wno-unused-value',
-    '-Wno-missing-field-initializers',
-    '-Wno-narrowing',
-    '-Wno-pointer-arith', datarootdir,
-    '-DHYPRLAND_VERSION="' + meson.project_version() + '"',
-  ],
-  language: 'cpp',
-)
+
+project_args = [
+  '-Wno-unused-parameter',
+  '-Wno-unused-value',
+  '-Wno-missing-field-initializers',
+  '-Wno-narrowing',
+  '-Wno-pointer-arith', datarootdir,
+  '-DHYPRLAND_VERSION="' + meson.project_version() + '"',
+]
+
+if get_option('with_moonlight')
+  project_args += [
+    '-DWITH_MOONLIGHT',
+    '-DMOONLIGHT_VERSION="' + meson.project_version() + '"',
+  ]
+endif
+
+add_project_arguments(project_args, language: 'cpp')
 
 cpp_compiler = meson.get_compiler('cpp')
 if cpp_compiler.check_header('execinfo.h')

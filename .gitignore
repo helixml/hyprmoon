@@ -48,3 +48,4 @@ hyprctl/Makefile
 core.*
 test_output/crash_reports
 build.log
+*.log

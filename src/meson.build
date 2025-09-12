@@ -20,6 +20,7 @@ project_deps += [
   dependency('libdrm'),
   dependency('egl'),
   dependency('xkbcommon'),
+  dependency('libinput'),
   xcb_dep,
   xcb_composite_dep,
   xcb_errors_dep,

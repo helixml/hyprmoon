@@ -1,5 +1,6 @@
 #pragma once
 
+#define GST_USE_UNSTABLE_API
 #include <gst/gst.h>
 #include <gst/webrtc/webrtc.h>
 #include <string>

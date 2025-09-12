@@ -5,6 +5,7 @@
 // Conditional includes
 #ifdef HYPRLAND_INTEGRATION
 #include "../../debug/Log.hpp"
+// Use Hyprland's Debug namespace directly - no using statements to avoid conflicts
 #else
 #include <iostream>
 namespace Debug {
@@ -15,9 +16,7 @@ namespace Debug {
         std::cout << prefix << format << std::endl;
     }
 }
-using Debug::LOG;
-using Debug::WARN;
-using Debug::ERR;
+// using statements removed to avoid conflicts with Hyprland's Debug namespace
 #endif
 
 // Whisper.cpp integration
@@ -51,7 +50,7 @@ struct whisper_full_params {};
 // ===============================
 
 CWhisperManager::CWhisperManager() {
-    Debug::log(LOG, "WhisperManager: Creating voice transcription manager");
+    Debug::log(Debug::LOG, "WhisperManager: Creating voice transcription manager");
     
     // Initialize default voice commands
     initializeDefaultCommands();
@@ -63,17 +62,17 @@ CWhisperManager::~CWhisperManager() {
 
 bool CWhisperManager::initialize(const std::string& model_path) {
     if (m_initialized.load()) {
-        Debug::log(WARN, "WhisperManager: Already initialized");
+        Debug::log(Debug::WARN, "WhisperManager: Already initialized");
         return true;
     }
     
-    Debug::log(LOG, "WhisperManager: Initializing Whisper transcription");
+    Debug::log(Debug::LOG, "WhisperManager: Initializing Whisper transcription");
     
     // Use provided model path or default
     std::string model_file = model_path.empty() ? m_config.model_path : model_path;
     
     if (!loadWhisperModel(model_file)) {
-        Debug::log(ERR, "WhisperManager: Failed to load Whisper model from {}", model_file);
+        Debug::log(Debug::ERR, "WhisperManager: Failed to load Whisper model from {}", model_file);
         return false;
     }
     
@@ -82,11 +81,11 @@ bool CWhisperManager::initialize(const std::string& model_path) {
     m_processing_thread = std::thread(&CWhisperManager::processingThreadMain, this);
     
     m_initialized.store(true);
-    Debug::log(LOG, "WhisperManager: Successfully initialized");
-    Debug::log(LOG, "  - Model: {}", model_file);
-    Debug::log(LOG, "  - Language: {}", m_config.language);
-    Debug::log(LOG, "  - VAD enabled: {}", m_config.enable_vad ? "✓" : "✗");
-    Debug::log(LOG, "  - Keyboard injection: {}", m_config.enable_keyboard_injection ? "✓" : "✗");
+    Debug::log(Debug::LOG, "WhisperManager: Successfully initialized");
+    Debug::log(Debug::LOG, "  - Model: {}", model_file);
+    Debug::log(Debug::LOG, "  - Language: {}", m_config.language);
+    Debug::log(Debug::LOG, "  - VAD enabled: {}", m_config.enable_vad ? "✓" : "✗");
+    Debug::log(Debug::LOG, "  - Keyboard injection: {}", m_config.enable_keyboard_injection ? "✓" : "✗");
     
     return true;
 }
@@ -94,7 +93,7 @@ bool CWhisperManager::initialize(const std::string& model_path) {
 void CWhisperManager::shutdown() {
     if (!m_initialized.load()) return;
     
-    Debug::log(LOG, "WhisperManager: Shutting down");
+    Debug::log(Debug::LOG, "WhisperManager: Shutting down");
     
     m_should_shutdown.store(true);
     
@@ -111,7 +110,7 @@ bool CWhisperManager::loadWhisperModel(const std::string& model_path) {
     // Check if model file exists
     std::ifstream file(model_path);
     if (!file.good()) {
-        Debug::log(ERR, "WhisperManager: Model file not found: {}", model_path);
+        Debug::log(Debug::ERR, "WhisperManager: Model file not found: {}", model_path);
         return false;
     }
     
@@ -121,24 +120,24 @@ bool CWhisperManager::loadWhisperModel(const std::string& model_path) {
     
     m_whisper_ctx = whisper_init_from_file_with_params(model_path.c_str(), ctx_params);
     if (!m_whisper_ctx) {
-        Debug::log(ERR, "WhisperManager: Failed to initialize whisper context");
+        Debug::log(Debug::ERR, "WhisperManager: Failed to initialize whisper context");
         return false;
     }
     
     // Create whisper state
     m_whisper_state = whisper_init_state(m_whisper_ctx);
     if (!m_whisper_state) {
-        Debug::log(ERR, "WhisperManager: Failed to create whisper state");
+        Debug::log(Debug::ERR, "WhisperManager: Failed to create whisper state");
         whisper_free(m_whisper_ctx);
         m_whisper_ctx = nullptr;
         return false;
     }
     
-    Debug::log(LOG, "WhisperManager: Loaded model with {} languages", 
+    Debug::log(Debug::LOG, "WhisperManager: Loaded model with {} languages", 
               whisper_lang_max_id());
     return true;
 #else
-    Debug::log(WARN, "WhisperManager: Compiled without whisper.cpp support - using stub");
+    Debug::log(Debug::WARN, "WhisperManager: Compiled without whisper.cpp support - using stub");
     return true;  // Return true for compilation testing
 #endif
 }
@@ -201,7 +200,7 @@ bool CWhisperManager::detectVoiceActivity(const float* samples, size_t count) {
 }
 
 void CWhisperManager::processingThreadMain() {
-    Debug::log(LOG, "WhisperManager: Processing thread started");
+    Debug::log(Debug::LOG, "WhisperManager: Processing thread started");
     
     while (!m_should_shutdown.load()) {
         AudioBuffer buffer;
@@ -223,7 +222,7 @@ void CWhisperManager::processingThreadMain() {
         }
     }
     
-    Debug::log(LOG, "WhisperManager: Processing thread stopped");
+    Debug::log(Debug::LOG, "WhisperManager: Processing thread stopped");
 }
 
 void CWhisperManager::processAudioBuffer(const AudioBuffer& buffer) {
@@ -328,7 +327,7 @@ std::string CWhisperManager::transcribeAudio(const std::vector<float>& samples, 
                                         resampled_samples.data(), resampled_samples.size());
     
     if (result != 0) {
-        Debug::log(ERR, "WhisperManager: Transcription failed with code {}", result);
+        Debug::log(Debug::ERR, "WhisperManager: Transcription failed with code {}", result);
         return "";
     }
     
@@ -346,10 +345,10 @@ std::string CWhisperManager::transcribeAudio(const std::vector<float>& samples, 
     // Post-process text
     transcription = postProcessText(transcription);
     
-    Debug::log(LOG, "WhisperManager: Transcribed: '{}'", transcription);
+    Debug::log(Debug::LOG, "WhisperManager: Transcribed: '{}'", transcription);
     return transcription;
 #else
-    Debug::log(LOG, "WhisperManager: Stub transcription - would process {} samples", samples.size());
+    Debug::log(Debug::LOG, "WhisperManager: Stub transcription - would process {} samples", samples.size());
     return "hello world";  // Stub for testing
 #endif
 }
@@ -384,7 +383,7 @@ void CWhisperManager::processTranscription(const std::string& text, float confid
         return;
     }
     
-    Debug::log(LOG, "WhisperManager: Processing transcription: '{}' (confidence: {:.2f})", 
+    Debug::log(Debug::LOG, "WhisperManager: Processing transcription: '{}' (confidence: {:.2f})", 
               text, confidence);
     
     // Call transcription callback
@@ -396,7 +395,7 @@ void CWhisperManager::processTranscription(const std::string& text, float confid
     if (m_config.enable_command_detection) {
         std::string command, params;
         if (detectVoiceCommand(text, command, params)) {
-            Debug::log(LOG, "WhisperManager: Detected voice command: '{}' with params: '{}'", 
+            Debug::log(Debug::LOG, "WhisperManager: Detected voice command: '{}' with params: '{}'", 
                       command, params);
             
             executeVoiceCommand(command, params);
@@ -486,11 +485,11 @@ void CWhisperManager::executeVoiceCommand(const std::string& command, const std:
         injectKeystroke(83, false, 4);
     }
     
-    Debug::log(LOG, "WhisperManager: Executed voice command: {}", command);
+    Debug::log(Debug::LOG, "WhisperManager: Executed voice command: {}", command);
 }
 
 void CWhisperManager::typeText(const std::string& text) {
-    Debug::log(LOG, "WhisperManager: Typing text: '{}'", text);
+    Debug::log(Debug::LOG, "WhisperManager: Typing text: '{}'", text);
     
     for (char c : text) {
         bool needs_shift = false;
@@ -511,7 +510,7 @@ void CWhisperManager::injectKeystroke(int keycode, bool pressed, uint32_t modifi
         onKeyboardEvent(keycode, pressed, modifiers);
     }
     
-    Debug::log(LOG, "WhisperManager: Injected keystroke: key={}, pressed={}, mods={}", 
+    Debug::log(Debug::LOG, "WhisperManager: Injected keystroke: key={}, pressed={}, mods={}", 
               keycode, pressed, modifiers);
 }
 
@@ -669,7 +668,7 @@ void CWhisperManager::resampleAudio(const std::vector<float>& input, std::vector
 // ===============================
 
 CTTSManager::CTTSManager() {
-    Debug::log(LOG, "TTSManager: Creating text-to-speech manager");
+    Debug::log(Debug::LOG, "TTSManager: Creating text-to-speech manager");
 }
 
 CTTSManager::~CTTSManager() {
@@ -678,15 +677,15 @@ CTTSManager::~CTTSManager() {
 
 bool CTTSManager::initialize() {
     if (m_initialized.load()) {
-        Debug::log(WARN, "TTSManager: Already initialized");
+        Debug::log(Debug::WARN, "TTSManager: Already initialized");
         return true;
     }
     
-    Debug::log(LOG, "TTSManager: Initializing TTS system");
+    Debug::log(Debug::LOG, "TTSManager: Initializing TTS system");
     
     // Initialize PulseAudio
     if (!initializePulseAudio()) {
-        Debug::log(ERR, "TTSManager: Failed to initialize PulseAudio");
+        Debug::log(Debug::ERR, "TTSManager: Failed to initialize PulseAudio");
         return false;
     }
     
@@ -695,10 +694,10 @@ bool CTTSManager::initialize() {
     m_tts_thread = std::thread(&CTTSManager::ttsThreadMain, this);
     
     m_initialized.store(true);
-    Debug::log(LOG, "TTSManager: Successfully initialized");
-    Debug::log(LOG, "  - TTS Engine: {}", m_config.tts_engine);
-    Debug::log(LOG, "  - Default Voice: {}", m_config.default_voice);
-    Debug::log(LOG, "  - Audio Device: {}", m_config.audio_device);
+    Debug::log(Debug::LOG, "TTSManager: Successfully initialized");
+    Debug::log(Debug::LOG, "  - TTS Engine: {}", m_config.tts_engine);
+    Debug::log(Debug::LOG, "  - Default Voice: {}", m_config.default_voice);
+    Debug::log(Debug::LOG, "  - Audio Device: {}", m_config.audio_device);
     
     return true;
 }
@@ -706,7 +705,7 @@ bool CTTSManager::initialize() {
 void CTTSManager::shutdown() {
     if (!m_initialized.load()) return;
     
-    Debug::log(LOG, "TTSManager: Shutting down");
+    Debug::log(Debug::LOG, "TTSManager: Shutting down");
     
     stopHTTPServer();
     
@@ -738,7 +737,7 @@ void CTTSManager::speakTextAsync(const std::string& text, const std::string& voi
 
 void CTTSManager::startHTTPServer(int port) {
     if (m_http_running.load()) {
-        Debug::log(WARN, "TTSManager: HTTP server already running");
+        Debug::log(Debug::WARN, "TTSManager: HTTP server already running");
         return;
     }
     
@@ -746,7 +745,7 @@ void CTTSManager::startHTTPServer(int port) {
     m_http_running.store(true);
     m_http_thread = std::thread(&CTTSManager::httpServerMain, this);
     
-    Debug::log(LOG, "TTSManager: HTTP server starting on port {}", port);
+    Debug::log(Debug::LOG, "TTSManager: HTTP server starting on port {}", port);
 }
 
 void CTTSManager::stopHTTPServer() {
@@ -758,7 +757,7 @@ void CTTSManager::stopHTTPServer() {
         m_http_thread.join();
     }
     
-    Debug::log(LOG, "TTSManager: HTTP server stopped");
+    Debug::log(Debug::LOG, "TTSManager: HTTP server stopped");
 }
 
 bool CTTSManager::initializePulseAudio() {
@@ -788,7 +787,7 @@ bool CTTSManager::initializePulseAudio() {
     );
     
     if (!m_pulse_simple) {
-        Debug::log(ERR, "TTSManager: Failed to create PulseAudio stream: {}", pa_strerror(error));
+        Debug::log(Debug::ERR, "TTSManager: Failed to create PulseAudio stream: {}", pa_strerror(error));
         return false;
     }
     
@@ -796,14 +795,14 @@ bool CTTSManager::initializePulseAudio() {
 }
 
 void CTTSManager::ttsThreadMain() {
-    Debug::log(LOG, "TTSManager: TTS thread started");
+    Debug::log(Debug::LOG, "TTSManager: TTS thread started");
     
     while (!m_should_shutdown.load()) {
         processSpeechQueue();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     
-    Debug::log(LOG, "TTSManager: TTS thread stopped");
+    Debug::log(Debug::LOG, "TTSManager: TTS thread stopped");
 }
 
 void CTTSManager::processSpeechQueue() {
@@ -824,7 +823,7 @@ void CTTSManager::processSpeechQueue() {
     const std::string& text = speech_item.first;
     const std::string& voice = speech_item.second;
     
-    Debug::log(LOG, "TTSManager: Synthesizing: '{}' with voice '{}'", text, voice);
+    Debug::log(Debug::LOG, "TTSManager: Synthesizing: '{}' with voice '{}'", text, voice);
     
     m_speaking.store(true);
     
@@ -879,14 +878,14 @@ std::vector<float> CTTSManager::synthesizeWithEspeak(const std::string& text, co
     
     int result = system(cmd.str().c_str());
     if (result != 0) {
-        Debug::log(ERR, "TTSManager: espeak-ng failed with code {}", result);
+        Debug::log(Debug::ERR, "TTSManager: espeak-ng failed with code {}", result);
         return {};
     }
     
     // Load the generated audio file (simplified - would need proper WAV parsing)
     std::ifstream file(temp_file, std::ios::binary);
     if (!file.good()) {
-        Debug::log(ERR, "TTSManager: Failed to read generated audio file");
+        Debug::log(Debug::ERR, "TTSManager: Failed to read generated audio file");
         unlink(temp_file.c_str());
         return {};
     }
@@ -909,13 +908,13 @@ std::vector<float> CTTSManager::synthesizeWithEspeak(const std::string& text, co
 
 std::vector<float> CTTSManager::synthesizeWithFestival(const std::string& text, const std::string& voice) {
     // Placeholder - would implement Festival TTS integration
-    Debug::log(LOG, "TTSManager: Festival synthesis not implemented yet");
+    Debug::log(Debug::LOG, "TTSManager: Festival synthesis not implemented yet");
     return {};
 }
 
 std::vector<float> CTTSManager::synthesizeWithPiper(const std::string& text, const std::string& voice) {
     // Placeholder - would implement Piper TTS integration
-    Debug::log(LOG, "TTSManager: Piper synthesis not implemented yet");
+    Debug::log(Debug::LOG, "TTSManager: Piper synthesis not implemented yet");
     return {};
 }
 
@@ -925,7 +924,7 @@ void CTTSManager::playAudio(const std::vector<float>& audio_data) {
     int error;
     if (pa_simple_write((pa_simple*)m_pulse_simple, audio_data.data(), 
                        audio_data.size() * sizeof(float), &error) < 0) {
-        Debug::log(ERR, "TTSManager: Failed to write audio data: {}", pa_strerror(error));
+        Debug::log(Debug::ERR, "TTSManager: Failed to write audio data: {}", pa_strerror(error));
     }
 }
 
@@ -941,7 +940,7 @@ void CTTSManager::applyProsody(std::vector<float>& audio_data) {
 void CTTSManager::httpServerMain() {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
-        Debug::log(ERR, "TTSManager: Failed to create socket");
+        Debug::log(Debug::ERR, "TTSManager: Failed to create socket");
         return;
     }
     
@@ -954,18 +953,18 @@ void CTTSManager::httpServerMain() {
     address.sin_port = htons(m_config.http_port);
     
     if (bind(server_fd, (sockaddr*)&address, sizeof(address)) < 0) {
-        Debug::log(ERR, "TTSManager: Failed to bind socket to port {}", m_config.http_port);
+        Debug::log(Debug::ERR, "TTSManager: Failed to bind socket to port {}", m_config.http_port);
         close(server_fd);
         return;
     }
     
     if (listen(server_fd, 10) < 0) {
-        Debug::log(ERR, "TTSManager: Failed to listen on socket");
+        Debug::log(Debug::ERR, "TTSManager: Failed to listen on socket");
         close(server_fd);
         return;
     }
     
-    Debug::log(LOG, "TTSManager: HTTP server listening on port {}", m_config.http_port);
+    Debug::log(Debug::LOG, "TTSManager: HTTP server listening on port {}", m_config.http_port);
     
     while (m_http_running.load()) {
         sockaddr_in client_addr{};
@@ -974,14 +973,17 @@ void CTTSManager::httpServerMain() {
         int client_fd = accept(server_fd, (sockaddr*)&client_addr, &client_len);
         if (client_fd < 0) {
             if (m_http_running.load()) {
-                Debug::log(ERR, "TTSManager: Failed to accept connection");
+                Debug::log(Debug::ERR, "TTSManager: Failed to accept connection");
             }
             continue;
         }
         
         // Read HTTP request (simplified)
         char buffer[4096] = {0};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
         read(client_fd, buffer, sizeof(buffer) - 1);
+#pragma GCC diagnostic pop
         
         std::string request(buffer);
         std::string response;
@@ -1000,12 +1002,15 @@ void CTTSManager::httpServerMain() {
             response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
         }
         
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
         write(client_fd, response.c_str(), response.length());
+#pragma GCC diagnostic pop
         close(client_fd);
     }
     
     close(server_fd);
-    Debug::log(LOG, "TTSManager: HTTP server thread stopped");
+    Debug::log(Debug::LOG, "TTSManager: HTTP server thread stopped");
 }
 
 void CTTSManager::handleSpeakRequest(const std::string& request_body, std::string& response) {
@@ -1034,7 +1039,7 @@ void CTTSManager::handleSpeakRequest(const std::string& request_body, std::strin
             response = "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\n\r\n";
         }
     } catch (const std::exception& e) {
-        Debug::log(ERR, "TTSManager: Error handling speak request: {}", e.what());
+        Debug::log(Debug::ERR, "TTSManager: Error handling speak request: {}", e.what());
         response = "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n";
     }
 }

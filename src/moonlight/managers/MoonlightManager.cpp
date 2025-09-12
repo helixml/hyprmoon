@@ -398,6 +398,7 @@ void CMoonlightManager::handleWebRTCMouse(double x, double y, int button, bool p
     
     // Convert relative coordinates to absolute screen coordinates
     if (m_streamingMonitor) {
+        // Calculate absolute coordinates for future use
         int abs_x = (int)(x * m_streamingMonitor->vecSize.x);
         int abs_y = (int)(y * m_streamingMonitor->vecSize.y);
         
@@ -406,9 +407,11 @@ void CMoonlightManager::handleWebRTCMouse(double x, double y, int button, bool p
             if (button == -1) {
                 // Mouse move
                 // TODO: g_pInputManager->onMouseMove(abs_x, abs_y);
+                (void)abs_x; (void)abs_y; // Suppress unused variable warnings
             } else {
                 // Mouse button
                 // TODO: g_pInputManager->onMouseButton(button, pressed);
+                (void)abs_x; (void)abs_y; // Suppress unused variable warnings
             }
         }
     }
@@ -717,7 +720,7 @@ void CMoonlightManager::stopTTSServer() {
 
 bool CMoonlightManager::isTTSServerRunning() const {
     if (!m_ttsManager) return false;
-    return m_ttsManager->m_initialized.load();
+    return m_ttsManager->isInitialized();
 }
 
 void CMoonlightManager::speakText(const std::string& text, const std::string& voice) {

@@ -7,6 +7,7 @@
 #include "../../debug/Log.hpp"
 #include "../../Compositor.hpp"
 #include "../../managers/input/InputManager.hpp"
+// Use Hyprland's Debug namespace directly - no using statements to avoid conflicts
 #else
 // Standalone debug logging for testing
 #include <iostream>
@@ -18,10 +19,7 @@ namespace Debug {
         std::cout << prefix << format << std::endl;
     }
 }
-// Make log levels available in global scope for easier use
-using Debug::LOG;
-using Debug::WARN;
-using Debug::ERR;
+// using statements removed to avoid conflicts with Hyprland's Debug namespace
 #endif
 
 #include <gst/sdp/sdp.h>
@@ -31,7 +29,7 @@ using Debug::ERR;
 #include <chrono>
 
 CWebRTCManager::CWebRTCManager() {
-    Debug::log(LOG, "WebRTCManager: Creating enhanced WebRTC manager with full bidirectional support");
+    Debug::log(Debug::LOG, "WebRTCManager: Creating enhanced WebRTC manager with full bidirectional support");
 }
 
 CWebRTCManager::~CWebRTCManager() {
@@ -40,11 +38,11 @@ CWebRTCManager::~CWebRTCManager() {
 
 bool CWebRTCManager::initialize() {
     if (m_initialized.load()) {
-        Debug::log(WARN, "WebRTCManager: Already initialized");
+        Debug::log(Debug::WARN, "WebRTCManager: Already initialized");
         return true;
     }
     
-    Debug::log(LOG, "WebRTCManager: Initializing WebRTC components");
+    Debug::log(Debug::LOG, "WebRTCManager: Initializing WebRTC components");
     
     // Initialize GStreamer if not already done
     if (!gst_is_initialized()) {
@@ -52,17 +50,17 @@ bool CWebRTCManager::initialize() {
     }
     
     if (!setupBasePipeline()) {
-        Debug::log(ERR, "WebRTCManager: Failed to setup base pipeline");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to setup base pipeline");
         return false;
     }
     
     m_initialized.store(true);
-    Debug::log(LOG, "WebRTCManager: Successfully initialized with features:");
-    Debug::log(LOG, "  - Video output: ✓");
-    Debug::log(LOG, "  - Audio input: {}", m_config.enable_audio_input ? "✓" : "✗");
-    Debug::log(LOG, "  - Audio output: {}", m_config.enable_audio_output ? "✓" : "✗");
-    Debug::log(LOG, "  - Keyboard input: {}", m_config.enable_keyboard_input ? "✓" : "✗");
-    Debug::log(LOG, "  - Mouse input: {}", m_config.enable_mouse_input ? "✓" : "✗");
+    Debug::log(Debug::LOG, "WebRTCManager: Successfully initialized with features:");
+    Debug::log(Debug::LOG, "  - Video output: ✓");
+    Debug::log(Debug::LOG, "  - Audio input: {}", m_config.enable_audio_input ? "✓" : "✗");
+    Debug::log(Debug::LOG, "  - Audio output: {}", m_config.enable_audio_output ? "✓" : "✗");
+    Debug::log(Debug::LOG, "  - Keyboard input: {}", m_config.enable_keyboard_input ? "✓" : "✗");
+    Debug::log(Debug::LOG, "  - Mouse input: {}", m_config.enable_mouse_input ? "✓" : "✗");
     
     return true;
 }
@@ -70,7 +68,7 @@ bool CWebRTCManager::initialize() {
 void CWebRTCManager::shutdown() {
     if (!m_initialized.load()) return;
     
-    Debug::log(LOG, "WebRTCManager: Shutting down");
+    Debug::log(Debug::LOG, "WebRTCManager: Shutting down");
     
     // Close all sessions
     std::lock_guard<std::mutex> lock(m_sessions_mutex);
@@ -86,21 +84,21 @@ void CWebRTCManager::shutdown() {
 bool CWebRTCManager::setupBasePipeline() {
     m_pipeline = gst_pipeline_new("webrtc-main-pipeline");
     if (!m_pipeline) {
-        Debug::log(ERR, "WebRTCManager: Failed to create main pipeline");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to create main pipeline");
         return false;
     }
     
-    Debug::log(LOG, "WebRTCManager: Base pipeline created successfully");
+    Debug::log(Debug::LOG, "WebRTCManager: Base pipeline created successfully");
     return true;
 }
 
 bool CWebRTCManager::connectToFrameSource(GstElement* tee_element) {
     if (!m_initialized.load() || !tee_element) {
-        Debug::log(ERR, "WebRTCManager: Invalid state or tee element");
+        Debug::log(Debug::ERR, "WebRTCManager: Invalid state or tee element");
         return false;
     }
     
-    Debug::log(LOG, "WebRTCManager: Connecting to shared frame source");
+    Debug::log(Debug::LOG, "WebRTCManager: Connecting to shared frame source");
     
     m_source_tee = tee_element;
     m_connected_to_source.store(true);
@@ -113,20 +111,20 @@ std::string CWebRTCManager::createOffer(const std::string& clientId) {
     
     // Check if session already exists
     if (m_sessions.find(clientId) != m_sessions.end()) {
-        Debug::log(WARN, "WebRTCManager: Session already exists for client {}", clientId);
+        Debug::log(Debug::WARN, "WebRTCManager: Session already exists for client {}", clientId);
         return "";
     }
     
-    Debug::log(LOG, "WebRTCManager: Creating offer for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Creating offer for client {}", clientId);
     
     auto session = createSession(clientId);
     if (!session) {
-        Debug::log(ERR, "WebRTCManager: Failed to create session for {}", clientId);
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to create session for {}", clientId);
         return "";
     }
     
     if (!linkSessionToPipeline(session.get())) {
-        Debug::log(ERR, "WebRTCManager: Failed to link session to pipeline");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to link session to pipeline");
         destroySession(clientId);
         return "";
     }
@@ -145,7 +143,7 @@ std::unique_ptr<CWebRTCManager::WebRTCSession> CWebRTCManager::createSession(con
     // Create webrtcbin
     session->webrtcbin = gst_element_factory_make("webrtcbin", (clientId + "-webrtcbin").c_str());
     if (!session->webrtcbin) {
-        Debug::log(ERR, "WebRTCManager: Failed to create webrtcbin for {}", clientId);
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to create webrtcbin for {}", clientId);
         return nullptr;
     }
     
@@ -201,7 +199,7 @@ std::unique_ptr<CWebRTCManager::WebRTCSession> CWebRTCManager::createSession(con
         gst_structure_free(options);
     }
     
-    Debug::log(LOG, "WebRTCManager: Created session for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Created session for client {}", clientId);
     return session;
 }
 
@@ -210,12 +208,12 @@ bool CWebRTCManager::linkSessionToPipeline(WebRTCSession* session) {
         return false;
     }
     
-    Debug::log(LOG, "WebRTCManager: Linking session {} to pipeline", session->client_id);
+    Debug::log(Debug::LOG, "WebRTCManager: Linking session {} to pipeline", session->client_id);
     
     // Get the main pipeline (where the tee is located)
     GstElement* main_pipeline = GST_ELEMENT(gst_element_get_parent(m_source_tee));
     if (!main_pipeline) {
-        Debug::log(ERR, "WebRTCManager: Could not find main pipeline");
+        Debug::log(Debug::ERR, "WebRTCManager: Could not find main pipeline");
         return false;
     }
     
@@ -226,7 +224,7 @@ bool CWebRTCManager::linkSessionToPipeline(WebRTCSession* session) {
         (session->client_id + "-videoconvert").c_str());
     
     if (!session->video_queue || !session->videoconvert) {
-        Debug::log(ERR, "WebRTCManager: Failed to create video pipeline elements");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to create video pipeline elements");
         return false;
     }
     
@@ -242,14 +240,14 @@ bool CWebRTCManager::linkSessionToPipeline(WebRTCSession* session) {
     GstPad* queue_sink = gst_element_get_static_pad(session->video_queue, "sink");
     
     if (gst_pad_link(tee_pad, queue_sink) != GST_PAD_LINK_OK) {
-        Debug::log(ERR, "WebRTCManager: Failed to link tee to queue");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to link tee to queue");
         gst_object_unref(tee_pad);
         gst_object_unref(queue_sink);
         return false;
     }
     
     if (!gst_element_link_many(session->video_queue, session->videoconvert, NULL)) {
-        Debug::log(ERR, "WebRTCManager: Failed to link video pipeline");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to link video pipeline");
         gst_object_unref(tee_pad);
         gst_object_unref(queue_sink);
         return false;
@@ -260,7 +258,7 @@ bool CWebRTCManager::linkSessionToPipeline(WebRTCSession* session) {
     GstPad* webrtc_sink = gst_element_request_pad_simple(session->webrtcbin, "sink_%u");
     
     if (gst_pad_link(convert_src, webrtc_sink) != GST_PAD_LINK_OK) {
-        Debug::log(ERR, "WebRTCManager: Failed to link to webrtcbin");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to link to webrtcbin");
         gst_object_unref(tee_pad);
         gst_object_unref(queue_sink);
         gst_object_unref(convert_src);
@@ -283,7 +281,7 @@ bool CWebRTCManager::linkSessionToPipeline(WebRTCSession* session) {
     gst_element_sync_state_with_parent(session->videoconvert);
     gst_element_sync_state_with_parent(session->webrtcbin);
     
-    Debug::log(LOG, "WebRTCManager: Successfully linked session to pipeline");
+    Debug::log(Debug::LOG, "WebRTCManager: Successfully linked session to pipeline");
     return true;
 }
 
@@ -314,7 +312,7 @@ bool CWebRTCManager::setupAudioPipeline(WebRTCSession* session, GstElement* main
                 if (gst_pad_link(audio_src, webrtc_audio_sink) == GST_PAD_LINK_OK) {
                     gst_element_sync_state_with_parent(session->audio_src);
                     gst_element_sync_state_with_parent(session->audio_queue_out);
-                    Debug::log(LOG, "WebRTCManager: Audio output pipeline linked");
+                    Debug::log(Debug::LOG, "WebRTCManager: Audio output pipeline linked");
                 }
                 
                 gst_object_unref(audio_src);
@@ -347,7 +345,7 @@ bool CWebRTCManager::setupAudioPipeline(WebRTCSession* session, GstElement* main
 
 // Callback implementations
 void CWebRTCManager::onNegotiationNeeded(GstElement* webrtcbin, const std::string& clientId) {
-    Debug::log(LOG, "WebRTCManager: Negotiation needed for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Negotiation needed for client {}", clientId);
     
     GstPromise* promise = gst_promise_new_with_change_func(on_offer_created_static, this, nullptr);
     g_signal_emit_by_name(webrtcbin, "create-offer", nullptr, promise);
@@ -361,7 +359,7 @@ void CWebRTCManager::onOfferCreatedCallback(GstPromise* promise, const std::stri
     gst_promise_unref(promise);
     
     if (!offer) {
-        Debug::log(ERR, "WebRTCManager: Failed to create offer for {}", clientId);
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to create offer for {}", clientId);
         return;
     }
     
@@ -384,7 +382,7 @@ void CWebRTCManager::onOfferCreatedCallback(GstPromise* promise, const std::stri
     }
     
     gst_webrtc_session_description_free(offer);
-    Debug::log(LOG, "WebRTCManager: Offer created and sent for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Offer created and sent for client {}", clientId);
 }
 
 void CWebRTCManager::onICECandidateCallback(GstElement* webrtcbin, guint mlineindex, 
@@ -403,7 +401,7 @@ void CWebRTCManager::onICECandidateCallback(GstElement* webrtcbin, guint mlinein
 }
 
 void CWebRTCManager::onDataChannelOpen(GstWebRTCDataChannel* channel, const std::string& clientId) {
-    Debug::log(LOG, "WebRTCManager: Data channel opened for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Data channel opened for client {}", clientId);
     
     auto session = getSession(clientId);
     if (session) {
@@ -428,7 +426,7 @@ void CWebRTCManager::processInputMessage(const std::string& clientId, const std:
         std::istringstream stream(message);
         
         if (!Json::parseFromStream(builder, stream, &root, &errors)) {
-            Debug::log(WARN, "WebRTCManager: Invalid JSON input from {}: {}", clientId, errors);
+            Debug::log(Debug::WARN, "WebRTCManager: Invalid JSON input from {}: {}", clientId, errors);
             return;
         }
         
@@ -466,7 +464,7 @@ void CWebRTCManager::processInputMessage(const std::string& clientId, const std:
         }
         
     } catch (const std::exception& e) {
-        Debug::log(ERR, "WebRTCManager: Error processing input from {}: {}", clientId, e.what());
+        Debug::log(Debug::ERR, "WebRTCManager: Error processing input from {}: {}", clientId, e.what());
     }
 }
 
@@ -480,12 +478,12 @@ void CWebRTCManager::processKeyboardInput(const std::string& clientId, int keyco
     if (g_pInputManager) {
         // Convert web keycode to Linux keycode and inject
         // This would need proper keycode mapping
-        Debug::log(LOG, "WebRTCManager: Keyboard input from {}: key={}, pressed={}, mods={}", 
+        Debug::log(Debug::LOG, "WebRTCManager: Keyboard input from {}: key={}, pressed={}, mods={}", 
                   clientId, keycode, pressed, modifiers);
     }
 #else
     // Standalone mode - would need uinput integration
-    Debug::log(LOG, "WebRTCManager: Standalone keyboard input: key={}, pressed={}, mods={}", 
+    Debug::log(Debug::LOG, "WebRTCManager: Standalone keyboard input: key={}, pressed={}, mods={}", 
               keycode, pressed, modifiers);
 #endif
 }
@@ -495,7 +493,7 @@ void CWebRTCManager::processMouseInput(const std::string& clientId, double x, do
         onMouseInput(x, y, button, pressed);
     }
     
-    Debug::log(LOG, "WebRTCManager: Mouse input from {}: pos=({:.2f},{:.2f}), button={}, pressed={}", 
+    Debug::log(Debug::LOG, "WebRTCManager: Mouse input from {}: pos=({:.2f},{:.2f}), button={}, pressed={}", 
               clientId, x, y, button, pressed);
 }
 
@@ -516,7 +514,7 @@ void CWebRTCManager::processMouseScroll(const std::string& clientId, double delt
         onMouseScroll(delta_x, delta_y);
     }
     
-    Debug::log(LOG, "WebRTCManager: Mouse scroll from {}: delta=({:.2f},{:.2f})", 
+    Debug::log(Debug::LOG, "WebRTCManager: Mouse scroll from {}: delta=({:.2f},{:.2f})", 
               clientId, delta_x, delta_y);
 }
 
@@ -540,6 +538,7 @@ void CWebRTCManager::on_negotiation_needed_static(GstElement* element, gpointer 
 
 void CWebRTCManager::on_offer_created_static(GstPromise* promise, gpointer user_data) {
     CWebRTCManager* self = static_cast<CWebRTCManager*>(user_data);
+    (void)self; // Suppress unused variable warning
     // Need to find which client this promise belongs to
     // For simplicity, we'll handle this in the session context
     // In practice, you'd need better promise tracking
@@ -606,7 +605,7 @@ CWebRTCManager::WebRTCSession* CWebRTCManager::getSession(const std::string& cli
 }
 
 void CWebRTCManager::destroySession(const std::string& clientId) {
-    Debug::log(LOG, "WebRTCManager: Destroying session for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Destroying session for client {}", clientId);
     
     auto it = m_sessions.find(clientId);
     if (it != m_sessions.end()) {
@@ -633,13 +632,13 @@ void CWebRTCManager::cleanupPipeline() {
 bool CWebRTCManager::setRemoteAnswer(const std::string& clientId, const std::string& sdp) {
     auto session = getSession(clientId);
     if (!session) {
-        Debug::log(ERR, "WebRTCManager: No session found for client {}", clientId);
+        Debug::log(Debug::ERR, "WebRTCManager: No session found for client {}", clientId);
         return false;
     }
     
     GstWebRTCSessionDescription* answer = createSessionDescription(sdp, GST_WEBRTC_SDP_TYPE_ANSWER);
     if (!answer) {
-        Debug::log(ERR, "WebRTCManager: Failed to parse SDP answer");
+        Debug::log(Debug::ERR, "WebRTCManager: Failed to parse SDP answer");
         return false;
     }
     
@@ -649,7 +648,7 @@ bool CWebRTCManager::setRemoteAnswer(const std::string& clientId, const std::str
     gst_promise_unref(promise);
     gst_webrtc_session_description_free(answer);
     
-    Debug::log(LOG, "WebRTCManager: Set remote answer for client {}", clientId);
+    Debug::log(Debug::LOG, "WebRTCManager: Set remote answer for client {}", clientId);
     return true;
 }
 
@@ -681,4 +680,102 @@ std::vector<std::string> CWebRTCManager::getActiveClients() const {
         }
     }
     return clients;
+}
+
+bool CWebRTCManager::addICECandidate(const std::string& clientId, const std::string& candidate) {
+    std::lock_guard<std::mutex> lock(m_sessions_mutex);
+    auto it = m_sessions.find(clientId);
+    if (it == m_sessions.end()) {
+        Debug::log(Debug::ERR, "WebRTCManager: No session found for client {}", clientId);
+        return false;
+    }
+    
+    auto& session = it->second;
+    if (!session->webrtcbin) {
+        Debug::log(Debug::ERR, "WebRTCManager: No webrtcbin for client {}", clientId);
+        return false;
+    }
+    
+    // Parse ICE candidate and add to webrtcbin
+    g_signal_emit_by_name(session->webrtcbin, "add-ice-candidate", 0, candidate.c_str());
+    Debug::log(Debug::LOG, "WebRTCManager: Added ICE candidate for client {}", clientId);
+    return true;
+}
+
+void CWebRTCManager::closeSession(const std::string& clientId) {
+    std::lock_guard<std::mutex> lock(m_sessions_mutex);
+    auto it = m_sessions.find(clientId);
+    if (it == m_sessions.end()) {
+        Debug::log(Debug::WARN, "WebRTCManager: No session found for client {}", clientId);
+        return;
+    }
+    
+    auto& session = it->second;
+    if (session->webrtcbin) {
+        gst_element_set_state(session->webrtcbin, GST_STATE_NULL);
+        gst_object_unref(session->webrtcbin);
+        session->webrtcbin = nullptr;
+    }
+    
+    // Clean up other pipeline elements
+    if (session->video_queue) {
+        gst_element_set_state(session->video_queue, GST_STATE_NULL);
+        gst_object_unref(session->video_queue);
+        session->video_queue = nullptr;
+    }
+    
+    if (session->videoconvert) {
+        gst_element_set_state(session->videoconvert, GST_STATE_NULL);
+        gst_object_unref(session->videoconvert);
+        session->videoconvert = nullptr;
+    }
+    
+    m_sessions.erase(it);
+    Debug::log(Debug::LOG, "WebRTCManager: Closed session for client {}", clientId);
+}
+
+// Missing static callback implementations
+void CWebRTCManager::on_connection_state_changed_static(GstElement* webrtcbin, GParamSpec* pspec, gpointer user_data) {
+    CWebRTCManager* self = static_cast<CWebRTCManager*>(user_data);
+    std::string clientId = self->getCallbackClientId(webrtcbin);
+    if (!clientId.empty()) {
+        GstWebRTCPeerConnectionState state;
+        g_object_get(webrtcbin, "connection-state", &state, NULL);
+        bool connected = (state == GST_WEBRTC_PEER_CONNECTION_STATE_CONNECTED);
+        
+        // Update session state
+        {
+            std::lock_guard<std::mutex> lock(self->m_sessions_mutex);
+            auto it = self->m_sessions.find(clientId);
+            if (it != self->m_sessions.end()) {
+                it->second->connected = connected;
+            }
+        }
+        
+        if (self->onConnectionStateChanged) {
+            self->onConnectionStateChanged(clientId, connected);
+        }
+        Debug::log(Debug::LOG, "WebRTCManager: Client {} connection state: {}", clientId, connected ? "connected" : "disconnected");
+    }
+}
+
+void CWebRTCManager::on_data_channel_created_static(GstElement* webrtcbin, GstWebRTCDataChannel* channel, gpointer user_data) {
+    CWebRTCManager* self = static_cast<CWebRTCManager*>(user_data);
+    std::string clientId = self->getCallbackClientId(webrtcbin);
+    if (!clientId.empty()) {
+        Debug::log(Debug::LOG, "WebRTCManager: Data channel created for client {}", clientId);
+        
+        // Connect data channel callbacks
+        g_signal_connect(channel, "on-open", G_CALLBACK(CWebRTCManager::on_data_channel_open_static), user_data);
+        g_signal_connect(channel, "on-close", G_CALLBACK(CWebRTCManager::on_data_channel_close_static), user_data);
+        g_signal_connect(channel, "on-message-data", G_CALLBACK(CWebRTCManager::on_data_channel_message_static), user_data);
+    }
+}
+
+void CWebRTCManager::on_data_channel_close_static(GstWebRTCDataChannel* channel, gpointer user_data) {
+    CWebRTCManager* self = static_cast<CWebRTCManager*>(user_data);
+    std::string clientId = self->getCallbackClientId(channel);
+    if (!clientId.empty()) {
+        Debug::log(Debug::LOG, "WebRTCManager: Data channel closed for client {}", clientId);
+    }
 }

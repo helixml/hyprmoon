@@ -173,6 +173,9 @@ public:
     bool isSpeaking() const;
     void stopSpeaking();
     
+    // Status
+    bool isInitialized() const { return m_initialized.load(); }
+    
     // HTTP API
     void startHTTPServer(int port = 8080);
     void stopHTTPServer();

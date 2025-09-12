@@ -85,7 +85,7 @@ chown -R ubuntu:ubuntu /home/ubuntu/.config
 
 # Start Ubuntu user session
 echo "Starting Ubuntu user session..."
-su ubuntu -c "/start-ubuntu-session.sh" &
+su ubuntu -c "/start-ubuntu-session-system.sh" &
 
 # Note: Removed Helix agent - focusing on HyprMoon only
 

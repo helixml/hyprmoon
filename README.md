@@ -13,6 +13,8 @@ Remember when you had to choose between:
 - 🖥️ **Beautiful tiling window manager** (Hyprland)
 - 🎮 **Hardware-accelerated desktop/dev environment streaming (and gaming too)** (Wolf/Moonlight)
 
+Now you can vibe code GPU accelerated Zed and Ghostty sessions from your phone/tablet/laptop.
+
 **NOT ANYMORE!**
 
 HyprMoon is Hyprland with **Wolf's moonlight server baked directly into the compositor**. No pipewire, no external processes, no compromises. Just pure, unadulterated desktop streaming goodness.
@@ -63,23 +65,23 @@ HyprMoon is Hyprland with **Wolf's moonlight server baked directly into the comp
 │                    🌙 HyprMoon Architecture                     │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Hyprland Compositor                                           │
-│  ├── 🖼️  CHyprRenderer::endRender()                           │
-│  │   └── 📡 CMoonlightManager::onFrameReady()                │
-│  │                                                             │
-│  └── 🎮 Wolf Moonlight Server                                 │
-│      ├── 🎬 StreamingEngine (GStreamer + Hardware Encode)     │
-│      ├── 🌐 RestServer (HTTP/HTTPS pairing & API)            │
-│      ├── 🎮 ControlServer (ENet input handling)              │
-│      └── 📺 RTSPServer (Video stream negotiation)            │
+│  Hyprland Compositor                                            │
+│  ├── 🖼️  CHyprRenderer::endRender()                             │
+│  │   └── 📡 CMoonlightManager::onFrameReady()                   │
+│  │                                                              │
+│  └── 🎮 Wolf Moonlight Server                                   │
+│      ├── 🎬 StreamingEngine (GStreamer + Hardware Encode)        │
+│      ├── 🌐 RestServer (HTTP/HTTPS pairing & API)               │
+│      ├── 🎮 ControlServer (ENet input handling)                 │
+│      └── 📺 RTSPServer (Video stream negotiation)               │
 │                                                                 │
-│                           ⬇️                                    │
+│                           ⬇️                                     │
 │                                                                 │
-│  📱 Any Moonlight Client                                       │
-│  ├── Pair with PIN → 🔗 HTTP handshake                       │
-│  ├── Stream setup → 📺 RTSP negotiation                      │
-│  ├── Video stream → 🎬 Hardware-decoded H.264               │
-│  └── Input events → 🎮 ENet control packets                  │
+│  📱 Any Moonlight Client                                        │
+│  ├── Pair with PIN → 🔗 HTTP handshake                          │
+│  ├── Stream setup → 📺 RTSP negotiation                         │
+│  ├── Video stream → 🎬 Hardware-decoded H.264                   │
+│  └── Input events → 🎮 ENet control packets                     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```

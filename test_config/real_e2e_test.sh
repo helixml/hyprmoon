@@ -23,30 +23,14 @@ export WLR_BACKENDS=headless
 export WLR_NO_HARDWARE_CURSORS=1
 export WLR_HEADLESS_OUTPUTS=1
 
-# Set GPU acceleration settings for NVIDIA
-export __GL_THREADED_OPTIMIZATIONS=1
-export __GL_SYNC_TO_VBLANK=1
-export LIBGL_ALWAYS_SOFTWARE=0
-
-# Core NVIDIA environment variables 
-export NVIDIA_VISIBLE_DEVICES=all
-export NVIDIA_DRIVER_CAPABILITIES=all
-
-# EGL configuration for NVIDIA
-export EGL_PLATFORM=drm
-export GBM_BACKEND=nvidia-drm
-export __GLX_VENDOR_LIBRARY_NAME=nvidia
-
-# wlroots GPU configuration - use card1 (the actual device)
-export WLR_DRM_DEVICES=/dev/dri/card1
+# Force software rendering to avoid NVIDIA/Mesa conflicts in container
+export LIBGL_ALWAYS_SOFTWARE=1
+export MESA_LOADER_DRIVER_OVERRIDE=swrast
+export GALLIUM_DRIVER=llvmpipe
+export WLR_RENDERER=pixman
 export WLR_RENDERER_ALLOW_SOFTWARE=1
-export WLR_DRM_NO_ATOMIC=1
 
-# GPU render node configuration
-export GPU_RENDER_NODE=/dev/dri/renderD128
-export GST_GL_DRM_DEVICE=${GST_GL_DRM_DEVICE:-$GPU_RENDER_NODE}
-
-# GStreamer GPU configuration for NVIDIA
+# GStreamer software configuration
 export GST_GL_API=gles2
 export GST_GL_WINDOW=surfaceless
 
@@ -56,10 +40,13 @@ export HYPRLAND_LOG_WLR=1
 export WLR_DEBUG=1
 export WAYLAND_DEBUG=1
 
+# Set up session environment for seatd
+export LIBSEAT_BACKEND=seatd
+
 # Start Hyprland in background
 echo "🎮 Starting Hyprland with moonlight integration and GPU acceleration..."
 export WAYLAND_DISPLAY=wayland-0
-/usr/bin/Hyprland --config /test_config/hyprland.conf --i-am-really-stupid &
+LIBSEAT_BACKEND=seatd /usr/bin/Hyprland --config /test_config/hyprland.conf --i-am-really-stupid &
 HYPR_PID=$!
 
 # Wait for wayland socket

@@ -1,9 +1,9 @@
 --------------------------------------------
    Hyprland Crash Report
 --------------------------------------------
-This was an accident, I swear!
+Who tried dividing by zero?!
 
-Hyprland received signal 6(ABRT)
+Hyprland received signal 11(SEGV)
 Version: 231b800784e2bd9bc168070d6769e97f93ff53b2
 Tag: v0.51.0-2-g231b8007
 Date: Thu Sep 11 15:54:08 2025
@@ -11,7 +11,7 @@ Flags:
 
 System info:
 	System name: Linux
-	Node name: be7eb0227f9f
+	Node name: 469b27aec753
 	Release: 6.14.0-29-generic
 	Version: #29~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Aug 14 16:52:50 UTC 2
 
@@ -33,132 +33,134 @@ os-release:
 	PRIVACY_POLICY_URL="https://terms.archlinux.org/docs/privacy-policy/"
 	LOGO=archlinux-logo
 Backtrace:
-	# | /usr/bin/Hyprland(_Z12getBacktracev+0x46) [0x6539b72c84c6]
+	# | /usr/bin/Hyprland(_Z12getBacktracev+0x46) [0x5ff81bdea4c6]
 		getBacktrace()
 		??:?
-	#1 | /usr/bin/Hyprland(_ZN14NCrashReporter18createAndSaveCrashEi+0xbda) [0x6539b71eddaa]
+	#1 | /usr/bin/Hyprland(_ZN14NCrashReporter18createAndSaveCrashEi+0xbda) [0x5ff81bd0fdaa]
 		NCrashReporter::createAndSaveCrash(int)
 		??:?
-	#2 | /usr/bin/Hyprland(+0x472ec7) [0x6539b7151ec7]
+	#2 | /usr/bin/Hyprland(+0x472ec7) [0x5ff81bc73ec7]
 		handleUnrecoverableSignal(int)
 		Compositor.cpp:?
-	#3 | /usr/lib64/libc.so.6(+0x3e540) [0x76b51c389540]
+	#3 | /usr/lib/libc.so.6(+0x3e540) [0x7e80491ff540]
 		??
 		??:0
-	#4 | /usr/lib64/libc.so.6(+0x9894c) [0x76b51c3e394c]
+	#4 | /usr/lib/libgallium-25.2.2-arch1.2.so(+0x46fde) [0x7e803b8bafde]
 		??
 		??:0
-	#5 | /usr/lib64/libc.so.6(gsignal+0x20) [0x76b51c389410]
+	#5 | /usr/lib/libgallium-25.2.2-arch1.2.so(driCreateNewScreen3+0x286) [0x7e803b8b5b86]
 		??
 		??:0
-	#6 | /usr/lib64/libc.so.6(abort+0x26) [0x76b51c37057a]
+	#6 | /usr/lib/libEGL_mesa.so.0(+0x1b733) [0x7e803e5dd733]
 		??
 		??:0
-	#7 | /usr/lib64/libstdc++.so.6(+0x97bf6) [0x76b51c732bf6]
+	#7 | /usr/lib/libEGL_mesa.so.0(+0x1cec3) [0x7e803e5deec3]
 		??
 		??:0
-	#8 | /usr/lib64/libstdc++.so.6(+0xb1eba) [0x76b51c74ceba]
+	#8 | /usr/lib/libEGL_mesa.so.0(+0x1c029) [0x7e803e5de029]
 		??
 		??:0
-	#9 | /usr/lib64/libstdc++.so.6(_ZSt10unexpectedv+0) [0x76b51c7325d9]
+	#9 | /usr/lib/libEGL_mesa.so.0(+0xadf6) [0x7e803e5ccdf6]
 		??
 		??:0
-	#1 | /usr/lib64/libstdc++.so.6(+0xb2176) [0x76b51c74d176]
+	#1 | /usr/lib/libaquamarine.so.8(_ZN10Aquamarine12CDRMRenderer11initContextEv+0x44) [0x7e804a3f0444]
 		??
 		??:0
-	#11 | /usr/bin/Hyprland(+0x2d9077) [0x6539b6fb8077]
-		throwError(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [clone .cold]
-		MiscFunctions.cpp:?
-	#12 | /usr/bin/Hyprland(_ZN11CCompositor10initServerENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEi+0x1066) [0x6539b7179d86]
+	#11 | /usr/lib/libaquamarine.so.8(_ZN10Aquamarine12CDRMRenderer7attemptEN9Hyprutils6Memory14CSharedPointerINS_8CBackendEEEi+0x2f4) [0x7e804a3f4a34]
+		??
+		??:0
+	#12 | /usr/lib/libaquamarine.so.8(_ZN10Aquamarine11CDRMBackend7onReadyEv+0x8e6) [0x7e804a3df396]
+		??
+		??:0
+	#13 | /usr/lib/libaquamarine.so.8(_ZN10Aquamarine8CBackend5startEv+0x6b7) [0x7e804a3a1b57]
+		??
+		??:0
+	#14 | /usr/bin/Hyprland(_ZN11CCompositor10initServerENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEi+0x6d9) [0x5ff81bc9b3f9]
 		CCompositor::initServer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, int)
 		??:?
-	#13 | /usr/bin/Hyprland(main+0xe43) [0x6539b7083bb3]
+	#15 | /usr/bin/Hyprland(main+0xe43) [0x5ff81bba5bb3]
 		main
 		??:?
-	#14 | /usr/lib64/libc.so.6(+0x27675) [0x76b51c372675]
+	#16 | /usr/lib/libc.so.6(+0x27675) [0x7e80491e8675]
 		??
 		??:0
-	#15 | /usr/lib64/libc.so.6(__libc_start_main+0x89) [0x76b51c372729]
+	#17 | /usr/lib/libc.so.6(__libc_start_main+0x89) [0x7e80491e8729]
 		??
 		??:0
-	#16 | /usr/bin/Hyprland(_start+0x25) [0x6539b71065e5]
+	#18 | /usr/bin/Hyprland(_start+0x25) [0x5ff81bc285e5]
 		_start
 		??:?
 
 
 Log tail:
-[LOG] Instance Signature: 231b800784e2bd9bc168070d6769e97f93ff53b2_1757661599_1869216744
-[LOG] Runtime directory: /tmp/runtime-root/hypr/231b800784e2bd9bc168070d6769e97f93ff53b2_1757661599_1869216744
-[LOG] Hyprland PID: 68
-[LOG] ===== SYSTEM INFO: =====
-[LOG] System name: Linux
-[LOG] Node name: be7eb0227f9f
-[LOG] Release: 6.14.0-29-generic
-[LOG] Version: #29~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Aug 14 16:52:50 UTC 2
-
-
-[LOG] GPU information:
-0a:00.0 VGA compatible controller [0300]: NVIDIA Corporation AD102 [GeForce RTX 4090] [10de:2684] (rev a1) (prog-if 00 [VGA controller])
-
-
-[WARN] Warning: you're using an NVIDIA GPU. Make sure you follow the instructions on the wiki if anything is amiss.
-
-[LOG] os-release:
-NAME="Arch Linux"
-PRETTY_NAME="Arch Linux"
-ID=arch
-BUILD_ID=rolling
-VERSION_ID=20250907.0.417472
-ANSI_COLOR="38;2;23;147;209"
-HOME_URL="https://archlinux.org/"
-DOCUMENTATION_URL="https://wiki.archlinux.org/"
-SUPPORT_URL="https://bbs.archlinux.org/"
-BUG_REPORT_URL="https://gitlab.archlinux.org/groups/archlinux/-/issues"
-PRIVACY_POLICY_URL="https://terms.archlinux.org/docs/privacy-policy/"
-LOGO=archlinux-logo
-[LOG] ========================
-
-
-
-[INFO] If you are crashing, or encounter any bugs, please consult https://wiki.hypr.land/Crashes-and-Bugs/
-
-
-[LOG] 
-Current splash: Take on me, take me on...
-
-
-[LOG] Old rlimit: soft -> 1048576, hard -> 1048576
-[LOG] New rlimit: soft -> 1048576, hard -> 1048576
-[LOG] Creating the EventLoopManager!
-[LOG] Creating the HookSystem!
-[LOG] Creating the KeybindManager!
-[LOG] Creating the AnimationManager!
-[LOG] Creating the DynamicPermissionManager!
-[LOG] Creating the ConfigManager!
-[LOG] Using config: /test_config/hyprland.conf
-[INFO] !!!!HEY YOU, YES YOU!!!!: further logs to stdout / logfile are disabled by default. BEFORE SENDING THIS LOG, ENABLE THEM. Use debug:disable_logs = false to do so: https://wiki.hypr.land/Configuring/Variables/#debug
-[LOG] Creating the CHyprError!
-[LOG] Creating the LayoutManager!
-[LOG] Creating the TokenManager!
-[LOG] [hookSystem] New hook event registered: preConfigReload
-[LOG] Using config: /test_config/hyprland.conf
-[LOG] Disabling stdout logs! Check the log for further logs.
-[LOG] Creating the PointerManager!
-[LOG] Creating the EventManager!
-[LOG] [AQ] Creating an Aquamarine backend!
-[LOG] [AQ] [libseat] [libseat/backend/seatd.c:64] Could not connect to socket /run/seatd.sock: No such file or directory
-[LOG] [AQ] [libseat] [libseat/libseat.c:76] Backend 'seatd' failed to open seat, skipping
-[ERR] [AQ] [libseat] [libseat/backend/logind.c:621] Could not get primary session for user: No data available
-[LOG] [AQ] [libseat] [libseat/libseat.c:76] Backend 'logind' failed to open seat, skipping
-[ERR] [AQ] [libseat] [libseat/libseat.c:79] No backend was able to open a seat
-[ERR] [AQ] libseat: failed to open a seat
-[ERR] [AQ] Failed to open a session
-[ERR] [AQ] DRM Backend failed
+[LOG] [AQ] drm: Connector 134 connection state: 2
+[LOG] [AQ] drm: Scanning connector id 138
+[LOG] [AQ] drm: Initializing connector id 138
+[LOG] [AQ] drm: Connector gets name DP-3
+[ERR] [AQ] drm: getCurrentCRTC: No CRTC 0
+[LOG] [AQ] drm: Connector 138 connection state: 2
+[LOG] [AQ] drm: Rechecking CRTCs
+[LOG] [AQ] drm: connector HDMI-A-1, has crtc -1, will be rechecked
+[LOG] [AQ] drm: connector DP-1, has crtc -1, will be rechecked
+[LOG] [AQ] drm: connector DP-2, has crtc -1, will be rechecked
+[LOG] [AQ] drm: connector DP-3, has crtc -1, will be rechecked
+[LOG] [AQ] drm: connected slot 0 crtc 61 assigned to HDMI-A-1
+[LOG] [AQ] drm: slot 1 crtc 80 unassigned
+[LOG] [AQ] drm: slot 2 crtc 99 unassigned
+[LOG] [AQ] drm: slot 3 crtc 118 unassigned
+[LOG] [AQ] drm: Connector DP-1 is not connected
+[LOG] [AQ] drm: Connector DP-2 is not connected
+[LOG] [AQ] drm: Connector DP-3 is not connected
+[LOG] [AQ] drm: Connector HDMI-A-1 connected
+[LOG] [AQ] drm: Connecting connector HDMI-A-1, CRTC ID 61
+[LOG] [AQ] drm: Dumping detected modes:
+[LOG] [AQ] drm: Mode 0: 3840x2160@60.00Hz  (preferred)
+[LOG] [AQ] drm: Mode 1: 3840x2160@59.94Hz 
+[LOG] [AQ] drm: Mode 2: 3840x2160@50.00Hz 
+[LOG] [AQ] drm: Mode 3: 3840x2160@30.00Hz 
+[LOG] [AQ] drm: Mode 4: 3840x2160@29.97Hz 
+[LOG] [AQ] drm: Mode 5: 3840x2160@25.00Hz 
+[LOG] [AQ] drm: Mode 6: 3840x2160@23.98Hz 
+[LOG] [AQ] drm: Mode 7: 2560x1440@59.95Hz 
+[LOG] [AQ] drm: Mode 8: 1920x1080@60.00Hz 
+[LOG] [AQ] drm: Mode 9: 1920x1080@59.94Hz 
+[LOG] [AQ] drm: Mode 10: 1920x1080@50.00Hz 
+[LOG] [AQ] drm: Mode 11: 1920x1080@29.97Hz 
+[LOG] [AQ] drm: Mode 12: 1920x1080@23.98Hz 
+[LOG] [AQ] drm: Mode 13: 1600x900@60.00Hz 
+[LOG] [AQ] drm: Mode 14: 1280x1024@60.02Hz 
+[LOG] [AQ] drm: Mode 15: 1280x800@59.81Hz 
+[LOG] [AQ] drm: Mode 16: 1152x864@60.00Hz 
+[LOG] [AQ] drm: Mode 17: 1280x720@60.00Hz 
+[LOG] [AQ] drm: Mode 18: 1280x720@59.94Hz 
+[LOG] [AQ] drm: Mode 19: 1024x768@60.00Hz 
+[LOG] [AQ] drm: Mode 20: 800x600@60.32Hz 
+[LOG] [AQ] drm: Mode 21: 720x576@50.00Hz 
+[LOG] [AQ] drm: Mode 22: 720x480@59.94Hz 
+[LOG] [AQ] drm: Mode 23: 640x480@59.94Hz 
+[LOG] [AQ] drm: Mode 24: 640x480@59.93Hz 
+[LOG] [AQ] drm: Physical size [Vector2D: x: 600, y: 340] (mm)
+[LOG] [AQ] drm: Description LG Electronics LG HDR 4K 0x0004EE8C (HDMI-A-1)
+[LOG] [AQ] drm: connector HDMI-A-1 crtc is incapable of vrr: props.vrr_capable -> 141, crtc->props.vrr_enabled -> 24
+[LOG] [AQ] drm: Explicit sync supported
+[LOG] [AQ] drm: connector HDMI-A-1 crtc supports CTM
+[LOG] [AQ] drm: connector HDMI-A-1 crtc supports HDR (7)
+[LOG] [AQ] drm: connector HDMI-A-1 crtc supports Colorspace (128)
+[LOG] [AQ] drm: gpu /dev/dri/card1 becomes primary drm
+[LOG] [AQ] DRM Dumb: created a dumb allocator
 [LOG] [AQ] Starting the Aquamarine backend!
 [LOG] [AQ] Starting the Wayland backend!
 [ERR] [AQ] Wayland backend cannot start: wl_display_connect failed (is a wayland compositor running?)
 [ERR] [AQ] Requested backend (wayland) could not start, enabling fallbacks
 [ERR] [AQ] Implementation wayland failed, erasing.
-[CRITICAL] [AQ] Cannot open backend: no allocator available
-[CRITICAL] m_pAqBackend couldn't start! This usually means aquamarine could not find a GPU or encountered some issues. Make sure you're running either on a tty or on a Wayland session, NOT an X11 one.
-[CRITICAL] Critical error thrown: CBackend::create() failed!
+[LOG] [AQ] reopenDRMNode: opening node /dev/dri/renderD128
+[LOG] [AQ] Created a GBM allocator with drm fd 21
+[LOG] [AQ] drm: Connectors size2 4
+[LOG] [AQ] reopenDRMNode: opening node /dev/dri/renderD128
+[LOG] [AQ] Created a GBM allocator with drm fd 22
+[LOG] [AQ] Supported EGL client extensions: (16) EGL_EXT_platform_base EGL_EXT_device_base EGL_EXT_device_enumeration EGL_EXT_device_query EGL_KHR_client_get_all_proc_addresses EGL_EXT_client_extensions EGL_KHR_debug EGL_KHR_platform_x11 EGL_EXT_platform_x11 EGL_EXT_platform_device EGL_MESA_platform_surfaceless EGL_EXT_explicit_device EGL_KHR_platform_wayland EGL_EXT_platform_wayland EGL_KHR_platform_gbm EGL_MESA_platform_gbm EGL_EXT_platform_xcb
+[ERR] [AQ] [EGL] Command eglQueryDevicesEXT errored out with EGL_BAD_ALLOC (0x12291): EGL_BAD_ALLOC error: In eglQueryDevicesEXT: Failed to allocate device list.
+
+[ERR] [AQ] [EGL] Command eglQueryDevicesEXT errored out with EGL_BAD_ALLOC (0x12291): EGL_BAD_ALLOC error: In eglQueryDevicesEXT: Failed to allocate device list.
+
+[LOG] [AQ] CDRMRenderer(drm): Using device /dev/dri/card1

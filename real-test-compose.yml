@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.moonlight
+    runtime: nvidia
     volumes:
       - .:/workspace
       - ./test_config:/test_config
@@ -29,7 +30,7 @@ services:
       - EGL_PLATFORM=drm
       - GBM_BACKEND=nvidia-drm
       - __GLX_VENDOR_LIBRARY_NAME=nvidia
-      - WLR_DRM_DEVICES=/dev/dri/card0
+      - WLR_DRM_DEVICES=/dev/dri/card1
       - WLR_RENDERER_ALLOW_SOFTWARE=1
       - WLR_DRM_NO_ATOMIC=1
       - GPU_RENDER_NODE=/dev/dri/renderD128
@@ -39,7 +40,6 @@ services:
       # Runtime directories
       - XDG_RUNTIME_DIR=/tmp/runtime-root
       - WAYLAND_DISPLAY=wayland-0
-    runtime: nvidia
     command: |
       bash -c "
         echo '🚀 Building HyprMoon with real moonlight integration...'
@@ -99,10 +99,15 @@ services:
         # Create output directory
         mkdir -p /test_output
         
-        # Test the actual moonlight integration (binary verification)
-        echo '🧪 Testing moonlight integration...'
-        chmod +x /test_config/test_moonlight_binary.sh
-        /test_config/test_moonlight_binary.sh
+        # Debug crash report directory issue with proper sorting and debug logging
+        echo '🧪 Debugging crash report and user permissions...'
+        chmod +x /test_config/debug_crash_report_fixed.sh
+        /test_config/debug_crash_report_fixed.sh
+        
+        # Run the REAL E2E test
+        echo '🧪 Running REAL E2E Test...'
+        chmod +x /test_config/real_e2e_test.sh
+        /test_config/real_e2e_test.sh
         
         # Show final status
         echo '📈 Final test results:'

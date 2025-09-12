@@ -1,0 +1,50 @@
+[LOG] Instance Signature: 231b800784e2bd9bc168070d6769e97f93ff53b2_1757661584_767515871
+[LOG] Runtime directory: /tmp/runtime-root/hypr/231b800784e2bd9bc168070d6769e97f93ff53b2_1757661584_767515871
+[LOG] Hyprland PID: 28
+[LOG] ===== SYSTEM INFO: =====
+[LOG] System name: Linux
+[LOG] Node name: be7eb0227f9f
+[LOG] Release: 6.14.0-29-generic
+[LOG] Version: #29~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Aug 14 16:52:50 UTC 2
+
+
+[LOG] GPU information:
+0a:00.0 VGA compatible controller [0300]: NVIDIA Corporation AD102 [GeForce RTX 4090] [10de:2684] (rev a1) (prog-if 00 [VGA controller])
+
+
+[WARN] Warning: you're using an NVIDIA GPU. Make sure you follow the instructions on the wiki if anything is amiss.
+
+[LOG] os-release:
+NAME="Arch Linux"
+PRETTY_NAME="Arch Linux"
+ID=arch
+BUILD_ID=rolling
+VERSION_ID=20250907.0.417472
+ANSI_COLOR="38;2;23;147;209"
+HOME_URL="https://archlinux.org/"
+DOCUMENTATION_URL="https://wiki.archlinux.org/"
+SUPPORT_URL="https://bbs.archlinux.org/"
+BUG_REPORT_URL="https://gitlab.archlinux.org/groups/archlinux/-/issues"
+PRIVACY_POLICY_URL="https://terms.archlinux.org/docs/privacy-policy/"
+LOGO=archlinux-logo
+[LOG] ========================
+
+
+
+[INFO] If you are crashing, or encounter any bugs, please consult https://wiki.hypr.land/Crashes-and-Bugs/
+
+
+[LOG] 
+Current splash: Why is there code??? Make a damn .exe file and give it to me.
+
+
+[LOG] Old rlimit: soft -> 1048576, hard -> 1048576
+[LOG] New rlimit: soft -> 1048576, hard -> 1048576
+[LOG] Creating the EventLoopManager!
+[LOG] Creating the HookSystem!
+[LOG] Creating the KeybindManager!
+[LOG] Creating the AnimationManager!
+[LOG] Creating the DynamicPermissionManager!
+[LOG] Creating the ConfigManager!
+[LOG] Using config: /test_config/hyprland.conf
+[INFO] !!!!HEY YOU, YES YOU!!!!: further logs to stdout / logfile are disabled by default. BEFORE SENDING THIS LOG, ENABLE THEM. Use debug:disable_logs = false to do so: https://wiki.hypr.land/Configuring/Variables/#debug

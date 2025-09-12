@@ -1,0 +1,60 @@
+FROM archlinux:base-devel
+
+# Install dependencies for wlroots Hyprland build
+RUN pacman -Syu --noconfirm && pacman -S --noconfirm \
+    git \
+    meson \
+    ninja \
+    cmake \
+    pkgconf \
+    gdb \
+    wayland \
+    wayland-protocols \
+    cairo \
+    pango \
+    libxkbcommon \
+    libdrm \
+    mesa \
+    pixman-1 \
+    libxcb \
+    xcb-proto \
+    xcb-util \
+    xcb-util-keysyms \
+    xcb-util-wm \
+    xcb-util-image \
+    xcb-util-renderutil \
+    xcb-util-cursor \
+    libxml2 \
+    tomlplusplus \
+    hyprlang \
+    hyprutils \
+    hyprcursor \
+    udis86 \
+    libuuid \
+    pciutils \
+    jq
+
+# For moonlight integration
+RUN pacman -S --noconfirm \
+    gstreamer \
+    gst-plugins-base \
+    gst-plugins-good \
+    gst-plugins-bad \
+    gst-plugins-ugly \
+    gst-plugin-pipewire \
+    boost \
+    fmt \
+    spdlog \
+    openssl \
+    opus \
+    x264 \
+    protobuf
+
+WORKDIR /build
+COPY . .
+
+# Build with session management and libinput disabled
+RUN meson setup build -Dwith_moonlight=true -Dheadless=true && \
+    meson compile -C build
+
+ENTRYPOINT ["/bin/bash"]

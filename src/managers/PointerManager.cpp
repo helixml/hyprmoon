@@ -484,22 +484,15 @@ bool CPointerManager::setHWCursorBuffer(SP<SMonitorPointerState> state, wlr_buff
 wlr_buffer* CPointerManager::renderHWCursorBuffer(SP<CPointerManager::SMonitorPointerState> state, SP<CTexture> texture) {
     auto output = state->monitor->output;
 
-    int  w = currentCursorImage.size.x, h = currentCursorImage.size.y;
-    if (output->impl->get_cursor_size) {
-        output->impl->get_cursor_size(output, &w, &h);
+    int w = currentCursorImage.size.x, h = currentCursorImage.size.y;
+    // Skip cursor size checking - system wlroots API varies
 
-        if (w < currentCursorImage.size.x || h < currentCursorImage.size.y) {
-            Debug::log(TRACE, "hardware cursor too big! {} > {}x{}", currentCursorImage.size, w, h);
-            return nullptr;
-        }
-    }
-
-    if (w <= 0 || h <= 0) {
-        Debug::log(TRACE, "hw cursor for output {} failed the size checks ({}x{} is invalid)", state->monitor->szName, w, h);
+    if ((int)w <= 0 || (int)h <= 0) {
+        Debug::log(TRACE, "hw cursor for output {} failed the size checks ({}x{} is invalid)", state->monitor->szName, (int)w, (int)h);
         return nullptr;
     }
 
-    if (!output->cursor_swapchain || Vector2D{w, h} != Vector2D{output->cursor_swapchain->width, output->cursor_swapchain->height}) {
+    if (!output->cursor_swapchain || Vector2D{(double)w, (double)h} != Vector2D{(double)output->cursor_swapchain->width, (double)output->cursor_swapchain->height}) {
         wlr_drm_format fmt = {0};
         if (!output_pick_cursor_format(output, &fmt)) {
             Debug::log(TRACE, "Failed to pick cursor format");
@@ -507,7 +500,7 @@ wlr_buffer* CPointerManager::renderHWCursorBuffer(SP<CPointerManager::SMonitorPo
         }
 
         wlr_swapchain_destroy(output->cursor_swapchain);
-        output->cursor_swapchain = wlr_swapchain_create(output->allocator, w, h, &fmt);
+        output->cursor_swapchain = wlr_swapchain_create(output->allocator, (int)w, (int)h, &fmt);
         wlr_drm_format_finish(&fmt);
 
         if (!output->cursor_swapchain) {
@@ -534,7 +527,7 @@ wlr_buffer* CPointerManager::renderHWCursorBuffer(SP<CPointerManager::SMonitorPo
     g_pHyprOpenGL->clear(CColor{0.F, 0.F, 0.F, 0.F});
 
     CBox xbox = {{}, Vector2D{currentCursorImage.size / currentCursorImage.scale * state->monitor->scale}.round()};
-    Debug::log(TRACE, "[pointer] monitor: {}, size: {}, hw buf: {}, scale: {:.2f}, monscale: {:.2f}, xbox: {}", state->monitor->szName, currentCursorImage.size, Vector2D{w, h},
+    Debug::log(TRACE, "[pointer] monitor: {}, size: {}, hw buf: {}, scale: {:.2f}, monscale: {:.2f}, xbox: {}", state->monitor->szName, currentCursorImage.size, Vector2D{(double)w, (double)h},
                currentCursorImage.scale, state->monitor->scale, xbox.size());
 
     g_pHyprOpenGL->renderTexture(texture, &xbox, 1.F);

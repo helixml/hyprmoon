@@ -188,11 +188,12 @@ CWLSHMProtocol::CWLSHMProtocol(const wl_interface* iface, const int& ver, const 
 
 void CWLSHMProtocol::bindManager(wl_client* client, void* data, uint32_t ver, uint32_t id) {
     if (shmFormats.empty()) {
-        size_t          len     = 0;
-        const uint32_t* formats = wlr_renderer_get_shm_texture_formats(g_pCompositor->m_sWLRRenderer, &len);
-
-        for (size_t i = 0; i < len; ++i) {
-            shmFormats.push_back(FormatUtils::drmToShm(formats[i]));
+        uint32_t format_count = 0;
+        const wlr_drm_format_set* formats = wlr_renderer_get_texture_formats(g_pCompositor->m_sWLRRenderer, &format_count);
+        if (formats) {
+            for (size_t i = 0; i < formats->len; ++i) {
+                shmFormats.push_back(FormatUtils::drmToShm(formats->formats[i].format));
+            }
         }
     }
 

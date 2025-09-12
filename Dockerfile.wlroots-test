@@ -1,0 +1,61 @@
+FROM archlinux:latest
+
+# Install base build dependencies
+RUN pacman -Sy --noconfirm \
+    base-devel \
+    git \
+    meson \
+    ninja \
+    gcc \
+    pkgconf \
+    cmake \
+    jq \
+    ccache
+
+# Install all dependencies in one step
+RUN pacman -S --noconfirm \
+    wayland \
+    wayland-protocols \
+    cairo \
+    pango \
+    libdrm \
+    libxkbcommon \
+    libinput \
+    pixman \
+    mesa \
+    libglvnd \
+    egl-wayland \
+    libxcb \
+    xcb-util \
+    xcb-util-wm \
+    xcb-util-errors \
+    xcb-util-renderutil \
+    xcb-util-keysyms \
+    util-linux \
+    boost \
+    gstreamer \
+    gst-plugins-base \
+    gst-plugins-good \
+    gst-plugins-bad \
+    enet \
+    fmt \
+    openssl \
+    icu \
+    pciutils \
+    curl \
+    hwdata \
+    hyprwayland-scanner \
+    hyprcursor
+
+# Setup ccache
+ENV CCACHE_DIR=/ccache
+ENV CC="ccache gcc"
+ENV CXX="ccache g++"
+RUN mkdir -p /ccache && chmod 777 /ccache
+
+WORKDIR /workspace
+
+COPY . .
+
+# Test the build setup interactively
+CMD ["bash"]

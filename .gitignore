@@ -7,20 +7,29 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+hyprland.pc
 _deps
 
 build/
 result*
+/.pre-commit-config.yaml
 /.vscode/
 /.idea/
 .envrc
 .cache
+.direnv
+/.cmake/
+/.worktree/
 
 *.o
 protocols/*.c*
 protocols/*.h*
 .ccls-cache
 *.so
+src/render/shaders/*.inc
+src/render/shaders/Shaders.hpp
 
 hyprctl/hyprctl
 
@@ -31,5 +40,11 @@ gmon.out
 PKGBUILD
 
 src/version.h
+hyprpm/Makefile
+hyprctl/Makefile
 
-.direnv
+**/.#*.*
+**/#*.*#
+core.*
+test_output/crash_reports
+build.log

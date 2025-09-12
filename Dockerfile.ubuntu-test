@@ -1,0 +1,119 @@
+# Ubuntu-based test to match helix's working configuration
+FROM ubuntu:25.04
+
+# Install basic dependencies and Hyprland from Ubuntu repos (like helix)
+RUN apt-get update && apt-get install -y \
+    wget curl ca-certificates gnupg software-properties-common \
+    git cmake build-essential \
+    libcurl4-openssl-dev libssl-dev \
+    libudev-dev libpci-dev jq \
+    # Try to install Hyprland (ignore failure like helix does)
+    && (apt-get install -y hyprland || echo "Hyprland not available, using fallback") \
+    # Mesa GPU drivers exactly like helix
+    && apt-get install -y va-driver-all intel-media-va-driver-non-free \
+    libva-drm2 libva-x11-2 libvpl2 \
+    # Core Mesa/OpenGL libraries for GPU acceleration
+    mesa-utils mesa-utils-extra \
+    libgl1-mesa-dri libglx-mesa0 \
+    libegl-mesa0 libgles2-mesa-dev \
+    libgbm1 libdrm2 \
+    # Hardware detection tools
+    pciutils lshw usbutils kmod libkmod2 \
+    # Wayland libraries
+    libwayland-dev libwayland-server0 libinput-dev libxkbcommon-dev \
+    # Session management
+    dbus-x11 dbus \
+    # Additional tools
+    supervisor nano vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy our moonlight-integrated Hyprland binary
+COPY build/src/Hyprland /usr/local/bin/Hyprland-moonlight
+
+# Test script that uses helix's exact environment variables
+COPY <<EOF /test-hyprland.sh
+#!/bin/bash
+set -e
+
+echo "Testing HyprMoon with Ubuntu base (helix style)..."
+
+# Set up environment exactly like helix
+export WLR_RENDERER=gles2
+export WLR_BACKENDS=headless
+export WLR_NO_HARDWARE_CURSORS=1
+export WLR_HEADLESS_OUTPUTS=1
+
+# GPU acceleration settings exactly like helix
+export __GL_THREADED_OPTIMIZATIONS=1
+export __GL_SYNC_TO_VBLANK=1
+export LIBGL_ALWAYS_SOFTWARE=0
+
+# NVIDIA settings exactly like helix
+export NVIDIA_VISIBLE_DEVICES=all
+export NVIDIA_DRIVER_CAPABILITIES=all
+export LIBGL_DRIVERS_PATH="/usr/lib/x86_64-linux-gnu/dri"
+export LIBVA_DRIVERS_PATH="/usr/lib/x86_64-linux-gnu/dri"
+
+# EGL configuration exactly like helix
+export EGL_PLATFORM=drm
+export GBM_BACKEND=nvidia-drm
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+
+# wlroots configuration exactly like helix
+export WLR_DRM_DEVICES=/dev/dri/card0
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+export WLR_DRM_NO_ATOMIC=1
+
+# Runtime setup
+export XDG_RUNTIME_DIR=/tmp/runtime-root
+mkdir -p /tmp/runtime-root
+chmod 700 /tmp/runtime-root
+
+echo "🔍 GPU Detection:"
+echo "DRI devices: \$(ls /dev/dri/ 2>/dev/null || echo 'none')"
+if command -v lspci >/dev/null 2>&1; then
+    echo "GPU info: \$(lspci | grep -i nvidia | head -1 || echo 'no nvidia detected')"
+fi
+
+echo "🚀 Testing Ubuntu Hyprland first..."
+if /usr/bin/Hyprland --help >/dev/null 2>&1; then
+    echo "✅ Ubuntu Hyprland binary works"
+    echo "🧪 Testing Ubuntu Hyprland startup..."
+    timeout 10 /usr/bin/Hyprland --i-am-really-stupid &
+    UBUNTU_PID=\$!
+    sleep 5
+    if kill -0 \$UBUNTU_PID 2>/dev/null; then
+        echo "✅ Ubuntu Hyprland started successfully!"
+        kill \$UBUNTU_PID
+    else
+        echo "❌ Ubuntu Hyprland failed to start"
+    fi
+else
+    echo "❌ Ubuntu Hyprland not available"
+fi
+
+echo "🌙 Testing our moonlight-integrated Hyprland..."
+if /usr/local/bin/Hyprland-moonlight --help >/dev/null 2>&1; then
+    echo "✅ HyprMoon binary works"
+    echo "🧪 Testing HyprMoon startup..."
+    timeout 10 /usr/local/bin/Hyprland-moonlight --i-am-really-stupid &
+    MOON_PID=\$!
+    sleep 5
+    if kill -0 \$MOON_PID 2>/dev/null; then
+        echo "✅ HyprMoon started successfully!"
+        echo "🎉 SUCCESS: Moonlight integration works with Ubuntu base!"
+        kill \$MOON_PID
+    else
+        echo "❌ HyprMoon failed to start"
+        echo "📋 Checking for error logs..."
+    fi
+else
+    echo "❌ HyprMoon binary not found or doesn't work"
+fi
+
+echo "Test complete."
+EOF
+
+RUN chmod +x /test-hyprland.sh
+
+CMD ["/test-hyprland.sh"]

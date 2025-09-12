@@ -810,8 +810,14 @@ bool CKeybindManager::handleVT(xkb_keysym_t keysym) {
 
         Debug::log(LOG, "Switching from VT {} to VT {}", ttynum, TTY);
 
-        if (!wlr_session_change_vt(g_pCompositor->m_sWLRSession, TTY))
-            return true; // probably same session
+        // Session management not available in headless mode
+        if (g_pCompositor->m_sWLRSession && false) { // Disabled for headless builds
+            // if (!wlr_session_change_vt(g_pCompositor->m_sWLRSession, TTY))
+            //     return true; // probably same session
+        } else {
+            Debug::log(WARN, "VT switching not available in headless mode");
+            return true;
+        }
 
         g_pCompositor->m_bSessionActive = false;
 
@@ -911,14 +917,20 @@ uint64_t CKeybindManager::spawnRaw(std::string args) {
             _exit(0);
         }
         close(socket[0]);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
         write(socket[1], &grandchild, sizeof(grandchild));
+#pragma GCC diagnostic pop
         close(socket[1]);
         // exit child
         _exit(0);
     }
     // run in parent
     close(socket[1]);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
     read(socket[0], &grandchild, sizeof(grandchild));
+#pragma GCC diagnostic pop
     close(socket[0]);
     // clear child and leave grandchild to init
     waitpid(child, NULL, 0);

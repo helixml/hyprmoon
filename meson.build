@@ -1,5 +1,5 @@
 project('Hyprland', 'cpp', 'c',
-  version : run_command('jq', '-r', '.version', join_paths(meson.source_root(), 'props.json'), check: true).stdout().strip(),
+  version : '0.41.2',
   default_options : [
     'warning_level=2',
     'default_library=static',
@@ -16,6 +16,7 @@ add_project_arguments(
     '-Wno-missing-field-initializers',
     '-Wno-narrowing',
     '-Wno-pointer-arith',
+    '-D_FORTIFY_SOURCE=2',  # Ubuntu hardening flag
   ],
   language: 'cpp')
 
@@ -24,8 +25,9 @@ if cpp_compiler.check_header('execinfo.h')
   add_project_arguments('-DHAS_EXECINFO', language: 'cpp')
 endif
 
-wlroots = subproject('wlroots-hyprland', default_options: ['examples=false', 'renderers=gles2'])
-have_xwlr = wlroots.get_variable('features').get('xwayland')
+# Use system wlroots instead of bundled subproject (Ubuntu-style)
+wlroots = dependency('wlroots-0.18')
+have_xwlr = true  # Assume xwayland support in system wlroots
 xcb_dep = dependency('xcb', required: get_option('xwayland'))
 xcb_composite_dep = dependency('xcb-composite', required: get_option('xwayland'))
 xcb_errors_dep = dependency('xcb-errors', required: get_option('xwayland'))
@@ -34,9 +36,10 @@ xcb_render_dep = dependency('xcb-render', required: get_option('xwayland'))
 xcb_res_dep = dependency('xcb-res', required: get_option('xwayland'))
 xcb_xfixes_dep = dependency('xcb-xfixes', required: get_option('xwayland'))
 
-cmake = import('cmake')
-udis = cmake.subproject('udis86')
-udis86 = udis.dependency('libudis86')
+# Use system udis86 instead of bundled subproject (Ubuntu-style)
+udis86 = dependency('udis86')
+
+backtrace_dep = cpp_compiler.find_library('execinfo', required: false)
 
 if get_option('xwayland').enabled() and not have_xwlr
 	error('Cannot enable Xwayland in Hyprland: wlroots has been built without Xwayland support')
@@ -45,6 +48,11 @@ have_xwayland = xcb_dep.found() and have_xwlr
 
 if not have_xwayland
   add_project_arguments('-DNO_XWAYLAND', language: 'cpp')
+endif
+
+# Moonlight integration support
+if get_option('with_moonlight')
+  add_project_arguments('-DWITH_MOONLIGHT', language: 'cpp')
 endif
 
 backtrace_dep = cpp_compiler.find_library('execinfo', required: false)

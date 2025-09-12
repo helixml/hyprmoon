@@ -1,0 +1,38 @@
+services:
+  gpu-test:
+    image: ubuntu:25.04
+    volumes:
+      - .:/workspace
+      - /dev/dri:/dev/dri
+    environment:
+      - WLR_RENDERER=gles2
+      - WLR_BACKENDS=headless
+      - WLR_NO_HARDWARE_CURSORS=1
+      - WLR_HEADLESS_OUTPUTS=1
+      - WLR_DRM_DEVICES=/dev/dri/card1
+      - WLR_RENDERER_ALLOW_SOFTWARE=1
+      - WLR_DRM_NO_ATOMIC=1
+      - __GL_THREADED_OPTIMIZATIONS=1
+      - __GL_SYNC_TO_VBLANK=1
+      - LIBGL_ALWAYS_SOFTWARE=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - EGL_PLATFORM=drm
+      - GBM_BACKEND=nvidia-drm
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - GPU_RENDER_NODE=/dev/dri/renderD128
+      - GST_GL_DRM_DEVICE=/dev/dri/renderD128
+      - GST_GL_API=gles2
+      - GST_GL_WINDOW=surfaceless
+      - XDG_RUNTIME_DIR=/tmp
+    runtime: nvidia
+    command: bash /workspace/simple-test.sh
+    tmpfs:
+      - /tmp:rw,size=200m
+    container_name: gpu_test
+    devices:
+      - /dev/dri
+    group_add:
+      - video

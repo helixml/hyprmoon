@@ -1,0 +1,112 @@
+# HyprMoon with Ubuntu base (using helix's proven GPU setup)
+FROM ubuntu:25.04
+
+# Install base packages
+RUN apt-get update && apt-get install -y \
+    wget curl ca-certificates gnupg software-properties-common \
+    git cmake build-essential \
+    libcurl4-openssl-dev libssl-dev \
+    libudev-dev libpci-dev jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Wayland compositor and VNC server with GPU support
+RUN apt-get update && apt-get install -y \
+    wayvnc cage sway-backgrounds weston \
+    # Try to install Hyprland (ignore failure) - we'll replace this binary
+    && (apt-get install -y hyprland || echo "Hyprland not available, using fallback") \
+    # Add moonlight dependencies for our custom Hyprland
+    && apt-get install -y \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+    gstreamer1.0-tools libgstreamer-gl1.0-0 \
+    libenet-dev libssl-dev libfmt-dev \
+    libboost-system-dev libboost-filesystem-dev \
+    pkg-config wlroots-dev ninja-build \
+    # Basic utilities
+    && apt-get install -y \
+    bc coreutils cmake curl rsync wget ripgrep jq meson xdg-user-dirs unzip \
+    fontconfig eza fish kitty \
+    glib2.0-bin wl-clipboard translate-shell \
+    pipewire-audio pulseaudio-utils alsa-utils \
+    python3 python3-pip python3-venv \
+    wget git unzip curl sqlite3 ca-certificates \
+    build-essential cmake \
+    nodejs npm python3 python3-pip \
+    # Intel/Mesa GPU drivers
+    va-driver-all intel-media-va-driver-non-free \
+    libva-drm2 libva-x11-2 libvpl2 \
+    # Core Mesa/OpenGL libraries for GPU acceleration
+    mesa-utils mesa-utils-extra \
+    libgl1-mesa-dri libglx-mesa0 \
+    libegl-mesa0 libgles2-mesa-dev \
+    libgbm1 libdrm2 \
+    # Hardware detection tools and kernel module support
+    pciutils lshw usbutils kmod libkmod2 \
+    # Wayland display protocol libraries
+    libwayland-dev libwayland-server0 libinput-dev libxkbcommon-dev \
+    # Zed runtime dependencies
+    libfontconfig1 libfreetype6 libxcb1 libxcb-render0 libxcb-shape0 \
+    libxcb-xfixes0 libxcb-shm0 libxkbcommon0 libxkbcommon-x11-0 \
+    libasound2t64 libssl3 libgtk-3-0 libgdk-pixbuf2.0-0 libpango-1.0-0 libcairo2 \
+    # DBus and session management
+    dbus-x11 dbus \
+    # XWayland for X11 app compatibility
+    xwayland \
+    # Additional tools
+    supervisor nano vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add NVIDIA CUDA runtime libraries for GPU acceleration
+RUN apt-get update -y && \
+    apt-get install -y unzip curl && \
+    cd /tmp && \
+    curl -fsSL -o nvidia_cuda_nvrtc_linux_x86_64.whl "https://developer.download.nvidia.com/compute/redist/nvidia-cuda-nvrtc/nvidia_cuda_nvrtc-11.0.221-cp36-cp36m-linux_x86_64.whl" && \
+    unzip -joq -d ./nvrtc nvidia_cuda_nvrtc_linux_x86_64.whl && \
+    cd nvrtc && \
+    chmod 755 libnvrtc* && \
+    find . -maxdepth 1 -type f -name "*libnvrtc.so.*" -exec sh -c 'ln -snf $(basename {}) libnvrtc.so' \; && \
+    mkdir -p /usr/local/nvidia/lib && \
+    mv -f libnvrtc* /usr/local/nvidia/lib && \
+    rm -rf /tmp/* && \
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
+    ldconfig && \
+    apt-get remove -y --purge unzip curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure ubuntu user for Wayland sessions
+RUN useradd -m -s /bin/bash ubuntu && echo 'ubuntu:helix123' | chpasswd && usermod -aG sudo ubuntu && \
+    groupadd -f -g 992 render && usermod -aG video,render ubuntu
+
+# Build and install HyprMoon (moonlight-integrated Hyprland)
+COPY . /workspace/hyprmoon
+WORKDIR /workspace/hyprmoon
+RUN echo "Building HyprMoon with moonlight integration..." && \
+    meson setup build --prefix=/usr --buildtype=release -Dwith_moonlight=true && \
+    ninja -C build && \
+    ninja -C build install && \
+    # Backup original Hyprland and replace with our moonlight version
+    (mv /usr/bin/Hyprland /usr/bin/Hyprland.orig 2>/dev/null || true) && \
+    ln -sf /usr/bin/Hyprland /usr/bin/Hyprland-moonlight && \
+    echo "HyprMoon installation complete"
+
+# Copy startup scripts from helix
+COPY start-wayland-vnc.sh /start-wayland-vnc.sh
+COPY start-ubuntu-session.sh /start-ubuntu-session.sh
+RUN chmod +x /start-wayland-vnc.sh /start-ubuntu-session.sh
+
+# Environment variables for Wayland
+ENV WAYLAND_DISPLAY=wayland-0 \
+    XDG_RUNTIME_DIR=/tmp/runtime-ubuntu \
+    WLR_RENDERER=gles2 \
+    WLR_BACKENDS=headless \
+    VNC_PASSWORD=helix123
+
+# Expose VNC port and Wolf moonlight ports
+EXPOSE 5901 3030
+EXPOSE 48989/tcp 49010/tcp 48999/tcp
+
+# Start Wayland VNC
+ENTRYPOINT ["/start-wayland-vnc.sh"]

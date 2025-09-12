@@ -1,0 +1,181 @@
+services:
+  hyprland-moonlight:
+    build:
+      context: .
+      dockerfile: Dockerfile.moonlight
+    # runtime: nvidia  # Disabled for pure headless mode
+    volumes:
+      - .:/workspace
+      - ./test_config:/test_config
+      - ./test_output:/test_output
+      - ccache:/ccache
+    ports:
+      - "48989:47989"  # HTTP
+      - "49010:48010"  # RTSP
+      - "48999:47999"  # Control
+    environment:
+      # GPU configuration (Hardware acceleration with GPU support)
+      - WLR_RENDERER=gles2
+      - WLR_BACKENDS=headless
+      - WLR_NO_HARDWARE_CURSORS=1
+      - WLR_HEADLESS_OUTPUTS=2
+      - __GL_THREADED_OPTIMIZATIONS=1
+      - __GL_SYNC_TO_VBLANK=1
+      - LIBGL_ALWAYS_SOFTWARE=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - EGL_PLATFORM=drm
+      - GBM_BACKEND=nvidia-drm
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - WLR_DRM_DEVICES=/dev/dri/card0
+      - WLR_RENDERER_ALLOW_SOFTWARE=1
+      - WLR_DRM_NO_ATOMIC=1
+      - GPU_RENDER_NODE=/dev/dri/renderD128
+      - GST_GL_DRM_DEVICE=/dev/dri/renderD128
+      - GST_GL_API=gles2
+      - GST_GL_WINDOW=surfaceless
+      # Runtime directories
+      - XDG_RUNTIME_DIR=/tmp/runtime-root
+      - WAYLAND_DISPLAY=wayland-0
+    # Add comprehensive GPU access via DRI and NVIDIA devices (copied from helix)
+    devices:
+      - "/dev/dri:/dev/dri"
+      - "/dev/nvidia0:/dev/nvidia0"
+      - "/dev/nvidiactl:/dev/nvidiactl"
+      - "/dev/nvidia-modeset:/dev/nvidia-modeset"
+      - "/dev/nvidia-uvm:/dev/nvidia-uvm"
+      - "/dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools"
+    # Enable privileged mode for better GPU access
+    privileged: true
+    # Explicitly use nvidia runtime for full GPU support
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: |
+      bash -c "
+        echo '🚀 Building HyprMoon with real moonlight integration...'
+        cd /workspace
+        
+        # Start seatd to support DRM allocator, but allow fallback to headless
+        echo '🪑 Starting seatd for DRM allocator support...'
+        echo '🔍 Checking available DRM devices...'
+        ls -la /dev/dri/ || echo 'No /dev/dri found'
+        lsmod | grep -E '(nvidia|nouveau|drm)' || echo 'No GPU modules loaded'
+        
+        # Try seatd but don't fail if it doesn't work
+        seatd -u root -g root &
+        SEATD_PID=\$!
+        sleep 2
+        
+        # Build Hyprland with moonlight integration first
+        echo '🏗️ Building Hyprland with moonlight integration...'
+        meson setup build --prefix=/usr --buildtype=release -Dwith_moonlight=true || exit 1
+        ninja -C build || exit 1
+        
+        # Install Hyprland so it's available in PATH
+        echo '📦 Installing Hyprland...'
+        ninja -C build install || exit 1
+        
+        # Check if binary exists
+        echo '🔍 Checking Hyprland installation...'
+        which Hyprland || ls -la /usr/bin/Hyprland || ls -la ./build/src/Hyprland || find /workspace -name Hyprland -type f
+        
+        # Set up runtime directory (following helix pattern)
+        mkdir -p /tmp/runtime-root
+        chmod 700 /tmp/runtime-root
+        
+        # Start Hyprland in headless mode (no session management needed)
+        echo '🎮 Starting Hyprland compositor in headless mode...'
+        XDG_RUNTIME_DIR=/tmp/runtime-root WAYLAND_DISPLAY=wayland-0 /usr/bin/Hyprland --config /test_config/hyprland.conf --i-am-really-stupid &
+        HYPR_PID=\$!
+        
+        # Wait for Hyprland to start and create wayland socket
+        echo '⏳ Waiting for Hyprland to create wayland socket...'
+        timeout=15
+        while [ \$timeout -gt 0 ] && [ ! -S \"/tmp/runtime-root/wayland-0\" ]; do
+            sleep 1
+            timeout=\$((timeout - 1))
+        done
+        
+        if [ -S \"/tmp/runtime-root/wayland-0\" ]; then
+            echo '✅ Hyprland started successfully, wayland socket created'
+        else
+            echo '⚠️  Hyprland may not have started properly (no wayland socket found)'
+        fi
+        
+        echo '✅ HyprMoon system running!'
+        echo 'Hyprland PID: '\$HYPR_PID
+        echo 'Seatd PID: '\$SEATD_PID
+        echo 'Moonlight should be streaming on:'
+        echo '  HTTP:    http://localhost:47989'
+        echo '  HTTPS:   https://localhost:47984'  
+        echo '  RTSP:    rtsp://localhost:48010'
+        echo '  Control: localhost:47999'
+        echo '  Video:   localhost:48000'
+        echo '  Audio:   localhost:48002'
+        
+        # Keep running and show logs
+        sleep 15
+        echo '📊 Moonlight server status:'
+        ps aux | grep -E '(Hyprland|moonlight|seatd)' || true
+        
+        # Create output directory
+        mkdir -p /test_output
+        
+        # Debug crash report directory issue with proper sorting and debug logging
+        echo '🧪 Debugging crash report and user permissions...'
+        chmod +x /test_config/debug_crash_report_fixed.sh
+        /test_config/debug_crash_report_fixed.sh
+        
+        # Run the REAL E2E test
+        echo '🧪 Running REAL E2E Test...'
+        chmod +x /test_config/real_e2e_test.sh
+        /test_config/real_e2e_test.sh
+        
+        # Show final status
+        echo '📈 Final test results:'
+        ls -la /test_output/ || true
+        
+        # Keep running for a bit longer to allow monitoring
+        sleep 30
+        
+        echo '🛑 Test complete, shutting down...'
+        
+        # Clean shutdown
+        kill \$HYPR_PID 2>/dev/null || true
+      "
+    tmpfs:
+      - /tmp:rw,size=200m
+    container_name: hyprland_moonlight_real
+
+  moonlight-client:
+    image: jrottenberg/ffmpeg:4.4-alpine
+    depends_on:
+      - hyprland-moonlight
+    volumes:
+      - .:/workspace
+      - ./test_config:/test_config
+    working_dir: /workspace
+    entrypoint: /bin/sh
+    command: 
+      - -c
+      - |
+        apk add --no-cache curl netcat-openbsd imagemagick
+        chmod +x /test_config/real_capture_stream.sh
+        /test_config/real_capture_stream.sh
+    container_name: moonlight_real_client
+
+volumes:
+  ccache:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

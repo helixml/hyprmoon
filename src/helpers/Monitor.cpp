@@ -57,7 +57,8 @@ void CMonitor::onConnect(bool noRule) {
     hyprListener_monitorBind.initCallback(&output->events.bind, &Events::listener_monitorBind, this, "CMonitor");
     hyprListener_monitorPresented.initCallback(&output->events.present, ::onPresented, this, "CMonitor");
 
-    tearingState.canTear = wlr_backend_is_drm(output->backend); // tearing only works on drm
+    tearingState.canTear = false; // Disable tearing for headless builds
+    // tearingState.canTear = wlr_backend_is_drm(output->backend); // tearing only works on drm
 
     if (m_bEnabled) {
         wlr_output_state_set_enabled(state.wlr(), true);
@@ -122,7 +123,8 @@ void CMonitor::onConnect(bool noRule) {
     if (output->non_desktop) {
         Debug::log(LOG, "Not configuring non-desktop output");
         if (g_pCompositor->m_sWRLDRMLeaseMgr) {
-            wlr_drm_lease_v1_manager_offer_output(g_pCompositor->m_sWRLDRMLeaseMgr, output);
+            // DRM lease manager disabled for headless builds
+            // wlr_drm_lease_v1_manager_offer_output(g_pCompositor->m_sWRLDRMLeaseMgr, output);
         }
         return;
     }

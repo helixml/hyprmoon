@@ -13,6 +13,9 @@
 #include "../protocols/PresentationTime.hpp"
 #include "../protocols/core/DataDevice.hpp"
 #include "../protocols/core/Compositor.hpp"
+#ifdef WITH_MOONLIGHT
+#include "../moonlight/managers/MoonlightManager.hpp"
+#endif
 
 extern "C" {
 #include <xf86drm.h>
@@ -1437,6 +1440,13 @@ void CHyprRenderer::renderMonitor(CMonitor* pMonitor) {
             g_pDebugOverlay->renderDataNoOverlay(pMonitor, µs);
         }
     }
+
+#ifdef WITH_MOONLIGHT
+    // Notify moonlight manager about frame completion
+    if (g_pMoonlightManager && m_pCurrentWlrBuffer) {
+        g_pMoonlightManager->onFrameReady(pMonitor, m_pCurrentWlrBuffer);
+    }
+#endif
 }
 
 void CHyprRenderer::renderWorkspace(CMonitor* pMonitor, PHLWORKSPACE pWorkspace, timespec* now, const CBox& geometry) {

@@ -1,0 +1,71 @@
+services:
+  hyprland-moonlight:
+    build:
+      context: .
+      dockerfile: Dockerfile.moonlight
+    volumes:
+      - .:/workspace
+      - ./test_config:/test_config
+      - /dev/dri:/dev/dri
+    ports:
+      - "48989:47989"  # HTTP
+      - "49010:48010"  # RTSP
+      - "48999:47999"  # Control
+    environment:
+      # GPU acceleration settings from helix example
+      - WLR_RENDERER=gles2
+      - WLR_BACKENDS=headless
+      - WLR_NO_HARDWARE_CURSORS=1
+      - WLR_HEADLESS_OUTPUTS=1
+      - WLR_LIBINPUT_NO_DEVICES=1
+      - WLR_DRM_DEVICES=/dev/dri/card1
+      - WLR_RENDERER_ALLOW_SOFTWARE=1
+      - WLR_DRM_NO_ATOMIC=1
+      # NVIDIA GPU settings
+      - __GL_THREADED_OPTIMIZATIONS=1
+      - __GL_SYNC_TO_VBLANK=1
+      - LIBGL_ALWAYS_SOFTWARE=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+      - EGL_PLATFORM=drm
+      - GBM_BACKEND=nvidia-drm
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - GPU_RENDER_NODE=/dev/dri/renderD128
+      - GST_GL_DRM_DEVICE=/dev/dri/renderD128
+      - GST_GL_API=gles2
+      - GST_GL_WINDOW=surfaceless
+      # Runtime directories
+      - XDG_RUNTIME_DIR=/tmp
+      - WAYLAND_DISPLAY=wayland-0
+    runtime: nvidia
+    command: |
+      bash -c "
+        echo 'Starting Hyprland with GPU-accelerated moonlight integration...'
+        cd /workspace
+        ./build/src/Hyprland --config /test_config/hyprland.conf --i-am-really-stupid
+      "
+    tmpfs:
+      - /tmp:rw,size=200m
+    container_name: hyprland_test
+    devices:
+      - /dev/dri
+    group_add:
+      - video
+      - render
+
+  moonlight-client:
+    image: linuxserver/ffmpeg:latest
+    depends_on:
+      - hyprland-moonlight
+    volumes:
+      - .:/workspace
+      - ./test_config:/test_config
+    working_dir: /workspace
+    command: bash /test_config/capture_stream.sh
+    container_name: moonlight_client
+
+networks:
+  default:
+    driver: bridge

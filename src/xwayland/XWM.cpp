@@ -95,9 +95,9 @@ void CXWM::handleMapRequest(xcb_map_request_event_t* e) {
     XSURF->restackToTop();
 
     const bool SMALL =
-        XSURF->geometry.size() < Vector2D{2, 2} || (XSURF->sizeHints && XSURF->geometry.size() < Vector2D{XSURF->sizeHints->min_width, XSURF->sizeHints->min_height});
-    const bool HAS_HINTS   = XSURF->sizeHints && Vector2D{XSURF->sizeHints->base_width, XSURF->sizeHints->base_height} > Vector2D{5, 5};
-    const auto DESIREDSIZE = HAS_HINTS ? Vector2D{XSURF->sizeHints->base_width, XSURF->sizeHints->base_height} : Vector2D{800, 800};
+        XSURF->geometry.size() < Vector2D{2.0, 2.0} || (XSURF->sizeHints && XSURF->geometry.size() < Vector2D{(double)XSURF->sizeHints->min_width, (double)XSURF->sizeHints->min_height});
+    const bool HAS_HINTS   = XSURF->sizeHints && Vector2D{(double)XSURF->sizeHints->base_width, (double)XSURF->sizeHints->base_height} > Vector2D{5.0, 5.0};
+    const auto DESIREDSIZE = HAS_HINTS ? Vector2D{(double)XSURF->sizeHints->base_width, (double)XSURF->sizeHints->base_height} : Vector2D{800.0, 800.0};
 
     // if it's too small, or its base size is set, configure it.
     if ((SMALL || HAS_HINTS) && !XSURF->overrideRedirect) // default to 800 x 800

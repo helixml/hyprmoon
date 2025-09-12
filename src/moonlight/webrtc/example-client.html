@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HyprMoon WebRTC Client</title>
+    <style>
+        body { margin: 0; background: #000; font-family: Arial; }
+        #video { width: 100vw; height: 100vh; object-fit: contain; }
+        #controls { position: absolute; top: 10px; left: 10px; color: white; z-index: 1000; }
+        button { margin: 5px; padding: 10px; }
+        #status { color: #0f0; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <div id="status">Disconnected</div>
+    </div>
+    <video id="video" autoplay muted playsinline></video>
+
+    <script>
+        class HyprMoonClient {
+            constructor() {
+                this.pc = null;
+                this.dataChannel = null;
+                this.video = document.getElementById('video');
+                this.status = document.getElementById('status');
+                this.connected = false;
+                
+                this.setupInputCapture();
+            }
+            
+            async connect() {
+                try {
+                    this.status.textContent = 'Connecting...';
+                    
+                    // Create RTCPeerConnection
+                    this.pc = new RTCPeerConnection({
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' }
+                        ]
+                    });
+                    
+                    // Handle incoming video stream
+                    this.pc.ontrack = (event) => {
+                        console.log('Received remote stream');
+                        this.video.srcObject = event.streams[0];
+                    };
+                    
+                    // Handle data channel for input
+                    this.pc.ondatachannel = (event) => {
+                        console.log('Data channel received');
+                        this.dataChannel = event.channel;
+                        this.setupDataChannel();
+                    };
+                    
+                    // Handle ICE candidates
+                    this.pc.onicecandidate = (event) => {
+                        if (event.candidate) {
+                            this.sendICECandidate(event.candidate);
+                        }
+                    };
+                    
+                    // Request user media for audio input (optional)
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ 
+                            audio: true, 
+                            video: false 
+                        });
+                        stream.getTracks().forEach(track => {
+                            this.pc.addTrack(track, stream);
+                        });
+                        console.log('Added audio input stream');
+                    } catch (e) {
+                        console.log('Audio input not available:', e);
+                    }
+                    
+                    // Create offer and start signaling
+                    const offer = await this.pc.createOffer();
+                    await this.pc.setLocalDescription(offer);
+                    
+                    // Send offer to server (this would go to your HyprMoon REST API)
+                    await this.sendOffer(offer);
+                    
+                } catch (error) {
+                    console.error('Connection failed:', error);
+                    this.status.textContent = 'Connection failed: ' + error.message;
+                }
+            }
+            
+            setupDataChannel() {
+                this.dataChannel.onopen = () => {
+                    console.log('Data channel opened');
+                    this.connected = true;
+                    this.status.textContent = 'Connected - Mouse/Keyboard active';
+                };
+                
+                this.dataChannel.onclose = () => {
+                    console.log('Data channel closed');
+                    this.connected = false;
+                    this.status.textContent = 'Disconnected';
+                };
+            }
+            
+            setupInputCapture() {
+                // Keyboard capture
+                document.addEventListener('keydown', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        this.sendInput({
+                            type: 'keyboard',
+                            keycode: e.keyCode,
+                            pressed: true,
+                            modifiers: (e.ctrlKey ? 1 : 0) | 
+                                     (e.shiftKey ? 2 : 0) | 
+                                     (e.altKey ? 4 : 0) |
+                                     (e.metaKey ? 8 : 0)
+                        });
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        this.sendInput({
+                            type: 'keyboard',
+                            keycode: e.keyCode,
+                            pressed: false,
+                            modifiers: (e.ctrlKey ? 1 : 0) | 
+                                     (e.shiftKey ? 2 : 0) | 
+                                     (e.altKey ? 4 : 0) |
+                                     (e.metaKey ? 8 : 0)
+                        });
+                    }
+                });
+                
+                // Mouse capture
+                this.video.addEventListener('mousedown', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        const rect = this.video.getBoundingClientRect();
+                        this.sendInput({
+                            type: 'mouse_button',
+                            x: (e.clientX - rect.left) / rect.width,
+                            y: (e.clientY - rect.top) / rect.height,
+                            button: e.button,
+                            pressed: true
+                        });
+                    }
+                });
+                
+                this.video.addEventListener('mouseup', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        const rect = this.video.getBoundingClientRect();
+                        this.sendInput({
+                            type: 'mouse_button',
+                            x: (e.clientX - rect.left) / rect.width,
+                            y: (e.clientY - rect.top) / rect.height,
+                            button: e.button,
+                            pressed: false
+                        });
+                    }
+                });
+                
+                this.video.addEventListener('mousemove', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        const rect = this.video.getBoundingClientRect();
+                        this.sendInput({
+                            type: 'mouse_move',
+                            x: (e.clientX - rect.left) / rect.width,
+                            y: (e.clientY - rect.top) / rect.height
+                        });
+                    }
+                });
+                
+                this.video.addEventListener('wheel', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        this.sendInput({
+                            type: 'mouse_scroll',
+                            deltaX: e.deltaX,
+                            deltaY: e.deltaY
+                        });
+                    }
+                });
+                
+                // Touch support for mobile
+                this.video.addEventListener('touchstart', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        for (let touch of e.touches) {
+                            const rect = this.video.getBoundingClientRect();
+                            this.sendInput({
+                                type: 'touch',
+                                x: (touch.clientX - rect.left) / rect.width,
+                                y: (touch.clientY - rect.top) / rect.height,
+                                pressed: true,
+                                id: touch.identifier
+                            });
+                        }
+                    }
+                });
+                
+                this.video.addEventListener('touchend', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        for (let touch of e.changedTouches) {
+                            const rect = this.video.getBoundingClientRect();
+                            this.sendInput({
+                                type: 'touch',
+                                x: (touch.clientX - rect.left) / rect.width,
+                                y: (touch.clientY - rect.top) / rect.height,
+                                pressed: false,
+                                id: touch.identifier
+                            });
+                        }
+                    }
+                });
+                
+                this.video.addEventListener('touchmove', (e) => {
+                    if (this.connected && this.dataChannel) {
+                        e.preventDefault();
+                        for (let touch of e.touches) {
+                            const rect = this.video.getBoundingClientRect();
+                            this.sendInput({
+                                type: 'touch',
+                                x: (touch.clientX - rect.left) / rect.width,
+                                y: (touch.clientY - rect.top) / rect.height,
+                                pressed: true,
+                                id: touch.identifier
+                            });
+                        }
+                    }
+                });
+            }
+            
+            sendInput(inputData) {
+                if (this.dataChannel && this.dataChannel.readyState === 'open') {
+                    this.dataChannel.send(JSON.stringify(inputData));
+                }
+            }
+            
+            // These would connect to your HyprMoon REST API
+            async sendOffer(offer) {
+                // Example: POST to /api/webrtc/offer
+                const response = await fetch('/api/webrtc/offer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sdp: offer.sdp,
+                        type: offer.type,
+                        clientId: this.generateClientId()
+                    })
+                });
+                
+                const answer = await response.json();
+                await this.pc.setRemoteDescription(answer);
+            }
+            
+            async sendICECandidate(candidate) {
+                // Example: POST to /api/webrtc/ice
+                await fetch('/api/webrtc/ice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        candidate: candidate.candidate,
+                        sdpMLineIndex: candidate.sdpMLineIndex,
+                        clientId: this.clientId
+                    })
+                });
+            }
+            
+            generateClientId() {
+                return 'client_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            disconnect() {
+                if (this.pc) {
+                    this.pc.close();
+                    this.pc = null;
+                }
+                this.connected = false;
+                this.status.textContent = 'Disconnected';
+            }
+        }
+        
+        // Global instance
+        const client = new HyprMoonClient();
+        
+        // Global functions for buttons
+        function connect() { client.connect(); }
+        function disconnect() { client.disconnect(); }
+        
+        // Request pointer lock for better mouse experience
+        document.addEventListener('click', () => {
+            if (client.connected) {
+                client.video.requestPointerLock();
+            }
+        });
+    </script>
+</body>
+</html>

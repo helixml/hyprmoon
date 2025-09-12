@@ -1,0 +1,38 @@
+# Minimal test to verify our system wlroots approach works
+FROM ubuntu:25.04
+
+# Install only essential build dependencies
+RUN apt-get update && apt-get install -y \
+    meson ninja-build pkgconf jq git build-essential \
+    # Core Hyprland system dependencies  
+    libwlroots-0.18-dev libudis86-dev \
+    libhyprlang-dev libhyprcursor-dev libhyprutils-dev \
+    hyprland-protocols hyprwayland-scanner \
+    libcairo-dev libdrm-dev libxkbcommon-dev \
+    libegl-dev libinput-dev libpango1.0-dev \
+    libpixman-1-dev libseat-dev libtomlplusplus-dev \
+    libudev-dev libwayland-dev libxcb-errors-dev \
+    libxcb-util-dev wayland-protocols \
+    # Moonlight dependencies
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev \
+    libenet-dev libssl-dev libfmt-dev \
+    libboost-system-dev libboost-filesystem-dev \
+    libboost-locale-dev libboost-thread-dev \
+    libpci-dev libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source and test build
+COPY . /workspace
+WORKDIR /workspace
+
+# Test meson configuration and build
+RUN echo "Testing system wlroots meson configuration..." && \
+    meson setup build --prefix=/usr/local --buildtype=release \
+        -Dwith_moonlight=true && \
+    echo "✅ Meson configuration succeeded!" && \
+    echo "Building HyprMoon with system dependencies..." && \
+    ninja -C build && \
+    echo "✅ Build completed successfully!"
+
+CMD ["echo", "HyprMoon built successfully with Ubuntu system dependencies!"]

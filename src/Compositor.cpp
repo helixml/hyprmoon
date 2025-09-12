@@ -217,8 +217,11 @@ void CCompositor::initServer() {
     wlr_multi_for_each_backend(
         m_sWLRBackend,
         [](wlr_backend* backend, void* isHeadlessOnly) {
-            if (!wlr_backend_is_headless(backend) && !wlr_backend_is_libinput(backend))
+            if (!wlr_backend_is_headless(backend)) {
+                // Skip libinput check for headless builds
+                // && !wlr_backend_is_libinput(backend)
                 *(bool*)isHeadlessOnly = false;
+            }
         },
         &isHeadlessOnly);
 
@@ -255,11 +258,12 @@ void CCompositor::initServer() {
 
     initManagers(STAGE_BASICINIT);
 
-    m_sWRLDRMLeaseMgr = wlr_drm_lease_v1_manager_create(m_sWLDisplay, m_sWLRBackend);
-    if (!m_sWRLDRMLeaseMgr) {
-        Debug::log(INFO, "Failed to create wlr_drm_lease_v1_manager");
-        Debug::log(INFO, "VR will not be available");
-    }
+    // DRM lease manager disabled for headless builds (VR support)
+    m_sWRLDRMLeaseMgr = nullptr;
+    // m_sWRLDRMLeaseMgr = wlr_drm_lease_v1_manager_create(m_sWLDisplay, m_sWLRBackend);
+    // if (!m_sWRLDRMLeaseMgr) {
+        Debug::log(INFO, "DRM lease manager disabled for headless build - VR will not be available");
+    // }
 
     m_sWLRHeadlessBackend = wlr_headless_backend_create(m_sWLEventLoop);
 
@@ -2104,7 +2108,7 @@ void CCompositor::moveWorkspaceToMonitor(PHLWORKSPACE pWorkspace, CMonitor* pMon
                         w->m_vRealSize     = pMonitor->vecSize;
                     }
                 } else {
-                    w->m_vRealPosition = Vector2D{(int)w->m_vRealPosition.goal().x % (int)pMonitor->vecSize.x, (int)w->m_vRealPosition.goal().y % (int)pMonitor->vecSize.y};
+                    w->m_vRealPosition = Vector2D{(double)((int)w->m_vRealPosition.goal().x % (int)pMonitor->vecSize.x), (double)((int)w->m_vRealPosition.goal().y % (int)pMonitor->vecSize.y)};
                 }
             }
 

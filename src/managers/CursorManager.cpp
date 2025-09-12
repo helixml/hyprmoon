@@ -150,7 +150,7 @@ void CCursorManager::setXCursor(const std::string& name) {
     auto image = xcursor->images[0];
 
     m_vCursorBuffers.emplace_back(
-        std::make_unique<CCursorBuffer>(image->buffer, Vector2D{(int)image->width, (int)image->height}, Vector2D{(double)image->hotspot_x, (double)image->hotspot_y}));
+        std::make_unique<CCursorBuffer>(image->buffer, Vector2D{(double)image->width, (double)image->height}, Vector2D{(double)image->hotspot_x, (double)image->hotspot_y}));
 
     g_pPointerManager->setCursorBuffer(getCursorBuffer(), Vector2D{(double)image->hotspot_x, (double)image->hotspot_y} / scale, scale);
     if (m_vCursorBuffers.size() > 1)

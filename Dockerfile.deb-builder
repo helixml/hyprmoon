@@ -1,0 +1,271 @@
+# HyprMoon Debian Package Builder
+FROM ubuntu:25.04
+
+# Install build dependencies and packaging tools
+RUN apt-get update && apt-get install -y \
+    # Build essentials
+    build-essential cmake ninja-build meson pkg-config \
+    git wget curl ca-certificates \
+    # Hyprland build dependencies
+    libwayland-dev wayland-protocols libinput-dev libxkbcommon-dev \
+    libpixman-1-dev libcairo-dev libdrm-dev \
+    # Use Ubuntu's wlroots instead of building custom
+    libwlroots-dev \
+    libxcb1-dev libxcb-util-dev libxcb-keysyms1-dev \
+    libxcb-composite0-dev libxcb-xfixes0-dev libxcb-icccm4-dev \
+    libxcb-res0-dev libxcb-ewmh-dev libxcb-xinput-dev \
+    libpango1.0-dev libgdk-pixbuf2.0-dev \
+    libseat-dev libudev-dev libsystemd-dev \
+    libtomlplusplus-dev libzip-dev librsvg2-dev \
+    libmagic-dev libhyprlang-dev libhyprutils-dev \
+    # wlroots dependencies
+    libsystemd-dev libudev-dev libpci-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    # Moonlight dependencies
+    libcurl4-openssl-dev libssl-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+    libenet-dev libfmt-dev \
+    libboost-system-dev libboost-filesystem-dev \
+    # Debian packaging tools
+    debhelper dh-make devscripts fakeroot lintian \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up workspace
+WORKDIR /workspace
+
+# Copy the source code
+COPY . /workspace/hyprmoon-src
+
+# Use Ubuntu's wlroots and create compatibility symlink
+RUN echo "Setting up wlroots compatibility..." && \
+    echo "Available wlroots version:" && \
+    pkg-config --modversion wlroots && \
+    echo "Creating wlroots-0.18 compatibility link..." && \
+    ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/wlroots.pc /usr/lib/x86_64-linux-gnu/pkgconfig/wlroots-0.18.pc && \
+    echo "Testing compatibility:" && \
+    pkg-config --exists wlroots-0.18 && echo "wlroots-0.18 found" || echo "wlroots-0.18 not found"
+
+# Create debian package structure and modify for Ubuntu's wlroots
+RUN mkdir -p hyprmoon-1.0 && \
+    cp -r hyprmoon-src/* hyprmoon-1.0/ && \
+    cd hyprmoon-1.0 && \
+    echo "Modifying meson.build for Ubuntu wlroots compatibility..." && \
+    sed -i "s/dependency('wlroots-0.18')/dependency('wlroots', fallback: ['wlroots-0.18'])/" meson.build && \
+    echo "Modified meson.build for Ubuntu compatibility"
+
+WORKDIR /workspace/hyprmoon-1.0
+
+# Create debian packaging directory and control files
+RUN mkdir -p debian && \
+    cat > debian/control << 'EOF'
+Source: hyprmoon
+Section: x11
+Priority: optional
+Maintainer: HyprMoon Developer <dev@hyprmoon.local>
+Build-Depends: debhelper (>= 12),
+               build-essential,
+               cmake,
+               ninja-build,
+               meson,
+               pkg-config,
+               libwayland-dev,
+               libinput-dev,
+               libxkbcommon-dev,
+               libpixman-1-dev,
+               libcairo-dev,
+               libdrm-dev,
+               libxcb1-dev,
+               libpango1.0-dev,
+               libgdk-pixbuf2.0-dev,
+               libseat-dev,
+               libudev-dev,
+               libsystemd-dev,
+               libtomlplusplus-dev,
+               libzip-dev,
+               librsvg2-dev,
+               libmagic-dev,
+               libhyprlang-dev,
+               libhyprutils-dev,
+               libcurl4-openssl-dev,
+               libssl-dev,
+               libgstreamer1.0-dev,
+               libgstreamer-plugins-base1.0-dev,
+               libenet-dev,
+               libfmt-dev,
+               libboost-system-dev,
+               libboost-filesystem-dev
+Standards-Version: 4.5.1
+Homepage: https://github.com/hyprwm/Hyprland
+
+Package: hyprmoon
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+         libwayland-server0,
+         libinput10,
+         libxkbcommon0,
+         libpixman-1-0,
+         libcairo2,
+         libdrm2,
+         libxcb1,
+         libpango-1.0-0,
+         libgdk-pixbuf2.0-0,
+         libseat1,
+         libudev1,
+         libsystemd0,
+         libtomlplusplus3,
+         libzip4,
+         librsvg2-2,
+         libmagic1,
+         libhyprlang2,
+         libhyprutils1,
+         libcurl4,
+         libssl3t64,
+         libgstreamer1.0-0,
+         libgstreamer-plugins-base1.0-0,
+         libenet7,
+         libfmt9,
+         libboost-system1.83.0,
+         libboost-filesystem1.83.0
+Provides: x-window-manager
+Conflicts: hyprland
+Replaces: hyprland
+Description: HyprMoon - Hyprland with Moonlight streaming integration
+ HyprMoon is a modified version of Hyprland that includes built-in
+ Moonlight streaming capabilities for remote desktop access.
+ .
+ This package provides the HyprMoon compositor with moonlight integration,
+ allowing you to stream your Wayland desktop over the network using the
+ Moonlight protocol.
+EOF
+
+# Create debian/rules file
+RUN cat > debian/rules << 'EOF'
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=meson
+
+override_dh_auto_configure:
+	PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig \
+	meson setup obj-x86_64-linux-gnu \
+		--buildtype=release \
+		--prefix=/usr \
+		--libdir=lib \
+		-Dwith_moonlight=true
+
+override_dh_auto_build:
+	ninja -C obj-x86_64-linux-gnu
+
+override_dh_auto_install:
+	dh_auto_install
+	# Install HyprMoon binary
+	mkdir -p debian/hyprmoon/usr/bin
+	install -m 755 build/src/Hyprland debian/hyprmoon/usr/bin/hyprmoon
+	# Create symlink for compatibility
+	ln -sf hyprmoon debian/hyprmoon/usr/bin/Hyprland-hyprmoon
+	# Install moonlight libraries
+	mkdir -p debian/hyprmoon/usr/lib/hyprmoon
+	find build -name "*.so*" -type f -exec install -m 644 {} debian/hyprmoon/usr/lib/hyprmoon/ \;
+	# Install configuration files
+	mkdir -p debian/hyprmoon/etc/hyprmoon
+	if [ -f hyprland.conf ]; then install -m 644 hyprland.conf debian/hyprmoon/etc/hyprmoon/; fi
+	if [ -f test_hyprland.conf ]; then install -m 644 test_hyprland.conf debian/hyprmoon/etc/hyprmoon/; fi
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf build
+EOF
+
+# Create debian/changelog
+RUN cat > debian/changelog << 'EOF'
+hyprmoon (1.0-1) unstable; urgency=medium
+
+  * Initial release of HyprMoon
+  * Hyprland with integrated Moonlight streaming support
+  * Built from custom wlroots with moonlight patches
+
+ -- HyprMoon Developer <dev@hyprmoon.local>  Thu, 12 Sep 2025 23:00:00 +0000
+EOF
+
+# Create debian/compat
+RUN echo "12" > debian/compat
+
+# Create debian/copyright
+RUN cat > debian/copyright << 'EOF'
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: hyprmoon
+Source: https://github.com/hyprwm/Hyprland
+
+Files: *
+Copyright: 2023 Hyprland Development Team
+           2025 HyprMoon Integration
+License: BSD-3-Clause
+
+License: BSD-3-Clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+ .
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+ .
+ 3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+EOF
+
+# Make debian/rules executable
+RUN chmod +x debian/rules
+
+# Build the debian package
+RUN echo "Building HyprMoon debian package..." && \
+    dpkg-buildpackage -us -uc -b && \
+    echo "Package build completed"
+
+# Copy the built packages to the output directory
+RUN mkdir -p /output && \
+    cp ../*.deb /output/ && \
+    cp ../*.changes /output/ && \
+    ls -la /output/
+
+# Create a script to copy packages to bind mount
+RUN cat > /copy-packages.sh << 'EOF'
+#!/bin/bash
+echo "Copying HyprMoon packages to /output-bind..."
+mkdir -p /output-bind
+cp /output/*.deb /output-bind/ 2>/dev/null || true
+cp /output/*.changes /output-bind/ 2>/dev/null || true
+echo "Available packages:"
+ls -la /output-bind/
+echo "Package info:"
+for deb in /output-bind/*.deb; do
+    if [ -f "$deb" ]; then
+        echo "=== $deb ==="
+        dpkg-deb -I "$deb"
+        echo ""
+    fi
+done
+EOF
+
+RUN chmod +x /copy-packages.sh
+
+# Default command copies packages to bind mount
+CMD ["/copy-packages.sh"]

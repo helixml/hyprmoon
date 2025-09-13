@@ -2,26 +2,24 @@
 FROM ubuntu:25.04
 
 # Install build dependencies and packaging tools
-RUN apt-get update && apt-get install -y \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y \
     # Build essentials
-    build-essential cmake ninja-build meson pkg-config \
+    build-essential cmake ninja-build meson pkgconf \
     git wget curl ca-certificates \
-    # Hyprland build dependencies
-    libwayland-dev wayland-protocols libinput-dev libxkbcommon-dev \
-    libpixman-1-dev libcairo-dev libdrm-dev \
-    # Use Ubuntu's wlroots instead of building custom
-    libwlroots-dev \
-    libxcb1-dev libxcb-util-dev libxcb-keysyms1-dev \
-    libxcb-composite0-dev libxcb-xfixes0-dev libxcb-icccm4-dev \
-    libxcb-res0-dev libxcb-ewmh-dev libxcb-xinput-dev \
-    libpango1.0-dev libgdk-pixbuf2.0-dev \
-    libseat-dev libudev-dev libsystemd-dev \
-    libtomlplusplus-dev libzip-dev librsvg2-dev \
-    libmagic-dev libhyprlang-dev libhyprutils-dev \
-    # wlroots dependencies
-    libsystemd-dev libudev-dev libpci-dev \
-    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-    # Moonlight dependencies
+    # Ubuntu's exact hyprland build dependencies
+    chrpath cpio debhelper-compat hwdata \
+    hyprland-protocols hyprwayland-scanner \
+    libcairo-dev libdrm-dev libxkbcommon-dev \
+    libegl-dev libegl1-mesa-dev libgles-dev \
+    libhyprlang-dev libhyprcursor-dev libhyprutils-dev \
+    libinput-dev libpango1.0-dev libpixman-1-dev \
+    libseat-dev libtomlplusplus-dev libudev-dev \
+    libudis86-dev libwayland-dev libwlroots-0.18-dev \
+    libxcb-errors-dev libxcb-util-dev \
+    wayland-protocols xwayland \
+    # Additional moonlight dependencies
     libcurl4-openssl-dev libssl-dev \
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
@@ -29,8 +27,14 @@ RUN apt-get update && apt-get install -y \
     gstreamer1.0-plugins-ugly gstreamer1.0-libav \
     libenet-dev libfmt-dev \
     libboost-system-dev libboost-filesystem-dev \
+    libboost-locale-dev libboost-thread-dev \
+    libnice-dev libjsoncpp-dev libpulse-dev \
+    # Additional dependencies in our debian/control
+    libgdk-pixbuf2.0-dev libzip-dev librsvg2-dev libmagic-dev \
+    # Missing moonlight dependencies
+    libpci-dev \
     # Debian packaging tools
-    debhelper dh-make devscripts fakeroot lintian \
+    dh-make devscripts fakeroot lintian \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up workspace
@@ -39,22 +43,14 @@ WORKDIR /workspace
 # Copy the source code
 COPY . /workspace/hyprmoon-src
 
-# Use Ubuntu's wlroots and create compatibility symlink
-RUN echo "Setting up wlroots compatibility..." && \
-    echo "Available wlroots version:" && \
-    pkg-config --modversion wlroots && \
-    echo "Creating wlroots-0.18 compatibility link..." && \
-    ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/wlroots.pc /usr/lib/x86_64-linux-gnu/pkgconfig/wlroots-0.18.pc && \
-    echo "Testing compatibility:" && \
-    pkg-config --exists wlroots-0.18 && echo "wlroots-0.18 found" || echo "wlroots-0.18 not found"
-
-# Create debian package structure and modify for Ubuntu's wlroots
+# Create debian package structure
 RUN mkdir -p hyprmoon-1.0 && \
     cp -r hyprmoon-src/* hyprmoon-1.0/ && \
     cd hyprmoon-1.0 && \
-    echo "Modifying meson.build for Ubuntu wlroots compatibility..." && \
-    sed -i "s/dependency('wlroots-0.18')/dependency('wlroots', fallback: ['wlroots-0.18'])/" meson.build && \
-    echo "Modified meson.build for Ubuntu compatibility"
+    echo "Fixing compiler arguments..." && \
+    sed -i 's/-D_FORTIFY_SOURCE=2,//' meson.build && \
+    sed -i 's/subdirs: \[,/subdirs: [/' meson.build && \
+    echo "Fixed compiler arguments"
 
 WORKDIR /workspace/hyprmoon-1.0
 
@@ -149,12 +145,13 @@ RUN cat > debian/rules << 'EOF'
 	dh $@ --buildsystem=meson
 
 override_dh_auto_configure:
-	PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig \
 	meson setup obj-x86_64-linux-gnu \
 		--buildtype=release \
 		--prefix=/usr \
 		--libdir=lib \
-		-Dwith_moonlight=true
+		-Dwith_moonlight=true \
+		-Dlegacy_renderer=disabled \
+		-Dxwayland=disabled
 
 override_dh_auto_build:
 	ninja -C obj-x86_64-linux-gnu
@@ -163,20 +160,20 @@ override_dh_auto_install:
 	dh_auto_install
 	# Install HyprMoon binary
 	mkdir -p debian/hyprmoon/usr/bin
-	install -m 755 build/src/Hyprland debian/hyprmoon/usr/bin/hyprmoon
+	install -m 755 obj-x86_64-linux-gnu/src/Hyprland debian/hyprmoon/usr/bin/hyprmoon
 	# Create symlink for compatibility
 	ln -sf hyprmoon debian/hyprmoon/usr/bin/Hyprland-hyprmoon
 	# Install moonlight libraries
 	mkdir -p debian/hyprmoon/usr/lib/hyprmoon
-	find build -name "*.so*" -type f -exec install -m 644 {} debian/hyprmoon/usr/lib/hyprmoon/ \;
+	find obj-x86_64-linux-gnu -name "*.so*" -type f -exec install -m 644 {} debian/hyprmoon/usr/lib/hyprmoon/ \;
 	# Install configuration files
 	mkdir -p debian/hyprmoon/etc/hyprmoon
 	if [ -f hyprland.conf ]; then install -m 644 hyprland.conf debian/hyprmoon/etc/hyprmoon/; fi
 	if [ -f test_hyprland.conf ]; then install -m 644 test_hyprland.conf debian/hyprmoon/etc/hyprmoon/; fi
 
 override_dh_auto_clean:
-	dh_auto_clean
-	rm -rf build
+	dh_auto_clean || true
+	rm -rf obj-x86_64-linux-gnu || true
 EOF
 
 # Create debian/changelog
@@ -235,8 +232,11 @@ EOF
 # Make debian/rules executable
 RUN chmod +x debian/rules
 
-# Build the debian package
-RUN echo "Building HyprMoon debian package..." && \
+# Build the debian package with mount caches
+RUN --mount=type=cache,target=/workspace/hyprmoon-1.0/obj-x86_64-linux-gnu \
+    --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/root/.cache \
+    echo "Building HyprMoon debian package..." && \
     dpkg-buildpackage -us -uc -b && \
     echo "Package build completed"
 

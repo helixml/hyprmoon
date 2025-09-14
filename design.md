@@ -46,30 +46,57 @@ Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's e
 ### Phase 2: Incremental Modifications
 Add HyprMoon features one by one, testing VNC after each:
 
-#### Step 1: Core Moonlight Protocol Infrastructure
-- Add moonlight protocol files (.xml)
-- Add basic protocol manager structure
-- **Test**: VNC should still show black screen
+#### Step 1: Build System Integration (Low Risk)
+- Add meson option `with_moonlight` (disabled initially)
+- Add moonlight subdirectory to build system
+- Add minimal moonlight manager stub
+- **Test**: VNC should still show black screen, build works
 
-#### Step 2: Window Manager Integration
-- Add moonlight client tracking
-- Add window creation for moonlight clients
-- **Test**: VNC should still work, maybe see moonlight windows
+#### Step 2: Core Protocol Infrastructure (Medium Risk)
+- Add moonlight protocol crypto and data structures
+- Add RTSP and RTP protocol handling
+- Add configuration system (TOML)
+- **Test**: VNC should still work, moonlight subsystem compiles
 
-#### Step 3: Green Screen Rendering
-- Add green screen surface creation
-- Add color fill functionality
-- **Test**: VNC should show green screens for moonlight clients
+#### Step 3: Global Manager Integration (Higher Risk)
+- Add MoonlightManager to global scope
+- Enable `with_moonlight` option by default
+- Add manager lifecycle to compositor
+- **Test**: VNC still works, moonlight manager initializes
 
-#### Step 4: Input Handling
-- Add moonlight input forwarding
-- Add keyboard/mouse routing
-- **Test**: VNC + moonlight clients should be interactive
+#### Step 4: REST API and Pairing (Medium Risk)
+- Add REST API server
+- Add HTTPS endpoints for pairing
+- Add session management
+- **Test**: VNC works, can access moonlight web interface
 
-#### Step 5: Optimization & Polish
-- Add performance optimizations
-- Add configuration options
-- **Test**: Full functionality
+#### Step 5: Frame Capture Integration (HIGH RISK - likely VNC breaker)
+- Add frame capture hooks to renderer
+- Add `g_pMoonlightManager->onFrameReady()` calls
+- **Test**: Check if VNC still works (likely breaks here)
+
+#### Step 6: Streaming Infrastructure (Medium Risk)
+- Add GStreamer integration
+- Add video/audio streaming pipelines
+- Add network handling
+- **Test**: Moonlight streaming should work
+
+#### Step 7: Input Management (Low Risk)
+- Add virtual input devices
+- Add input routing from clients
+- Add platform abstraction
+- **Test**: Moonlight input should work
+
+#### Step 8: WebRTC Support (Low Risk)
+- Add WebRTC manager
+- Add browser-based streaming
+- **Test**: Browser streaming should work
+
+#### Step 9: Voice Input System (Low Risk)
+- Add Whisper integration
+- Add voice recognition
+- Add voice API endpoints
+- **Test**: Voice commands should work
 
 ### Phase 3: Build & Deployment Strategy
 
@@ -92,38 +119,95 @@ For each step:
 4. Test VNC connection manually
 5. Verify expected behavior (black->black->green->interactive)
 
-## Enumerated HyprMoon Modifications
+## Comprehensive HyprMoon Modifications
 
-### From Previous Analysis:
-1. **Protocol Files**:
-   - moonlight-streaming-v1.xml (new protocol)
-   - Protocol manager integration
+### Major Components Added:
+1. **Moonlight Protocol System** (`src/moonlight/protocol/`):
+   - Full Moonlight protocol implementation with crypto support
+   - RTSP protocol handling
+   - FEC (Forward Error Correction)
+   - Custom data structures and control protocols
 
-2. **Core Changes**:
-   - Window management for moonlight clients
-   - Green screen surface rendering
-   - Input routing and forwarding
+2. **Streaming Infrastructure** (`src/moonlight/streaming/`):
+   - RTP/UDP streaming implementation
+   - RTSP command handling
+   - Network optimizations and UDP ping
 
-3. **Rendering Changes**:
-   - Custom surface creation
-   - Color fill implementation
-   - Compositor integration
+3. **GStreamer Integration** (`src/moonlight/gst-plugin/`):
+   - Custom GStreamer plugins for Moonlight RTP payloads
+   - Video and audio frame processing
+   - Direct Hyprland frame source integration
+   - Hardware-accelerated encoding pipelines
 
-4. **Configuration**:
-   - Moonlight-specific settings
-   - Protocol registration
+4. **WebRTC Support** (`src/moonlight/webrtc/`):
+   - WebRTC manager for browser-based streaming
+   - Real-time communication protocol
+   - Client example implementation
 
-### Risk Areas:
-- **Renderer Changes**: Most likely to break VNC capture
-- **Protocol Registration**: Could affect screencopy protocol
-- **Window Management**: Might interfere with normal compositor flow
+5. **Voice Input System** (`src/moonlight/voice/`):
+   - Whisper integration for voice recognition
+   - Voice API endpoints
+   - AI-powered voice commands
+
+6. **Input Management** (`src/moonlight/platforms/`, `src/moonlight/control/`):
+   - Virtual input device creation (uinput)
+   - Keyboard, mouse, touchscreen, gamepad support
+   - Input routing and forwarding from clients
+   - Hardware abstraction for Linux platforms
+
+7. **REST API Server** (`src/moonlight/rest/`):
+   - HTTPS endpoint handling
+   - Pairing and session management
+   - Authentication and security
+   - HTML interfaces for configuration
+
+8. **Configuration System** (`src/moonlight/state/`):
+   - TOML-based configuration
+   - Session state management
+   - Default configuration templates
+   - Serialized config handling
+
+9. **Wolf Implementation** (`src/moonlight/wolf-impl/`):
+   - Wolf Moonlight server backend
+   - Performance-optimized streaming
+
+### Core Hyprland Integration Points:
+1. **Renderer Integration** (`src/render/Renderer.cpp`):
+   - Frame capture hooks: `g_pMoonlightManager->onFrameReady()`
+   - Direct buffer access for streaming
+   - **This is the integration that likely broke VNC capture**
+
+2. **Build System Integration**:
+   - Meson option: `with_moonlight` (enabled by default)
+   - Conditional compilation of entire moonlight subsystem
+   - Additional dependencies and libraries
+
+3. **Global Manager** (`src/moonlight/managers/MoonlightManager.cpp`):
+   - Central coordinator: `g_pMoonlightManager`
+   - Lifecycle management
+   - Cross-component communication
+
+### Additional Infrastructure:
+- **Crypto Support**: Full certificate and encryption handling
+- **Hardware Abstraction**: GPU encoding and decoding
+- **Network Stack**: Custom UDP/TCP handling optimized for streaming
+- **Configuration Management**: Dynamic config reloading
+- **Session Management**: Multi-client support and pairing
+
+### Corrected Understanding:
+- **VNC and Moonlight are parallel**: Both provide desktop access, not nested
+- **The grey screen issue**: Likely caused by renderer integration changes
+- **No "green screen windows"**: Moonlight clients stream the entire desktop
+- **WebRTC and voice**: Major missing pieces from original analysis
 
 ## Success Criteria
-- VNC shows black screen with vanilla build
-- VNC shows green screen for moonlight clients only
-- Normal applications still render normally
+- VNC shows black screen with vanilla Ubuntu baseline
+- VNC continues to work throughout incremental integration
+- Moonlight streaming functionality works (tested manually)
+- WebRTC streaming works (browser-based access)
+- Voice input system functional
 - No crashes or stability issues
-- Performance acceptable
+- Performance acceptable for both VNC and streaming
 
 ## Implementation Notes
 - Use Ubuntu's exact source as baseline

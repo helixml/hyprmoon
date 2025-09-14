@@ -15,8 +15,14 @@
 4. **VNC Connected**: wayvnc connects and captures, but wrong colors
 5. **Ubuntu Patches Applied**: 5 debian patches already applied to source
 
+### CRITICAL DISCOVERY (2025-09-14):
+6. **Raw Ubuntu Hyprland ALSO crashes with identical GPU errors**: `wlr_gles2_renderer_create_with_drm_fd() failed!`
+7. **HyprMoon modifications are NOT the cause**: Both raw Ubuntu package and HyprMoon fail identically
+8. **Issue is container GPU/Mesa setup**: libEGL warnings, MESA ZINK errors, missing libkmod resources
+9. **Baseline established**: Both packages fail the same way - this confirms our modifications are innocent
+
 ### Key Development Lessons
-- **Always run builds in foreground**: Never use `&` for build commands, be patient
+- **Always run builds in foreground**: Never use `&` or background mode for build commands, be patient
 - **Build caches are critical**: Without ccache/meson cache, iteration takes too long
 - **Test after every change**: Big-bang approaches are impossible to debug
 - **Use exact Ubuntu source**: Don't deviate from what Ubuntu ships
@@ -24,6 +30,7 @@
 - **Git commit discipline**: Make commits after every substantial change
 - **Phase milestone commits**: ALWAYS commit when reaching phase milestones
 - **Manual testing required**: Human verification at every step, no automation
+- **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
 
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
@@ -119,10 +126,13 @@ Add HyprMoon features one by one, testing VNC after each:
 ### Phase 4: Testing Protocol
 For each step:
 1. Build new deb/binary
-2. Deploy to helix container
-3. Restart Hyprland process
-4. Test VNC connection manually
-5. Verify expected behavior (black->black->green->interactive)
+2. **CRITICAL: Update helix Dockerfile to install the new deb package**
+   - Copy deb to `/home/luke/pm/helix/` directory
+   - Modify `/home/luke/pm/helix/Dockerfile.zed-agent-vnc` to install the deb
+   - Rebuild helix container: `docker build -f Dockerfile.zed-agent-vnc -t helix-zed-runner .`
+   - Restart container if needed
+3. Test VNC connection manually (port 5901)
+4. Verify expected behavior (working helix desktop with GPU acceleration)
 
 ## Comprehensive HyprMoon Modifications
 

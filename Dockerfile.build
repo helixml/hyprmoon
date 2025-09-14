@@ -1,0 +1,35 @@
+# Build container for HyprMoon with extensive caching
+# Based on Ubuntu 25.04 to match our target environment
+FROM ubuntu:25.04
+
+# Install build dependencies and tools
+RUN apt-get update && apt-get install -y \
+    build-essential cmake meson ninja-build pkg-config \
+    git ccache quilt \
+    # Core Hyprland build dependencies
+    libwayland-dev wayland-protocols libdrm-dev \
+    libegl1-mesa-dev libgles2-mesa-dev libgbm-dev \
+    libinput-dev libxkbcommon-dev libudev-dev \
+    libpixman-1-dev libcairo2-dev libpango1.0-dev \
+    libgdk-pixbuf-2.0-dev libglib2.0-dev \
+    # Ubuntu-specific dependencies from control file
+    libwlroots-dev libtomlplusplus-dev libzip-dev \
+    libfmt-dev libudis86-dev libhyprlang-dev \
+    libhyprutils-dev libhyprcursor-dev \
+    libboost-system-dev libboost-filesystem-dev \
+    # Development and debugging
+    gdb valgrind strace \
+    # Packaging tools
+    devscripts debhelper-compat fakeroot dpkg-dev equivs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up ccache for faster compilation
+ENV CCACHE_DIR=/ccache
+ENV PATH="/usr/lib/ccache:$PATH"
+RUN mkdir -p /ccache && chmod 777 /ccache
+
+# Create build directory
+WORKDIR /workspace
+
+# Default build command
+CMD ["bash"]

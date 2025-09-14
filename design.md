@@ -21,6 +21,9 @@
 - **Test after every change**: Big-bang approaches are impossible to debug
 - **Use exact Ubuntu source**: Don't deviate from what Ubuntu ships
 - **Container build caches matter**: Use BuildKit mount caches for Docker builds
+- **Git commit discipline**: Make commits after every substantial change
+- **Phase milestone commits**: ALWAYS commit when reaching phase milestones
+- **Manual testing required**: Human verification at every step, no automation
 
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
@@ -33,15 +36,17 @@ Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's e
 ## Methodical Approach
 
 ### Phase 1: Baseline Setup
-1. **Ubuntu Source**: Use exact Ubuntu 25.04 Hyprland 0.41.2+ds-1.3 source
-2. **Apply Ubuntu Patches**:
+1. **Ubuntu Source**: Use exact Ubuntu 25.04 Hyprland 0.41.2+ds-1.3 source ✅
+2. **Apply Ubuntu Patches**: ✅
    - 001-use-bash-in-makefile.patch
    - 002-use-system-udis86.patch
    - 003-use-system-hyprland-protocols.patch
    - 004-fix-hyprland-symlink.patch
    - 005-add-fortify-flags-for-subprojects.patch
-3. **Build Cache**: Set up proper Debian build environment with ccache
-4. **Test Baseline**: Verify VNC shows BLACK screen with vanilla Ubuntu Hyprland
+3. **Build Cache**: Set up proper Debian build environment with ccache ✅
+4. **Build Raw Ubuntu Package**: Build vanilla Ubuntu Hyprland deb (no changes)
+5. **Test Raw Baseline**: Deploy to helix and verify VNC shows BLACK screen
+6. **Commit Baseline**: Git commit the working vanilla state
 
 ### Phase 2: Incremental Modifications
 Add HyprMoon features one by one, testing VNC after each:

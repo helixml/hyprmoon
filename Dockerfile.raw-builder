@@ -1,0 +1,71 @@
+# Raw Ubuntu Hyprland Package Builder - uses Ubuntu's exact source and debian packaging
+FROM ubuntu:25.04
+
+# Install build dependencies and packaging tools
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y \
+    # Build essentials
+    build-essential cmake ninja-build meson pkgconf \
+    git wget curl ca-certificates \
+    # Ubuntu's exact hyprland build dependencies from debian/control
+    chrpath cpio debhelper-compat hwdata \
+    hyprland-protocols hyprwayland-scanner \
+    libcairo-dev libdrm-dev libxkbcommon-dev \
+    libegl-dev libegl1-mesa-dev libgles-dev \
+    libhyprlang-dev libhyprcursor-dev libhyprutils-dev \
+    libinput-dev libpango1.0-dev libpixman-1-dev \
+    libseat-dev libtomlplusplus-dev libudev-dev \
+    libudis86-dev libwayland-dev libwlroots-0.18-dev \
+    libxcb-errors-dev libxcb-util-dev \
+    wayland-protocols xwayland \
+    libgdk-pixbuf2.0-dev libzip-dev librsvg2-dev libmagic-dev \
+    libfmt-dev \
+    # Debian packaging tools
+    dh-make devscripts fakeroot lintian equivs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up workspace
+WORKDIR /workspace
+
+# Copy the Ubuntu source
+COPY hyprland-0.41.2+ds /workspace/hyprland-0.41.2+ds
+
+WORKDIR /workspace/hyprland-0.41.2+ds
+
+# Use Ubuntu's exact packaging - no modifications
+RUN echo "Building raw Ubuntu Hyprland package..." && \
+    mk-build-deps -i -r -t 'apt-get -y' debian/control && \
+    fakeroot debian/rules clean && \
+    dpkg-buildpackage -us -uc -b && \
+    echo "Raw Ubuntu package build completed"
+
+# Copy the built packages to the output directory
+RUN mkdir -p /output && \
+    cp ../*.deb /output/ 2>/dev/null || true && \
+    cp ../*.changes /output/ 2>/dev/null || true && \
+    ls -la /output/
+
+# Create a script to copy packages to bind mount
+RUN cat > /copy-packages.sh << 'EOF'
+#!/bin/bash
+echo "Copying raw Ubuntu Hyprland packages to /output-bind..."
+mkdir -p /output-bind
+cp /output/*.deb /output-bind/ 2>/dev/null || true
+cp /output/*.changes /output-bind/ 2>/dev/null || true
+echo "Available packages:"
+ls -la /output-bind/
+echo "Package info:"
+for deb in /output-bind/*.deb; do
+    if [ -f "$deb" ]; then
+        echo "=== $deb ==="
+        dpkg-deb -I "$deb"
+        echo ""
+    fi
+done
+EOF
+
+RUN chmod +x /copy-packages.sh
+
+# Default command copies packages to bind mount
+CMD ["/copy-packages.sh"]

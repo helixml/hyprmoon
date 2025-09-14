@@ -225,8 +225,15 @@ void CCompositor::initServer() {
         },
         &isHeadlessOnly);
 
-    if (isHeadlessOnly) {
-        m_sWLRRenderer = wlr_renderer_autocreate(m_sWLRBackend); // TODO: remove this, it's barely needed now.
+    // Check for containerized/headless environment and force software rendering
+    const char* wlr_backends = getenv("WLR_BACKENDS");
+    const char* libgl_software = getenv("LIBGL_ALWAYS_SOFTWARE");
+    bool force_software = (wlr_backends && strcmp(wlr_backends, "headless") == 0) ||
+                         (libgl_software && strcmp(libgl_software, "1") == 0);
+
+    if (isHeadlessOnly || force_software) {
+        Debug::log(LOG, "Using software renderer (headless or forced software mode)");
+        m_sWLRRenderer = wlr_renderer_autocreate(m_sWLRBackend);
     } else {
         m_iDRMFD = wlr_backend_get_drm_fd(m_sWLRBackend);
         if (m_iDRMFD < 0) {
@@ -235,11 +242,17 @@ void CCompositor::initServer() {
         }
 
         m_sWLRRenderer = wlr_gles2_renderer_create_with_drm_fd(m_iDRMFD);
+
+        // Fallback to autocreate if hardware renderer fails (containerized environments)
+        if (!m_sWLRRenderer) {
+            Debug::log(WARN, "Hardware renderer failed, trying software fallback...");
+            m_sWLRRenderer = wlr_renderer_autocreate(m_sWLRBackend);
+        }
     }
 
     if (!m_sWLRRenderer) {
         Debug::log(CRIT, "m_sWLRRenderer was NULL! This usually means wlroots could not find a GPU or enountered some issues.");
-        throwError("wlr_gles2_renderer_create_with_drm_fd() failed!");
+        throwError("All renderer creation methods failed!");
     }
 
     m_sWLRAllocator = wlr_allocator_autocreate(m_sWLRBackend, m_sWLRRenderer);

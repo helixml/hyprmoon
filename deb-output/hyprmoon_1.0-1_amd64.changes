@@ -19,13 +19,13 @@ Changes:
    * Built from custom wlroots with moonlight patches
 Checksums-Sha1:
  8c57181b69a58e5161ff2d197d021da2c3937f01 72243272 hyprmoon-dbgsym_1.0-1_amd64.ddeb
- a70525025153ad2e52fc1a709895c7f53df78da0 17641 hyprmoon_1.0-1_amd64.buildinfo
- 34298bf5a6dc2bf66ccb92a8367cbdb92e01dd4a 48788680 hyprmoon_1.0-1_amd64.deb
+ 6395b0ca6096543451870286f980f8a822d8237a 17641 hyprmoon_1.0-1_amd64.buildinfo
+ 16ec732d9826fba4a950e1347fc483fc8fd5ec43 48788672 hyprmoon_1.0-1_amd64.deb
 Checksums-Sha256:
  07b166821016d382b23da9c3681a041fdefdff881f6ae2e332059ea99bcfcd81 72243272 hyprmoon-dbgsym_1.0-1_amd64.ddeb
- 97a8dce4d5a56cab6c10e193a0e6acb8786ccd1b775bcd6faac075b2c3c5437c 17641 hyprmoon_1.0-1_amd64.buildinfo
- 1dbea6169e91f4a7262a02762e6ef1d2e07828c56b0643d0284c1836861e7dba 48788680 hyprmoon_1.0-1_amd64.deb
+ f881c112a06d53e01ea81a054621997bc0dc0512aa1e16dfa8354606e35e64ef 17641 hyprmoon_1.0-1_amd64.buildinfo
+ f31ebc17bcea08a0611986283da9a99a3820ddf6416b557f7743b81107836ff9 48788672 hyprmoon_1.0-1_amd64.deb
 Files:
  4437583545d801efb04e7e54c9ab5b17 72243272 debug optional hyprmoon-dbgsym_1.0-1_amd64.ddeb
- bcdca7c00f748bcc5320b1923da28cd9 17641 x11 optional hyprmoon_1.0-1_amd64.buildinfo
- d42354d329249551b1c05ad9a7d01fd4 48788680 x11 optional hyprmoon_1.0-1_amd64.deb
+ e89a6f99d35a640476b296f6cfa7951d 17641 x11 optional hyprmoon_1.0-1_amd64.buildinfo
+ 4ab122a7d76d3c2c8228d005563119c4 48788672 x11 optional hyprmoon_1.0-1_amd64.deb

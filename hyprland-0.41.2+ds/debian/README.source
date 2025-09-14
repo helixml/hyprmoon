@@ -1,0 +1,4 @@
+This package needs to be updated using the uscan(1) program and
+the copyright file. This ensures that the embedded code copies of
+udis86, hyprland-protocols and tracy are removed from the source
+package to meet the policy requirements.

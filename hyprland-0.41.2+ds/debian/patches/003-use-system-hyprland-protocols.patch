@@ -1,0 +1,58 @@
+Description: Use system version of hyprland-protocols
+ Hyprland sources include a copy of hyprland-protocols. We will,
+ instead, use the system version of this package.
+Author: Alan M Varghese <alan@digistorm.in>
+Last-Update: 2024-06-15
+Forwarded: not-needed
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -221,7 +221,13 @@
+ 
+ function(protocol protoPath protoName external)
+     if (external)
+-        set(path ${CMAKE_SOURCE_DIR}/${protoPath})
++        string(FIND ${protoPath} "/usr" debian_patch_found)
++        if(debian_patch_found EQUAL 0)
++            message(STATUS "Debian patch found!!!")
++            set(path ${protoPath})
++        else()
++            set(path ${CMAKE_SOURCE_DIR}/${protoPath})
++        endif()
+     else()
+         set(path ${WAYLAND_PROTOCOLS_DIR}/${protoPath})
+     endif()
+@@ -242,7 +248,13 @@
+ 
+ function(protocolNew protoPath protoName external)
+     if (external)
+-        set(path ${CMAKE_SOURCE_DIR}/${protoPath})
++        string(FIND ${protoPath} "/usr" debian_patch_found)
++        if(debian_patch_found EQUAL 0)
++            message(STATUS "Debian patch found!!!")
++            set(path ${protoPath})
++        else()
++            set(path ${CMAKE_SOURCE_DIR}/${protoPath})
++        endif()
+     else()
+         set(path ${WAYLAND_PROTOCOLS_DIR}/${protoPath})
+     endif()
+@@ -276,8 +288,8 @@
+ )
+ 
+ protocol("protocols/wlr-screencopy-unstable-v1.xml" "wlr-screencopy-unstable-v1" true)
+-protocol("subprojects/hyprland-protocols/protocols/hyprland-global-shortcuts-v1.xml" "hyprland-global-shortcuts-v1" true)
+-protocol("subprojects/hyprland-protocols/protocols/hyprland-toplevel-export-v1.xml" "hyprland-toplevel-export-v1" true)
++protocol("/usr/share/hyprland-protocols/protocols/hyprland-global-shortcuts-v1.xml" "hyprland-global-shortcuts-v1" true)
++protocol("/usr/share/hyprland-protocols/protocols/hyprland-toplevel-export-v1.xml" "hyprland-toplevel-export-v1" true)
+ protocol("unstable/text-input/text-input-unstable-v1.xml" "text-input-unstable-v1" false)
+ 
+ protocolNew("protocols" "wlr-gamma-control-unstable-v1" true)
+@@ -289,7 +301,7 @@
+ protocolNew("protocols" "wlr-output-management-unstable-v1" true)
+ protocolNew("protocols" "kde-server-decoration" true)
+ protocolNew("protocols" "wlr-data-control-unstable-v1" true)
+-protocolNew("subprojects/hyprland-protocols/protocols" "hyprland-focus-grab-v1" true)
++protocolNew("/usr/share/hyprland-protocols/protocols" "hyprland-focus-grab-v1" true)
+ protocolNew("protocols" "wlr-layer-shell-unstable-v1" true)
+ protocolNew("protocols" "wayland-drm" true)
+ protocolNew("staging/tearing-control" "tearing-control-v1" false)

@@ -1,0 +1,28 @@
+hyprland (0.41.2+ds-1.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Build with libwlroots-0.18-dev. (Closes: #1091775)
+
+ -- Sudip Mukherjee <sudipm.mukherjee@gmail.com>  Thu, 09 Jan 2025 19:56:31 +0000
+
+hyprland (0.41.2+ds-1.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * No change source-only rebuild per requested. (Closes: #1080338)
+
+ -- Boyuan Yang <byang@debian.org>  Sat, 14 Sep 2024 09:56:22 -0400
+
+hyprland (0.41.2+ds-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * No change source-only upload to allow testing migration.
+
+ -- Boyuan Yang <byang@debian.org>  Mon, 29 Jul 2024 20:28:45 -0400
+
+hyprland (0.41.2+ds-1) unstable; urgency=medium
+
+  * Initial release. Closes: #1040971
+  * The subprojects udis86, tracy and hyprland-protocols have been
+    devendored. The source is patched to support this devendoring.
+
+ -- Alan M Varghese (NyxTrail) <alan@digistorm.in>  Mon, 01 Jul 2024 05:58:39 +0000

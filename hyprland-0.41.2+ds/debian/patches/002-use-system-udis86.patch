@@ -1,0 +1,45 @@
+Description: Use system version of udis86
+ Hyprland sources are shipped with a copy of udis86, against
+ which the binaries are built. We will instead build against
+ the Debian version of the library.
+Author: Alan M Varghese <alan@digistorm.in>
+Last-Update: 2024-05-15
+Forwarded: not-needed
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -29,7 +29,7 @@
+     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+ 
+ # udis
+-add_subdirectory("subprojects/udis86")
++# add_subdirectory("subprojects/udis86")
+ 
+ # wlroots
+ message(STATUS "Setting up wlroots")
+@@ -86,7 +86,7 @@
+   "src/"
+   "subprojects/wlroots-hyprland/include/"
+   "subprojects/wlroots-hyprland/build/include/"
+-  "subprojects/udis86/"
++  # "subprojects/udis86/"
+   "protocols/")
+ set(CMAKE_CXX_STANDARD 23)
+ add_compile_definitions(WLR_USE_UNSTABLE)
+@@ -114,6 +114,7 @@
+     cairo pango pangocairo pixman-1
+     libdrm libinput hwdata libseat libdisplay-info libliftoff libudev gbm
+     hyprlang>=0.3.2 hyprcursor>=0.1.7 hyprutils>=0.1.5
++    udis86
+ )
+ 
+ find_package(hyprwayland-scanner 0.3.10 REQUIRED)
+@@ -270,7 +271,7 @@
+         OpenGL::EGL
+         OpenGL::GL
+         Threads::Threads
+-        libudis86
++        udis86
+         uuid
+ )
+ 

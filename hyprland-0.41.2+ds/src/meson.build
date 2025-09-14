@@ -1,0 +1,40 @@
+globber = run_command('sh', '-c', 'find . -name "*.cpp" | sort', check: true)
+src = globber.stdout().strip().split('\n')
+
+executable('Hyprland', src,
+  cpp_args: ['-DWLR_USE_UNSTABLE'],
+  link_args: '-rdynamic',
+  cpp_pch: 'pch/pch.hpp',
+  dependencies: [
+    server_protos,
+    dependency('wayland-server'),
+    dependency('wayland-client'),
+    wlroots.get_variable('wlroots'),
+    dependency('cairo'),
+    dependency('hyprcursor'),
+    dependency('hyprlang', version: '>= 0.3.2'),
+    dependency('hyprutils', version: '>= 0.1.1'),
+    dependency('libdrm'),
+    dependency('egl'),
+    dependency('xkbcommon'),
+    dependency('libinput'),
+    xcb_dep,
+    xcb_composite_dep,
+    xcb_errors_dep,
+    xcb_icccm_dep,
+    xcb_render_dep,
+    xcb_res_dep,
+    xcb_xfixes_dep,
+    backtrace_dep,
+    epoll_dep,
+    udis86,
+
+    dependency('pixman-1'),
+    dependency('gl', 'opengl'),
+    dependency('threads'),
+    dependency('pango'),
+    dependency('pangocairo'),
+    dependency('uuid'),
+  ],
+  install : true
+)

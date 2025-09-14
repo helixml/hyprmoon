@@ -1,0 +1,6 @@
+version=4
+opts="searchmode=plain, \
+      dversionmangle=s/\+ds//, \
+      oversionmangle=s/$/+ds/" \
+  https://api.github.com/repos/hyprwm/Hyprland/releases \
+  https://github.com/hyprwm/Hyprland/releases/download/v\d+\.\d+\.\d+/source-v(\d+\.\d+\.\d+)\.tar\.gz

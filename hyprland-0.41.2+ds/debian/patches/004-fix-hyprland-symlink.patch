@@ -1,0 +1,18 @@
+Description: Fix symbolic link
+ Generate symlink with correct PREFIX and DATADIR settings.
+Author: Alan M Varghese
+Last-Update: 2024-06-15
+Forwarded: not-needed
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -338,9 +338,7 @@
+ install(TARGETS Hyprland)
+ 
+ install(CODE "execute_process( \
+-        COMMAND ${CMAKE_COMMAND} -E create_symlink \
+-        ${CMAKE_INSTALL_BINDIR}/Hyprland \
+-        ${CMAKE_INSTALL_BINDIR}/hyprland
++        COMMAND bash -c \"cd $PREFIX/${CMAKE_INSTALL_BINDIR} && ln -sf Hyprland hyprland \"
+         )"
+ )
+ 

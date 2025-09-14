@@ -1,0 +1,5 @@
+001-use-bash-in-makefile.patch
+002-use-system-udis86.patch
+003-use-system-hyprland-protocols.patch
+004-fix-hyprland-symlink.patch
+005-add-fortify-flags-for-subprojects.patch

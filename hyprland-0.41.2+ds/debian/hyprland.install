@@ -1,0 +1,11 @@
+usr/bin/Hyprland
+usr/bin/hyprland
+usr/bin/hyprctl
+usr/bin/hyprpm
+usr/share/hyprland/hyprland.conf
+usr/share/wayland-sessions
+usr/share/xdg-desktop-portal/hyprland-portals.conf
+usr/share/man
+usr/share/bash-completion
+usr/share/fish
+usr/share/zsh

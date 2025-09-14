@@ -1,0 +1,48 @@
+#!/usr/bin/make -f
+# export DH_VERBOSE = 1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-O2
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	dh_auto_build -- PREFIX=/usr all
+
+override_dh_auto_install:
+	# Fix permission on hyprland.pc (Hyprland sets 777 on everything in
+	# build/ directory)
+	chmod 644 build/hyprland.pc
+	
+	# dh_auto_install auto detects the correct DESTDIR.
+	# Modify PREFIX so that this DESTDIR is actually taken into account.
+	# (Upstream Makefile supports PREFIX, but not DESTDIR)
+	dh_auto_install -- PREFIX='$${DESTDIR}/usr'
+
+override_dh_clean:
+	# call clear target provided by Hyprland
+	make clear
+	
+	# clean up some directories created during the build
+	rm -rf subprojects/wlroots-hyprland/src/wlroots-hyprland-stamp
+	rm -f subprojects/udis86/libudis86/itab*
+	rm -rf subprojects/wlroots-hyprland/tmp
+	
+	# Reverse the patches in subprojects/wlroots-hyprland
+	cd subprojects/wlroots-hyprland ; \
+		patches=$$(find patches/ -type f -name '*.patch') ; \
+		echo $$patches ; \
+		for PATCH in $$patches ; do \
+		    patch -p1 -r /dev/null -N --dry-run -s < $$PATCH  || patch -p1 -r /dev/null -R -s < $$PATCH ; \
+		done ;
+	
+	# Do not delete scripts/generateVersion.sh.bak
+	dh_clean -X scripts/generateVersion.sh.bak
+
+override_dh_dwz:
+	dh_dwz -XHyprland # Skipping dwz, compression not beneficial on Hyprland
+
+#override_dh_auto_configure:
+#	dh_auto_configure -- \
+#	      -DCMAKE_LIBRARY_ARCHITECTURE="$(DEB_TARGET_MULTIARCH)"

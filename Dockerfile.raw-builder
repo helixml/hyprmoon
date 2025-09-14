@@ -33,12 +33,18 @@ COPY hyprland-0.41.2+ds /workspace/hyprland-0.41.2+ds
 
 WORKDIR /workspace/hyprland-0.41.2+ds
 
-# Use Ubuntu's exact packaging - no modifications
-RUN echo "Building raw Ubuntu Hyprland package..." && \
+# Use Ubuntu's exact packaging with proper build environment
+RUN echo "Building raw Ubuntu Hyprland package with Ubuntu's exact settings..." && \
     mk-build-deps -i -r -t 'apt-get -y' debian/control && \
+    # Set Ubuntu's exact build environment
+    export DEB_BUILD_MAINT_OPTIONS="hardening=+all" && \
+    export DEB_CFLAGS_MAINT_APPEND="-Wall -pedantic" && \
+    export DEB_LDFLAGS_MAINT_APPEND="-Wl,-O2" && \
+    # Clean first using Ubuntu's rules
     fakeroot debian/rules clean && \
+    # Build with Ubuntu's exact environment and flags
     dpkg-buildpackage -us -uc -b && \
-    echo "Raw Ubuntu package build completed"
+    echo "Raw Ubuntu package build completed with proper flags"
 
 # Copy the built packages to the output directory
 RUN mkdir -p /output && \

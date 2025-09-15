@@ -1,6 +1,7 @@
 #pragma once
 #include "../helpers/memory/Memory.hpp"
 #include "rest/RestServerStub.hpp"
+#include "streaming/StreamingManager.hpp"
 #include <memory>
 
 class CMoonlightManager {
@@ -21,7 +22,12 @@ public:
     void removePairedClient(const std::string& client_id);
     std::vector<moonlight::rest::ClientInfo> getPairedClients() const;
 
-    // Frame capture (Step 5) - following previous implementation pattern
+    // Step 6: Streaming management
+    bool startStreaming(const std::string& client_ip, unsigned short video_port, unsigned short audio_port);
+    bool stopStreaming();
+    bool isStreaming() const;
+
+    // Frame capture (Step 5) - enhanced with streaming in Step 6
     void onFrameReady(class CMonitor* monitor, struct wlr_buffer* buffer);
 
 private:
@@ -29,6 +35,9 @@ private:
 
     // REST API server (Wolf-compatible)
     std::unique_ptr<moonlight::rest::RestServerStub> m_restServer;
+
+    // Step 6: Streaming infrastructure
+    std::unique_ptr<moonlight::streaming::StreamingManager> m_streamingManager;
 };
 
 // Global instance

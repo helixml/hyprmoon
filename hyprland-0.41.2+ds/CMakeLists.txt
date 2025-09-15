@@ -117,6 +117,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
     libdrm libinput hwdata libseat libdisplay-info libliftoff libudev gbm
     hyprlang>=0.3.2 hyprcursor>=0.1.7 hyprutils>=0.1.5
     udis86
+    gstreamer-1.0 gstreamer-plugins-base-1.0
 )
 
 find_package(hyprwayland-scanner 0.3.10 REQUIRED)

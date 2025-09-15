@@ -7,7 +7,7 @@
 UP<CMoonlightManager> g_pMoonlightManager;
 
 void CMoonlightManager::init() {
-    Debug::log(LOG, "[moonlight] MoonlightManager initialized (Step 4: REST API and Pairing)");
+    Debug::log(LOG, "[moonlight] MoonlightManager initialized (Step 6: Streaming Infrastructure)");
 
     // Initialize core protocol infrastructure (Step 2)
     moonlight::crypto::CryptoStub::init();
@@ -16,12 +16,24 @@ void CMoonlightManager::init() {
     // Initialize REST API server (Step 4)
     m_restServer = std::make_unique<moonlight::rest::RestServerStub>();
 
+    // Step 6: Initialize streaming infrastructure
+    m_streamingManager = std::make_unique<moonlight::streaming::StreamingManager>();
+    if (m_streamingManager->initialize()) {
+        Debug::log(LOG, "[moonlight] Streaming infrastructure initialized");
+    } else {
+        Debug::log(ERR, "[moonlight] Failed to initialize streaming infrastructure");
+    }
+
     m_bEnabled = false; // Still disabled - just infrastructure setup
-    Debug::log(LOG, "[moonlight] Core protocol infrastructure ready");
+    Debug::log(LOG, "[moonlight] Core protocol and streaming infrastructure ready");
 }
 
 void CMoonlightManager::destroy() {
     Debug::log(LOG, "[moonlight] MoonlightManager destroying...");
+
+    // Step 6: Stop streaming if running
+    stopStreaming();
+    m_streamingManager.reset();
 
     // Stop REST API if running
     stopRestAPI();
@@ -92,18 +104,65 @@ std::vector<moonlight::rest::ClientInfo> CMoonlightManager::getPairedClients() c
     return {};
 }
 
+// Step 6: Streaming management functions
+
+bool CMoonlightManager::startStreaming(const std::string& client_ip, unsigned short video_port, unsigned short audio_port) {
+    if (!m_streamingManager) {
+        Debug::log(ERR, "[moonlight] Cannot start streaming - streaming manager not initialized");
+        return false;
+    }
+
+    Debug::log(LOG, "[moonlight] Starting streaming to {}:{}(video)/{}(audio)", client_ip, video_port, audio_port);
+
+    bool video_ok = m_streamingManager->startVideoStream(client_ip, video_port);
+    bool audio_ok = m_streamingManager->startAudioStream(client_ip, audio_port);
+
+    if (video_ok && audio_ok) {
+        Debug::log(LOG, "[moonlight] Streaming started successfully");
+        return true;
+    } else {
+        Debug::log(ERR, "[moonlight] Failed to start streaming (video: {}, audio: {})", video_ok, audio_ok);
+        stopStreaming(); // Clean up partial start
+        return false;
+    }
+}
+
+bool CMoonlightManager::stopStreaming() {
+    if (!m_streamingManager) {
+        return true;
+    }
+
+    Debug::log(LOG, "[moonlight] Stopping streaming");
+    bool video_ok = m_streamingManager->stopVideoStream();
+    bool audio_ok = m_streamingManager->stopAudioStream();
+
+    if (video_ok && audio_ok) {
+        Debug::log(LOG, "[moonlight] Streaming stopped successfully");
+    } else {
+        Debug::log(WARN, "[moonlight] Issues stopping streaming (video: {}, audio: {})", video_ok, audio_ok);
+    }
+
+    return video_ok && audio_ok;
+}
+
+bool CMoonlightManager::isStreaming() const {
+    return m_streamingManager &&
+           (m_streamingManager->isVideoStreaming() || m_streamingManager->isAudioStreaming());
+}
+
 void CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {
-    // Step 5: Minimal frame capture hook - just log for now
-    // This is a stub implementation to test if VNC breaks
+    // Step 5: Basic frame capture hook with Step 6 streaming enhancement
     static int frameCount = 0;
     frameCount++;
 
     // Only log every 60 frames (roughly once per second at 60fps)
     if (frameCount % 60 == 0) {
-        Debug::log(LOG, "[moonlight] Frame capture hook called for monitor: {} (frame #{})",
-                   monitor ? monitor->szName : "null", frameCount);
+        Debug::log(LOG, "[moonlight] Frame capture hook called for monitor: {} (frame #{}, streaming: {})",
+                   monitor ? monitor->szName : "null", frameCount, isStreaming());
     }
 
-    // TODO Step 6: Add actual frame processing for streaming
-    // For now, just ensure we don't break VNC by doing minimal work
+    // Step 6: Forward frame to streaming manager if available
+    if (m_streamingManager) {
+        m_streamingManager->processFrame(monitor, buffer);
+    }
 }

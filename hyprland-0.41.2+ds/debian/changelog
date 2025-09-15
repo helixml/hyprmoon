@@ -1,3 +1,12 @@
+hyprmoon (0.41.2+ds-1.3+step6) unstable; urgency=medium
+
+  * HyprMoon Step 6: Streaming Infrastructure (GStreamer integration)
+  * Add GStreamer core integration and streaming pipeline management
+  * Implement StreamingManager for video/audio streaming coordination
+  * Enhance MoonlightManager with streaming capabilities and frame processing
+
+ -- HyprMoon Build <hyprmoon@helix.local>  Sun, 15 Sep 2025 12:15:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step5) unstable; urgency=medium
 
   * HyprMoon Step 5: Frame capture integration with moonlight streaming

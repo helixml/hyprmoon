@@ -103,12 +103,15 @@ docker ps | grep helix
 **CRITICAL BUILD LOG REQUIREMENTS:**
 - ALWAYS capture build output to timestamped log files: `command 2>&1 | tee build-$(date +%s).log`
 - NEVER use --no-cache flags - we DO want build caching for speed
+- **CRITICAL: Monitor CONTAINER logs for actual compiler errors**: The outer build-*.log only shows package management
+- **MUST monitor container-build-*.log files**: These contain the actual compilation output and error details
 - MANDATORY 60-second build monitoring with BashOutput tool - CHECK AFTER EACH 60-SECOND WAIT
 - LOOP FOREVER until the build is finished (success or failure) - NEVER give up
 - NEVER background builds - always foreground and patient monitoring
 - Builds can take 10+ minutes - never give up on long builds
-- When builds fail, inspect the complete log file for full error details
-- Use `ls -lt build-*.log | head -1` to find the latest build log
+- When builds fail, inspect the complete CONTAINER log file for compiler errors
+- Use `find . -name "container-build-*.log" | sort | tail -1` to find the latest container build log
+- **Check both logs**: outer build-*.log for overall status, container-build-*.log for compilation errors
 
 ## MUST ALWAYS DO BEFORE MANUAL TESTING:
 1. Check if helix container is running: `docker ps | grep helix`

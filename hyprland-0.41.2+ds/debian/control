@@ -30,6 +30,8 @@ Build-Depends:
  libwlroots-0.18-dev,
  libxcb-errors-dev,
  libxcb-util-dev,
+ libgstreamer1.0-dev,
+ libgstreamer-plugins-base1.0-dev,
  meson,
  ninja-build,
  pkgconf,

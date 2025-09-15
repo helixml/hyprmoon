@@ -23,7 +23,7 @@ docker run --rm \
     /workspace/container-build.sh 2>&1 | tee "$LOG_FILE"
 
 # Check if build succeeded
-if [ -f hyprmoon_*.deb ]; then
+if ls hyprmoon_*.deb >/dev/null 2>&1; then
     echo "=== Build SUCCESS ==="
     echo "Generated deb file(s):"
     ls -la hyprmoon_*.deb

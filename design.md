@@ -3,10 +3,12 @@
 ## Development Context
 
 ### Directory Structure
+- **Host System**: Ubuntu 24.04 LTS (noble) - does NOT have hyprland package
+- **Container Environment**: Ubuntu 25.04 (plucky) - HAS hyprland 0.41.2+ds-1.3 in universe repo
 - **New methodical repo**: `~/pm/hyprmoon/` (this directory)
 - **Previous attempt**: `~/pm/Hyprland-wlroots/` (big-bang approach, caused grey screen)
 - **Helix container environment**: `/home/luke/pm/helix/` (test environment)
-- **Ubuntu source**: `~/pm/hyprmoon/hyprland-0.41.2+ds/` (baseline)
+- **Ubuntu source**: `~/pm/hyprmoon/hyprland-0.41.2+ds/` (baseline from Ubuntu 25.04 deb-src)
 
 ### Previous Findings
 1. **Grey Screen Issue**: Current HyprMoon shows grey screen in VNC instead of black

@@ -7,7 +7,7 @@
 UP<CMoonlightManager> g_pMoonlightManager;
 
 void CMoonlightManager::init() {
-    Debug::log(LOG, "[moonlight] MoonlightManager initialized (Step 6: Streaming Infrastructure)");
+    Debug::log(LOG, "[moonlight] MoonlightManager initialized (Step 7: Input Management)");
 
     // Initialize core protocol infrastructure (Step 2)
     moonlight::crypto::CryptoStub::init();
@@ -24,12 +24,24 @@ void CMoonlightManager::init() {
         Debug::log(ERR, "[moonlight] Failed to initialize streaming infrastructure");
     }
 
+    // Step 7: Initialize input management
+    m_inputManager = std::make_unique<moonlight::input::InputManager>();
+    if (m_inputManager->initialize()) {
+        Debug::log(LOG, "[moonlight] Input management initialized");
+    } else {
+        Debug::log(ERR, "[moonlight] Failed to initialize input management");
+    }
+
     m_bEnabled = false; // Still disabled - just infrastructure setup
-    Debug::log(LOG, "[moonlight] Core protocol and streaming infrastructure ready");
+    Debug::log(LOG, "[moonlight] Core protocol, streaming, and input infrastructure ready");
 }
 
 void CMoonlightManager::destroy() {
     Debug::log(LOG, "[moonlight] MoonlightManager destroying...");
+
+    // Step 7: Stop input manager if running
+    stopInputManager();
+    m_inputManager.reset();
 
     // Step 6: Stop streaming if running
     stopStreaming();
@@ -164,5 +176,65 @@ void CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {
     // Step 6: Forward frame to streaming manager if available
     if (m_streamingManager) {
         m_streamingManager->processFrame(monitor, buffer);
+    }
+}
+
+// Step 7: Input management functions
+
+bool CMoonlightManager::startInputManager() {
+    if (!m_inputManager) {
+        Debug::log(ERR, "[moonlight] Cannot start input manager - not initialized");
+        return false;
+    }
+
+    if (m_inputManager->isInitialized()) {
+        Debug::log(WARN, "[moonlight] Input manager already running");
+        return true;
+    }
+
+    Debug::log(LOG, "[moonlight] Starting Moonlight input manager");
+    return m_inputManager->initialize();
+}
+
+void CMoonlightManager::stopInputManager() {
+    if (m_inputManager) {
+        Debug::log(LOG, "[moonlight] Stopping Moonlight input manager");
+        m_inputManager->shutdown();
+    }
+}
+
+bool CMoonlightManager::isInputManagerRunning() const {
+    return m_inputManager && m_inputManager->isInitialized();
+}
+
+// Input event handlers for Moonlight clients
+
+void CMoonlightManager::handleMouseMove(float x, float y, bool relative) {
+    if (m_inputManager) {
+        m_inputManager->handleMouseMove(x, y, relative);
+    }
+}
+
+void CMoonlightManager::handleMouseButton(int button, bool pressed) {
+    if (m_inputManager) {
+        m_inputManager->handleMouseButton(button, pressed);
+    }
+}
+
+void CMoonlightManager::handleMouseScroll(float scrollX, float scrollY) {
+    if (m_inputManager) {
+        m_inputManager->handleMouseScroll(scrollX, scrollY);
+    }
+}
+
+void CMoonlightManager::handleKeyboardKey(int keycode, bool pressed) {
+    if (m_inputManager) {
+        m_inputManager->handleKeyboardKey(keycode, pressed);
+    }
+}
+
+void CMoonlightManager::handleTouchEvent(int touchId, float x, float y, bool pressed) {
+    if (m_inputManager) {
+        m_inputManager->handleTouchEvent(touchId, x, y, pressed);
     }
 }

@@ -31,12 +31,6 @@
 4. **VNC Connected**: wayvnc connects and captures, but wrong colors
 5. **Ubuntu Patches Applied**: 5 debian patches already applied to source
 
-### CRITICAL DISCOVERY (2025-09-14):
-6. **Raw Ubuntu Hyprland ALSO crashes with identical GPU errors**: `wlr_gles2_renderer_create_with_drm_fd() failed!`
-7. **HyprMoon modifications are NOT the cause**: Both raw Ubuntu package and HyprMoon fail identically
-8. **Issue is container GPU/Mesa setup**: libEGL warnings, MESA ZINK errors, missing libkmod resources
-9. **Baseline established**: Both packages fail the same way - this confirms our modifications are innocent
-
 ### Key Development Lessons
 - **Always run builds in foreground**: Never use `&` or background mode for build commands, be patient
 - **Build caches are critical**: Without ccache/meson cache, iteration takes too long
@@ -49,6 +43,7 @@
 - **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
 - **MANDATORY 60-SECOND BUILD MONITORING**: ALWAYS monitor builds every 60 seconds using BashOutput tool until completion - NEVER start a build and forget about it
 - **NEVER GIVE UP ON LONG BUILDS**: ALWAYS wait patiently for builds to complete, no matter how long they take - builds can take 10+ minutes, be patient and keep monitoring every 60 seconds
+- **NEVER USE --no-cache**: NEVER EVER use --no-cache flags with Docker builds - we trust Docker's caching system completely
 
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
@@ -115,9 +110,9 @@ Add HyprMoon features one by one, testing VNC after each:
 - Implement minimal frame capture method with logging ✅
 - Fix Debian packaging configuration ✅
 - **Build**: Generated `hyprmoon_0.41.2+ds-1.3+step5_amd64.deb` successfully ✅
-- **Test**: Ready for VNC testing - package deployed to helix ✅
-- **Git commit**: Pending after VNC testing
-- **Result**: SUCCESSFUL - Frame capture hooks integrated, build system working reliably
+- **Test**: VNC testing SUCCESSFUL - frame capture working ✅
+- **Git commit**: b17506a "Step 5 Complete: Frame Capture Integration" ✅
+- **Result**: SUCCESSFUL - Frame capture hooks integrated, VNC connectivity maintained
 
 #### Step 4: REST API and Pairing (Medium Risk)
 - Add REST API server
@@ -202,8 +197,10 @@ cd /home/luke/pm/helix
 # Rebuild helix container with new debs
 docker compose -f docker-compose.dev.yaml build zed-runner
 
-# Restart container with new packages
-docker compose -f docker-compose.dev.yaml restart zed-runner
+# CRITICAL: Recreate container to get clean state from image
+# NEVER just restart - that preserves modified container state!
+docker compose -f docker-compose.dev.yaml down zed-runner
+docker compose -f docker-compose.dev.yaml up -d zed-runner
 
 # Verify container is running
 docker ps | grep helix

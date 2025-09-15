@@ -1,0 +1,28 @@
+# Build artifacts and generated files
+*.deb
+*.ddeb
+*.buildinfo
+*.changes
+*.log
+
+# CMake build directory
+hyprland-0.41.2+ds/build/
+
+# Debian packaging artifacts
+hyprland-0.41.2+ds/debian/.debhelper/
+hyprland-0.41.2+ds/debian/debhelper-build-stamp
+hyprland-0.41.2+ds/debian/files
+hyprland-0.41.2+ds/debian/*.debhelper.log
+hyprland-0.41.2+ds/debian/*.substvars
+hyprland-0.41.2+ds/debian/hyprland-backgrounds/
+hyprland-0.41.2+ds/debian/hyprland-dev/
+hyprland-0.41.2+ds/debian/hyprmoon/
+hyprland-0.41.2+ds/debian/tmp/
+
+# Object files and binaries
+*.o
+*.so
+*.a
+hyprland-0.41.2+ds/build/Hyprland
+hyprland-0.41.2+ds/build/hyprctl/hyprctl
+hyprland-0.41.2+ds/build/hyprpm/hyprpm

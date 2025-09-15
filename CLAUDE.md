@@ -76,8 +76,10 @@ cd /home/luke/pm/helix
 # Rebuild helix container with new debs
 docker compose -f docker-compose.dev.yaml build zed-runner
 
-# Restart container with new packages
-docker compose -f docker-compose.dev.yaml restart zed-runner
+# CRITICAL: Recreate container to get clean state from image
+# NEVER just restart - that preserves modified container state!
+docker compose -f docker-compose.dev.yaml down zed-runner
+docker compose -f docker-compose.dev.yaml up -d zed-runner
 ```
 
 ### Step 3: Verify deployment before testing
@@ -103,6 +105,7 @@ docker ps | grep helix
 **CRITICAL BUILD LOG REQUIREMENTS:**
 - ALWAYS capture build output to timestamped log files: `command 2>&1 | tee build-$(date +%s).log`
 - NEVER use --no-cache flags - we DO want build caching for speed
+- NEVER EVER use --no-cache with docker builds - we trust Docker's caching system completely
 - **CRITICAL: Monitor CONTAINER logs for actual compiler errors**: The outer build-*.log only shows package management
 - **MUST monitor container-build-*.log files**: These contain the actual compilation output and error details
 - MANDATORY 60-second build monitoring with BashOutput tool - CHECK AFTER EACH 60-SECOND WAIT

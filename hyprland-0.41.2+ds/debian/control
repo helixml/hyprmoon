@@ -48,6 +48,9 @@ Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
  polkitd, binutils, libgl1-mesa-dri
 Recommends: xwayland
+Conflicts: hyprland
+Replaces: hyprland
+Provides: hyprland
 Description: HyprMoon - Dynamic tiling Wayland compositor with Moonlight streaming
  Hyprland is a dynamic tiling Wayland compositor based on
  wlroots that doesn't sacrifice on its looks. It provides

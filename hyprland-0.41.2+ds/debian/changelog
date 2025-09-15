@@ -1,3 +1,14 @@
+hyprmoon (0.41.2+ds-1.3+step8) unstable; urgency=medium
+
+  * HyprMoon Step 8: REST API Activation (Complete Moonlight server functionality)
+  * Automatically start REST API server during MoonlightManager initialization
+  * Enable Moonlight client discovery and pairing on ports 47989/47984
+  * Activate HTTP/HTTPS endpoints for client communication
+  * Fix missing startRestAPI() call in initialization sequence
+  * Complete functional Moonlight streaming server
+
+ -- HyprMoon Build <hyprmoon@helix.local>  Sun, 15 Sep 2025 17:48:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step7) unstable; urgency=medium
 
   * HyprMoon Step 7: Input Management (Virtual input device infrastructure)

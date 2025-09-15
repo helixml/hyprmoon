@@ -43,7 +43,9 @@
 - **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
 - **MANDATORY 60-SECOND BUILD MONITORING**: ALWAYS monitor builds every 60 seconds using BashOutput tool until completion - NEVER start a build and forget about it
 - **NEVER GIVE UP ON LONG BUILDS**: ALWAYS wait patiently for builds to complete, no matter how long they take - builds can take 10+ minutes, be patient and keep monitoring every 60 seconds
+- **CRITICAL: ALWAYS exec sleep 60**: When waiting 60 seconds for build monitoring, MUST use `sleep 60` command - DO NOT just wait passively
 - **NEVER USE --no-cache**: NEVER EVER use --no-cache flags with Docker builds - we trust Docker's caching system completely
+- **DOCKERFILE FILENAME UPDATES CRITICAL**: When moving from Step N to Step N+1, you MUST update the Dockerfile COPY lines to reference the new Step filenames BEFORE running docker build. Docker caching works correctly - if you update the Dockerfile after build starts, it uses cached layers with old filenames.
 
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.

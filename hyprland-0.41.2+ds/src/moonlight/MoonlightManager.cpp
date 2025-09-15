@@ -32,6 +32,13 @@ void CMoonlightManager::init() {
         Debug::log(ERR, "[moonlight] Failed to initialize input management");
     }
 
+    // Start REST API for Moonlight client discovery and pairing
+    if (startRestAPI()) {
+        Debug::log(LOG, "[moonlight] REST API started successfully");
+    } else {
+        Debug::log(ERR, "[moonlight] Failed to start REST API");
+    }
+
     m_bEnabled = false; // Still disabled - just infrastructure setup
     Debug::log(LOG, "[moonlight] Core protocol, streaming, and input infrastructure ready");
 }

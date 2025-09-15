@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdlib.h>
 #include <drm_fourcc.h>
 #include <wlr/render/swapchain.h>
 #include <wlr/render/wlr_renderer.h>
@@ -72,82 +71,6 @@ bool init_drm_surface(struct wlr_drm_surface *surf,
 	surf->renderer = renderer;
 
 	return true;
-}
-
-struct wlr_buffer *drm_cursor_copy(struct wlr_drm_surface *surf,
-		struct wlr_drm_renderer *parent_renderer, struct wlr_buffer *buffer) {
-	void *data, *src_data;
-	size_t stride, src_stride;
-	uint32_t drm_format = DRM_FORMAT_ARGB8888;
-
-	if (surf->swapchain->width != buffer->width ||
-			surf->swapchain->height != buffer->height) {
-		wlr_log(WLR_ERROR, "Surface size doesn't match buffer size");
-		return NULL;
-	}
-
-	struct wlr_texture *tex = wlr_texture_from_buffer(parent_renderer->wlr_rend, buffer);
-	if (tex == NULL) {
-		wlr_log(WLR_ERROR, "Failed to import cursor into multi-GPU renderer");
-		return NULL;
-	}
-
-	struct wlr_buffer *dst = wlr_swapchain_acquire(surf->swapchain, NULL);
-	if (!dst) {
-		wlr_log(WLR_ERROR, "Failed to acquire multi-GPU swapchain buffer");
-		goto error_tex;
-	}
-
-	if (!wlr_buffer_begin_data_ptr_access(dst, WLR_BUFFER_DATA_PTR_ACCESS_WRITE, &data,
-				&drm_format, &stride)) {
-		wlr_log(WLR_ERROR, "Failed to get data ptr access to DRM cursor surface");
-		goto error_dst;
-	}
-
-	// Allocate memory to store our pixel data
-	src_stride = tex->width * 4;
-	src_data = malloc(tex->height * src_stride);
-	if (data == NULL) {
-		goto end_access;
-	}
-
-	// Get our linear pixel data from the source texture
-	bool result = wlr_texture_read_pixels(tex, &(struct wlr_texture_read_pixels_options) {
-		.format = DRM_FORMAT_ARGB8888,
-		.stride = src_stride,
-		.data = src_data,
-	});
-
-	if (!result) {
-		wlr_log(WLR_ERROR, "Failed to get data ptr access to DRM cursor surface");
-		goto free_src_data;
-	}
-
-	if (stride != src_stride) {
-		wlr_log(WLR_ERROR, "Format/stride values for DRM cursor source and destination"
-				"buffers do not match");
-		goto free_src_data;
-	}
-
-	// Copy our linear pixels into our DRM surface
-	memcpy(data, src_data, stride * buffer->height);
-
-	free(src_data);
-	wlr_buffer_end_data_ptr_access(dst);
-	wlr_texture_destroy(tex);
-
-	return dst;
-
-free_src_data:
-	free(src_data);
-end_access:
-	wlr_buffer_end_data_ptr_access(dst);
-error_dst:
-	wlr_buffer_unlock(dst);
-error_tex:
-	wlr_texture_destroy(tex);
-
-	return NULL;
 }
 
 struct wlr_buffer *drm_surface_blit(struct wlr_drm_surface *surf,

@@ -2,9 +2,9 @@
 
 #include <boost/asio.hpp>
 #include <chrono>
-#include <core/audio.hpp>
-#include <core/input.hpp>
-#include <core/virtual-display.hpp>
+#include <moonlight/core/audio.hpp>
+#include <moonlight/core/input.hpp>
+#include <moonlight/core/virtual-display.hpp>
 #include <deque>
 #include <eventbus/event_bus.hpp>
 #include <events/events.hpp>

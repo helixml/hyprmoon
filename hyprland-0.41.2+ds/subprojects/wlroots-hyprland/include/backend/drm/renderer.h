@@ -33,8 +33,6 @@ void finish_drm_surface(struct wlr_drm_surface *surf);
 
 struct wlr_buffer *drm_surface_blit(struct wlr_drm_surface *surf,
 	struct wlr_buffer *buffer);
-struct wlr_buffer *drm_cursor_copy(struct wlr_drm_surface *surf,
-	struct wlr_drm_renderer *parent_renderer, struct wlr_buffer *buffer);
 
 bool drm_plane_pick_render_format(struct wlr_drm_plane *plane,
 	struct wlr_drm_format *fmt, struct wlr_drm_renderer *renderer);

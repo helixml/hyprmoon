@@ -10,17 +10,13 @@ echo "Starting build at $(date)"
 # Navigate to hyprmoon directory
 cd /home/luke/pm/hyprmoon
 
-# Create timestamped log file
-TIMESTAMP=$(date +%s)
-LOG_FILE="build-${TIMESTAMP}.log"
-echo "Build log will be saved to: $LOG_FILE"
-
 # Run the container with the bind-mounted build script
 echo "Executing container build..."
+echo "Build logs will be saved to: container-build-*.log"
 docker run --rm \
     -v $(pwd):/workspace \
     hyprmoon-build-env \
-    /workspace/container-build.sh 2>&1 | tee "$LOG_FILE"
+    /workspace/container-build.sh
 
 # Check if build succeeded
 if ls hyprmoon_*.deb >/dev/null 2>&1; then
@@ -39,8 +35,7 @@ if ls hyprmoon_*.deb >/dev/null 2>&1; then
 
     echo ""
     echo "Build completed successfully!"
-    echo "Host log file: $LOG_FILE"
-    echo "Container log file: container-build-*.log"
+    echo "Build log file: $(find . -name "container-build-*.log" | sort | tail -1)"
     echo ""
     echo "Next steps:"
     echo "  1. Copy deb to helix: cp hyprmoon_*.deb /home/luke/pm/helix/"
@@ -49,7 +44,6 @@ if ls hyprmoon_*.deb >/dev/null 2>&1; then
     echo "  4. Restart helix: docker compose -f docker-compose.dev.yaml up -d zed-runner"
 else
     echo "=== Build FAILED ==="
-    echo "No deb file generated. Check the log: $LOG_FILE"
-    echo "Latest build log: $(ls -lt build-*.log | head -1 | awk '{print $NF}')"
+    echo "No deb file generated. Check the log: $(find . -name "container-build-*.log" | sort | tail -1)"
     exit 1
 fi

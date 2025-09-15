@@ -20,11 +20,11 @@ cd /workspace/hyprland-0.41.2+ds
 
 # Update package lists
 echo "Updating package lists..."
-apt-get update
+apt-get update -qq
 
 # Install build dependencies
 echo "Installing build dependencies..."
-mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
+mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
 
 # Build the deb package
 echo "Building deb package..."

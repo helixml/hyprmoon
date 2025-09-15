@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 
 include(CheckIncludeFile)
 include(ExternalProject)
+include(FetchContent)
 
 # Get version
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/props.json PROPS)
@@ -14,6 +15,14 @@ project(Hyprland
 
 # Include GNUInstallDirs after project() to ensure language is enabled
 include(GNUInstallDirs)
+
+# Fetch inputtino for Wolf REST API virtual input devices
+FetchContent_Declare(
+    inputtino
+    GIT_REPOSITORY https://github.com/games-on-whales/inputtino.git
+    GIT_TAG fd136cf
+)
+FetchContent_MakeAvailable(inputtino)
 
 set(HYPRLAND_VERSION ${VER})
 set(PREFIX ${CMAKE_INSTALL_PREFIX})
@@ -288,6 +297,7 @@ target_link_libraries(Hyprland
         Threads::Threads
         udis86
         uuid
+        inputtino::libinputtino
 )
 
 protocol("protocols/wlr-screencopy-unstable-v1.xml" "wlr-screencopy-unstable-v1" true)

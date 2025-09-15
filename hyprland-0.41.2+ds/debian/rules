@@ -21,14 +21,15 @@ override_dh_auto_install:
 	dh_auto_install -- PREFIX='$${DESTDIR}/usr'
 
 override_dh_clean:
+	# DISABLED ALL CLEANING TO MAXIMIZE BUILD CACHE PERFORMANCE
 	# call clear target provided by Hyprland
 	# DISABLED: make clear  # This kills build cache - let's preserve it for faster iterations
-	
+
 	# clean up some directories created during the build
-	rm -rf subprojects/wlroots-hyprland/src/wlroots-hyprland-stamp
-	rm -f subprojects/udis86/libudis86/itab*
-	rm -rf subprojects/wlroots-hyprland/tmp
-	
+	# DISABLED: rm -rf subprojects/wlroots-hyprland/src/wlroots-hyprland-stamp
+	# DISABLED: rm -f subprojects/udis86/libudis86/itab*
+	# DISABLED: rm -rf subprojects/wlroots-hyprland/tmp
+
 	# Reverse the patches in subprojects/wlroots-hyprland
 	cd subprojects/wlroots-hyprland ; \
 		patches=$$(find patches/ -type f -name '*.patch') ; \
@@ -36,9 +37,10 @@ override_dh_clean:
 		for PATCH in $$patches ; do \
 		    patch -p1 -r /dev/null -N --dry-run -s < $$PATCH  || patch -p1 -r /dev/null -R -s < $$PATCH ; \
 		done ;
-	
+
 	# Do not delete scripts/generateVersion.sh.bak
-	dh_clean -X scripts/generateVersion.sh.bak
+	# DISABLED: dh_clean -X scripts/generateVersion.sh.bak
+	@echo "Most cleaning disabled to preserve build cache"
 
 override_dh_dwz:
 	dh_dwz -XHyprland # Skipping dwz, compression not beneficial on Hyprland

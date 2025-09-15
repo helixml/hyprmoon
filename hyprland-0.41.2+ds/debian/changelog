@@ -1,3 +1,12 @@
+hyprmoon (0.41.2+ds-1.3+step7.5) unstable; urgency=medium
+
+  * Step 7.5: Optimize build cache by disabling most dh_clean operations
+  * Disabled subprojects cleaning and file removal in override_dh_clean
+  * Preserved only patch reversal to avoid conflicts
+  * Testing maximum build cache performance with pre-cached Docker dependencies
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 15 Sep 2025 21:15:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step7.4) unstable; urgency=medium
 
   * Step 7.4: Fix missing OpenSSL and Boost dependencies for Wolf REST API

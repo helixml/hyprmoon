@@ -1,25 +1,30 @@
 #pragma once
-
+#include "../helpers/memory/Memory.hpp"
+// #include "rest/rest.hpp"  // TODO: Fix SimpleWeb-Server dependency - use forward declarations for now
+// #include "state/data-structures.hpp"  // TODO: Fix circular includes
+// #include "streaming/StreamingManager.hpp"  // TODO: Add when streaming is implemented
+// #include "input/InputManager.hpp"  // TODO: Add when input is implemented
 #include <memory>
 #include <string>
-#include <wlr/interfaces/wlr_buffer.h>
-#include "../../helpers/Monitor.hpp"
-#include "../../helpers/memory/Memory.hpp"
+#include <vector>
 
-// Forward declarations for Wolf components
-namespace wolf {
-namespace core {
-    class WolfMoonlightServer;
-    class MoonlightConfig;
+// Forward declarations to avoid problematic includes
+class HttpServer;
+class HttpsServer;
+namespace moonlight {
+namespace rest {
+    struct ClientInfo;  // Forward declaration instead of including rest.hpp
+}
+namespace streaming {
+    class StreamingManager;
+}
+namespace input {
+    class InputManager;
 }
 }
-
-// Forward declaration for WebRTC
-class CWebRTCManager;
-
-// Forward declarations for Voice Processing
-class CWhisperManager;
-class CTTSManager;
+namespace state {
+    class AppState;
+}
 
 class CMoonlightManager {
 public:
@@ -28,133 +33,56 @@ public:
 
     void init();
     void destroy();
-    
-    // Streaming control
-    void startStreaming(CMonitor* monitor = nullptr);
-    void stopStreaming();
-    bool isStreaming() const { return m_streaming; }
-    
-    // WebRTC streaming control
-    void startWebRTCStreaming();
-    void stopWebRTCStreaming();
-    bool isWebRTCStreaming() const { return m_webrtcStreaming; }
-    
-    // WebRTC session management
-    std::string createWebRTCOffer(const std::string& clientId);
-    bool setWebRTCAnswer(const std::string& clientId, const std::string& sdp);
-    bool addWebRTCICECandidate(const std::string& clientId, const std::string& candidate);
-    void closeWebRTCSession(const std::string& clientId);
-    
-    // WebRTC status
-    size_t getWebRTCClientCount() const;
-    std::vector<std::string> getActiveWebRTCClients() const;
-    
-    // Voice processing control
-    void startVoiceTranscription();
-    void stopVoiceTranscription();
-    bool isVoiceTranscriptionActive() const { return m_voiceTranscriptionActive; }
-    
-    void startTTSServer(int port = 8080);
-    void stopTTSServer();
-    bool isTTSServerRunning() const;
-    
-    // Voice processing API
-    void speakText(const std::string& text, const std::string& voice = "default");
-    void registerVoiceCommand(const std::string& command, const std::string& description);
-    std::vector<std::pair<std::string, std::string>> getVoiceCommands() const;
-    
-    // Frame callback from renderer
-    void onFrameReady(CMonitor* monitor, wlr_buffer* buffer);
-    
-    // Configuration
-    void loadConfig();
-    void reloadConfig();
-    
-    // Pairing and client management
-    void handlePairingRequest(const std::string& clientIP);
-    void unpairClient(const std::string& clientID);
-    
+
+    // REST API management
+    bool startRestAPI();
+    void stopRestAPI();
+    bool isRestAPIRunning() const;
+
+    // Client management
+    void addPairedClient(const moonlight::rest::ClientInfo& client);
+    void removePairedClient(const std::string& client_id);
+    std::vector<moonlight::rest::ClientInfo> getPairedClients() const;
+
+    // Step 6: Streaming management
+    bool startStreaming(const std::string& client_ip, unsigned short video_port, unsigned short audio_port);
+    bool stopStreaming();
+    bool isStreaming() const;
+
+    // Step 7: Input management
+    bool startInputManager();
+    void stopInputManager();
+    bool isInputManagerRunning() const;
+
+    // Input event handlers for Moonlight clients
+    void handleMouseMove(float x, float y, bool relative = false);
+    void handleMouseButton(int button, bool pressed);
+    void handleMouseScroll(float scrollX, float scrollY);
+    void handleKeyboardKey(int keycode, bool pressed);
+    void handleTouchEvent(int touchId, float x, float y, bool pressed);
+
+    // Frame capture (Step 5) - enhanced with streaming in Step 6
+    void onFrameReady(class CMonitor* monitor, struct wlr_buffer* buffer);
+
 private:
-    // Internal methods
-    void setupNetworkServices();
-    void setupGStreamerPipeline();
-    void setupInputHandling();
-    void cleanupResources();
-    
-    // Frame processing
-    void processFrame(wlr_buffer* buffer);
-    void setupFrameSource();
-    
-    // WebRTC integration
-    void setupWebRTCIntegration();
-    void setupSharedPipeline();
-    void handleWebRTCInput(int keycode, bool pressed, uint32_t modifiers);
-    void handleWebRTCMouse(double x, double y, int button, bool pressed);
-    void handleWebRTCAudio(const void* audio_data, size_t size, int channels, int sample_rate);
-    
-    // Voice processing integration
-    void setupVoiceProcessing();
-    void handleVoiceTranscription(const std::string& text, float confidence);
-    void handleVoiceCommand(const std::string& command, const std::string& params);
-    void handleVoiceKeyboardEvent(int keycode, bool pressed, uint32_t modifiers);
-    void processAudioForVoice(const void* audio_data, size_t size, int channels, int sample_rate);
-    void routeAudioToWhisper(const float* audio_data, size_t sample_count, int sample_rate);
-    
-    // State
-    bool m_initialized = false;
-    bool m_streaming = false;
-    bool m_webrtcStreaming = false;
-    bool m_voiceTranscriptionActive = false;
-    CMonitor* m_streamingMonitor = nullptr;
-    
-    // Wolf moonlight server (using pimpl pattern to avoid header dependencies)
-    std::unique_ptr<wolf::core::WolfMoonlightServer> m_wolfServer;
-    
-    // WebRTC manager
-    std::unique_ptr<CWebRTCManager> m_webrtcManager;
-    
-    // Voice processing managers
-    std::unique_ptr<CWhisperManager> m_whisperManager;
-    std::unique_ptr<CTTSManager> m_ttsManager;
-    
-    // GStreamer pipeline (shared between Wolf and WebRTC)
-    void* m_pipeline = nullptr; // GstElement* (avoiding gstreamer headers here)
-    void* m_frameSrc = nullptr; // Custom frame source element
-    void* m_teeElement = nullptr; // Tee for splitting frames to Wolf and WebRTC
-    
-    // Configuration
-    struct Config {
-        // Wolf/Moonlight settings
-        bool enabled = true;
-        int quality = 20000; // bitrate
-        int fps = 60;
-        bool hardwareEncoding = true;
-        std::string encoderPreference = "auto"; // nvenc, qsv, vaapi, x264
-        bool audioEnabled = true;
-        int httpPort = 47989;
-        int httpsPort = 47984;
-        int rtspPort = 48010;
-        int controlPort = 47999;
-        int videoPort = 48000;
-        int audioPort = 48002;
-        
-        // WebRTC settings
-        bool webrtcEnabled = true;
-        bool webrtcAudioInput = true;
-        bool webrtcAudioOutput = true;
-        bool webrtcKeyboardInput = true;
-        bool webrtcMouseInput = true;
-        std::string stunServer = "stun://stun.l.google.com:19302";
-        
-        // Voice processing settings
-        bool voiceTranscriptionEnabled = true;
-        bool ttsEnabled = true;
-        std::string whisperModelPath = "models/ggml-base.en.bin";
-        std::string ttsEngine = "espeak-ng";
-        std::string defaultVoice = "en+f3";
-        int ttsPort = 8080;
-        bool voiceCommandsEnabled = true;
-    } m_config;
+    bool m_bEnabled = false;
+
+    // Wolf REST API servers (HTTP and HTTPS)
+    std::unique_ptr<HttpServer> m_httpServer;
+    std::unique_ptr<HttpsServer> m_httpsServer;
+
+    // Wolf application state for REST API (TODO: implement when state system is ready)
+    // immer::box<state::AppState> m_appState;
+
+    // Step 6: Streaming infrastructure
+    std::unique_ptr<moonlight::streaming::StreamingManager> m_streamingManager;
+
+    // Step 7: Input management infrastructure
+    std::unique_ptr<moonlight::input::InputManager> m_inputManager;
+
+    // Helper methods for Wolf REST API setup
+    void setupWolfAppState();
+    void generateSelfSignedCertificate(const std::string& cert_file, const std::string& key_file);
 };
 
 // Global instance

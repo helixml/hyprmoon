@@ -32,7 +32,7 @@ echo "Building deb package..."
 # Monitor build output for fatal errors and exit immediately
 dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
     echo "$line"
-    if [[ "$line" == *"fatal error:"* ]]; then
+    if [[ "$line" == *"fatal error:"* ]] || [[ "$line" == *"FAILED:"* ]]; then
         echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
         echo "Error line: $line"
         # Kill the dpkg-buildpackage process tree

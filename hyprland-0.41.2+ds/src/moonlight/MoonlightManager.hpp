@@ -1,6 +1,7 @@
 #pragma once
 #include "../helpers/memory/Memory.hpp"
-#include "rest/RestServerStub.hpp"
+#include "rest/rest.hpp"
+#include "state/data-structures.hpp"
 #include "streaming/StreamingManager.hpp"
 #include "input/InputManager.hpp"
 #include <memory>
@@ -46,14 +47,22 @@ public:
 private:
     bool m_bEnabled = false;
 
-    // REST API server (Wolf-compatible)
-    std::unique_ptr<moonlight::rest::RestServerStub> m_restServer;
+    // Wolf REST API servers (HTTP and HTTPS)
+    std::unique_ptr<HttpServer> m_httpServer;
+    std::unique_ptr<HttpsServer> m_httpsServer;
+
+    // Wolf application state for REST API
+    immer::box<state::AppState> m_appState;
 
     // Step 6: Streaming infrastructure
     std::unique_ptr<moonlight::streaming::StreamingManager> m_streamingManager;
 
     // Step 7: Input management infrastructure
     std::unique_ptr<moonlight::input::InputManager> m_inputManager;
+
+    // Helper methods for Wolf REST API setup
+    void setupWolfAppState();
+    void generateSelfSignedCertificate(const std::string& cert_file, const std::string& key_file);
 };
 
 // Global instance

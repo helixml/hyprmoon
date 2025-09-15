@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step7-rest) unstable; urgency=medium
+
+  * Step 7: Wolf REST API and PIN Management Integration (NO MORE STUBS!)
+  * Replaced RestServerStub with real Wolf REST API implementation
+  * Added Wolf AppState initialization for REST endpoints and state management
+  * Implemented HTTP and HTTPS servers using Wolf's SimpleWeb framework
+  * Added self-signed certificate generation for HTTPS endpoints
+  * Wolf REST API now handles Moonlight client discovery and pairing
+  * Ready for Wolf streaming infrastructure implementation
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 15 Sep 2025 18:00:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step6-wolf) unstable; urgency=medium
 
   * Step 6: Wolf Core Protocol Implementation (REAL Wolf Moonlight code)

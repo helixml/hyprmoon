@@ -61,8 +61,9 @@ Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's e
 - Copy (using `cp`) the core protocol code from Wolf
 - Copy (using `cp`) the GStreamer/streaming code from Wolf
 - We only need to implement the integration layer and PIN authentication server
-- Refer to existing HyprMoon implementation in `/home/luke/pm/Hyprland-wlroots/` for reference
-- The existing HyprMoon already has this work done - use it as a guide
+- **CRITICAL REFERENCE**: Use existing HyprMoon implementation in `/home/luke/pm/Hyprland-wlroots/` for reference
+- The existing HyprMoon already has this work done - use it as a guide for integration patterns
+- **For Step 3 specifically**: Reference how global managers are integrated in the previous implementation
 
 ## Current Problem
 - HyprMoon container shows grey screen in VNC (should be black like vanilla Hyprland)

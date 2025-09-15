@@ -48,4 +48,11 @@ Next: Test baseline, then incremental moonlight integration
 3. Provide VNC connection details (port 5901)
 4. Only then ask user to manually test via VNC
 
+## REFERENCE: Previous HyprMoon Implementation
+When implementing integration patterns (especially global managers and build system integration), ALWAYS reference the working implementation in:
+- **Previous attempt**: `~/pm/Hyprland-wlroots/` (big-bang approach, caused grey screen but did compile)
+- This directory contains a working global manager integration example
+- Use it as a reference for patterns, includes, and integration points
+- Specifically useful for Step 3: Global Manager Integration
+
 This file must be kept up to date with any critical lessons learned during development.

@@ -1,5 +1,5 @@
 #pragma once
-#include <memory>
+#include "../helpers/memory/Memory.hpp"
 
 class CMoonlightManager {
 public:
@@ -13,4 +13,5 @@ private:
     bool m_bEnabled = false;
 };
 
-inline std::unique_ptr<CMoonlightManager> g_pMoonlightManager;
+// Global instance
+extern UP<CMoonlightManager> g_pMoonlightManager;

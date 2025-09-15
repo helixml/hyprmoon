@@ -23,6 +23,7 @@
 #include "protocols/core/Subcompositor.hpp"
 #include "desktop/LayerSurface.hpp"
 #include "xwayland/XWayland.hpp"
+#include "moonlight/MoonlightManager.hpp"
 
 #include <hyprutils/string/String.hpp>
 using namespace Hyprutils::String;
@@ -356,6 +357,7 @@ void CCompositor::cleanup() {
     }
 
     g_pXWayland.reset();
+    g_pMoonlightManager.reset();
 
     m_vMonitors.clear();
 
@@ -492,6 +494,10 @@ void CCompositor::initManagers(eManagersInitStage stage) {
 
             Debug::log(LOG, "Starting XWayland");
             g_pXWayland = std::make_unique<CXWayland>();
+
+            Debug::log(LOG, "Creating the MoonlightManager!");
+            g_pMoonlightManager = std::make_unique<CMoonlightManager>();
+            g_pMoonlightManager->init();
         } break;
         default: UNREACHABLE();
     }

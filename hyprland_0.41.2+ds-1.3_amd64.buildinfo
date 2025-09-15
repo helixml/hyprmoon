@@ -5,22 +5,22 @@ Architecture: all amd64
 Version: 0.41.2+ds-1.3
 Checksums-Md5:
  9f6e1e129bddb31c4e6ecda4f38d53c2 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
- 31a232c2fae79efd88f3029f7f449dd1 123670086 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
- da7d544ac4d55fd9a3a76ab490350c58 179144 hyprland-dev_0.41.2+ds-1.3_amd64.deb
- 46fb8e1dba996df99fd0608810831135 2055842 hyprland_0.41.2+ds-1.3_amd64.deb
+ 8de263d1ea471843bffbc2bfe314df0a 123678094 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 5d71f5eb08345797f76fba6938a45ed0 179168 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ d875012b0911fabd4b466745b977223d 2055440 hyprland_0.41.2+ds-1.3_amd64.deb
 Checksums-Sha1:
  a23790d309f9cb258a5c79c756a4fe673b63b71c 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
- 4de73fabcf3fffd2638b2f4f1b406a75d921af51 123670086 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
- 32f17f9f8d17564984fed4a80e355ffdadd06e76 179144 hyprland-dev_0.41.2+ds-1.3_amd64.deb
- cde1c9edc1e4ea48a8f1ee145949a5059b65ef14 2055842 hyprland_0.41.2+ds-1.3_amd64.deb
+ 97e9e8988e2924e715510ea1d243e0cd8faab16a 123678094 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 7ebb20a65d404d3609627127bb48a7d7cfbb8cdd 179168 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ 3da5a74f494aeafc951c48dda419d33e0e5362b2 2055440 hyprland_0.41.2+ds-1.3_amd64.deb
 Checksums-Sha256:
  3a493113ac938a9ab6e528ce98a4a34c12aa95c9121423b3abb48e276a9c076d 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
- 50304cded42981ecf17742cb6014d834b86b987cdce5846e2e6fc66b77739cc6 123670086 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
- 235570031c03b5a34ad9511667241d8d2a9a506354783ea713ff3177426afa5b 179144 hyprland-dev_0.41.2+ds-1.3_amd64.deb
- e857b2bdea3399bef565cf7f19a12b5a381b8c92c63ec82c530cfe790e8b047d 2055842 hyprland_0.41.2+ds-1.3_amd64.deb
+ 4d9704690881728f880cc108ee89007c7b4e2e258992b0ae03d9d0cf7dc6dd53 123678094 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 635aefba1b141ecc7020bf8a7a7db6a37f10e75a8e2c9ce9120d98fa076d4659 179168 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ 532bd52812c4c60936c147c5f927e612709c7da252603985d28c0cb29f9b1373 2055440 hyprland_0.41.2+ds-1.3_amd64.deb
 Build-Origin: Ubuntu
 Build-Architecture: amd64
-Build-Date: Mon, 15 Sep 2025 09:44:27 +0000
+Build-Date: Mon, 15 Sep 2025 10:04:10 +0000
 Installed-Build-Depends:
  adduser (= 3.137ubuntu2),
  autoconf (= 2.72-3ubuntu1),

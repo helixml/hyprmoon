@@ -3,6 +3,9 @@
 #include "protocol/RTSPStub.hpp"
 #include "../debug/Log.hpp"
 
+// Global instance definition
+UP<CMoonlightManager> g_pMoonlightManager;
+
 void CMoonlightManager::init() {
     Debug::log(LOG, "[moonlight] MoonlightManager initialized (Step 2: Core Protocol Infrastructure)");
 

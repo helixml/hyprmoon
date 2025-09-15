@@ -91,3 +91,19 @@ std::vector<moonlight::rest::ClientInfo> CMoonlightManager::getPairedClients() c
     }
     return {};
 }
+
+void CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {
+    // Step 5: Minimal frame capture hook - just log for now
+    // This is a stub implementation to test if VNC breaks
+    static int frameCount = 0;
+    frameCount++;
+
+    // Only log every 60 frames (roughly once per second at 60fps)
+    if (frameCount % 60 == 0) {
+        Debug::log(LOG, "[moonlight] Frame capture hook called for monitor: {} (frame #{})",
+                   monitor ? monitor->szName : "null", frameCount);
+    }
+
+    // TODO Step 6: Add actual frame processing for streaming
+    // For now, just ensure we don't break VNC by doing minimal work
+}

@@ -13,6 +13,7 @@
 #include "../protocols/PresentationTime.hpp"
 #include "../protocols/core/DataDevice.hpp"
 #include "../protocols/core/Compositor.hpp"
+#include "../moonlight/MoonlightManager.hpp"
 
 extern "C" {
 #include <xf86drm.h>
@@ -2679,6 +2680,11 @@ void CHyprRenderer::endRender() {
     if (m_eRenderMode == RENDER_MODE_NORMAL) {
         wlr_output_state_set_buffer(PMONITOR->state.wlr(), m_pCurrentWlrBuffer);
         unsetEGL(); // flush the context
+    }
+
+    // Step 5: Frame capture hook - notify moonlight manager about completed frame
+    if (g_pMoonlightManager && m_pCurrentWlrBuffer) {
+        g_pMoonlightManager->onFrameReady(pMonitor, m_pCurrentWlrBuffer);
     }
 
     wlr_buffer_unlock(m_pCurrentWlrBuffer);

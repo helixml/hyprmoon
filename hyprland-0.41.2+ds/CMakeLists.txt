@@ -24,6 +24,51 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(inputtino)
 
+# Fetch Simple-Web-Server for Wolf REST API HTTP/HTTPS servers
+# TODO: Fix Simple-Web-Server dependency - working implementation uses different approach
+# FetchContent_Declare(
+#     SimpleWeb
+#     GIT_REPOSITORY https://github.com/eidheim/Simple-Web-Server.git
+#     GIT_TAG v3.0.0-rc2
+# )
+# FetchContent_MakeAvailable(SimpleWeb)
+
+# Fetch immer for immutable data structures (Wolf protocol)
+FetchContent_Declare(
+    immer
+    GIT_REPOSITORY https://github.com/arximboldi/immer.git
+    GIT_TAG e02cbd795e9424a8405a8cb01f659ad61c0cbbc7
+)
+set(immer_BUILD_TESTS OFF)
+set(immer_BUILD_EXAMPLES OFF)
+set(immer_BUILD_DOCS OFF)
+set(immer_BUILD_EXTRAS OFF)
+FetchContent_MakeAvailable(immer)
+
+# Fetch nanors for FEC implementation (Wolf protocol)
+FetchContent_Declare(
+    nanors
+    GIT_REPOSITORY https://github.com/sleepybishop/nanors.git
+    GIT_TAG 19f07b513e924e471cadd141943c1ec4adc8d0e0
+)
+FetchContent_MakeAvailable(nanors)
+
+# Fetch range-v3 for container algorithms (Wolf protocol)
+FetchContent_Declare(
+    range-v3
+    GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+    GIT_TAG 0.12.0
+)
+FetchContent_MakeAvailable(range-v3)
+
+# Fetch peglib for custom parser (Wolf protocol)
+FetchContent_Declare(
+    peglib
+    GIT_REPOSITORY https://github.com/yhirose/cpp-peglib.git
+    GIT_TAG v1.8.5
+)
+FetchContent_MakeAvailable(peglib)
+
 set(HYPRLAND_VERSION ${VER})
 set(PREFIX ${CMAKE_INSTALL_PREFIX})
 set(INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})

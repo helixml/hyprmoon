@@ -15,10 +15,10 @@
 #include <immer/map.hpp>
 #include <immer/vector.hpp>
 #include <moonlight/control/control.hpp>
-#include <moonlight/data-structures.hpp>
+#include <moonlight/protocol/moonlight/data-structures.hpp>
 #include <openssl/x509.h>
 #include <optional>
-#include <state/serialised_config.hpp>
+// #include <moonlight/state/serialised_config.hpp>  // TODO: Circular include in state dir
 #include <utility>
 
 namespace state {

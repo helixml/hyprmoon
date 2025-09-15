@@ -6,7 +6,7 @@
 #include <moonlight/core/logger.hpp>
 // #include <moonlight/control/control.hpp>  // TODO: Circular include - fix
 #include <range/v3/view.hpp>
-#include <state/data-structures.hpp>
+#include <moonlight/state/data-structures.hpp>
 #include <thread>
 
 namespace control {

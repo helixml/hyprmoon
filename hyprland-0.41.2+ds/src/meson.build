@@ -35,6 +35,18 @@ executable('Hyprland', src,
     dependency('pango'),
     dependency('pangocairo'),
     dependency('uuid'),
+
+    # Wolf Moonlight dependencies (Step 6: Core Protocol Implementation)
+    dependency('boost', modules: ['system', 'thread', 'locale'], required: true),
+    dependency('gstreamer-1.0', version: '>= 1.0', required: true),
+    dependency('gstreamer-app-1.0', version: '>= 1.0', required: true),
+    dependency('gstreamer-video-1.0', version: '>= 1.0', required: true),
+    dependency('libenet', required: true),
+    dependency('fmt', required: true),
+    dependency('openssl', required: true),
+    dependency('icu-uc', required: true),
+    dependency('libpci', required: true),
+    dependency('libcurl', required: true),
   ],
   install : true
 )

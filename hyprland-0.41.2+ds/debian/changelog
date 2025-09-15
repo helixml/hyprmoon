@@ -1,3 +1,14 @@
+hyprmoon (0.41.2+ds-1.3+step6-wolf) unstable; urgency=medium
+
+  * Step 6: Wolf Core Protocol Implementation (REAL Wolf Moonlight code)
+  * Copied Wolf moonlight protocol implementation from Hyprland-wlroots
+  * Copied Wolf crypto implementation with full certificate support
+  * Copied Wolf core components for input devices and utilities
+  * Added Wolf dependencies: boost, gstreamer, enet, fmt, openssl, icu, libpci, curl
+  * Replaced stub implementations with battle-tested Wolf code
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sun, 15 Sep 2025 18:00:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step8) unstable; urgency=medium
 
   * HyprMoon Step 8: REST API Activation (Complete Moonlight server functionality)

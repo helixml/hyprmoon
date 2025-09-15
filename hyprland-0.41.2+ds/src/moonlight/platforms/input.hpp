@@ -1,7 +1,7 @@
 #pragma once
 
 #include <codecvt>
-#include <core/input.hpp>
+#include <moonlight/core/input.hpp>
 #include <events/events.hpp>
 #include <iomanip>
 #include <locale>

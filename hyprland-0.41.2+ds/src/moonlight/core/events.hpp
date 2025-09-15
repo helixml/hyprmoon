@@ -4,9 +4,9 @@
 #define BOOST_THREAD_PROVIDES_FUTURE
 #include <boost/thread.hpp>
 #include <boost/thread/future.hpp>
-#include <core/audio.hpp>
-#include <core/input.hpp>
-#include <core/virtual-display.hpp>
+#include <moonlight/core/audio.hpp>
+#include <moonlight/core/input.hpp>
+#include <moonlight/core/virtual-display.hpp>
 #include <cstddef>
 #include <eventbus/event_bus.hpp>
 #include <helpers/tsqueue.hpp>

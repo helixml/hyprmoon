@@ -21,7 +21,7 @@
 #pragma once
 
 #include <chrono>
-#include <core/input.hpp>
+#include <moonlight/core/input.hpp>
 #include <filesystem>
 #include <helpers/logger.hpp>
 #include <inputtino/protected_types.hpp>

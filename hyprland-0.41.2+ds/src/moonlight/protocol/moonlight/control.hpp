@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <boost/endian/conversion.hpp>
-#include <core/input.hpp>
+#include <moonlight/core/input.hpp>
 #include <crypto/crypto.hpp>
 #include <cstdint>
 #include <helpers/utils.hpp>

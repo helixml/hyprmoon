@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gst/gst.h>
-#include <helpers/logger.hpp>
+#include "logger.hpp"
 
 namespace wolf::core::gstreamer {
 

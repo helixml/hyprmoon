@@ -28,7 +28,26 @@ mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=ye
 
 # Build the deb package
 echo "Building deb package..."
-dpkg-buildpackage -us -uc -b
+
+# Monitor build output for fatal errors and exit immediately
+dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
+    echo "$line"
+    if [[ "$line" == *"fatal error:"* ]]; then
+        echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
+        echo "Error line: $line"
+        # Kill the dpkg-buildpackage process tree
+        pkill -P $$ dpkg-buildpackage 2>/dev/null || true
+        pkill -P $$ make 2>/dev/null || true
+        pkill -P $$ ninja 2>/dev/null || true
+        exit 1
+    fi
+done
+
+# Check if the pipe failed
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+    echo "=== BUILD FAILED ==="
+    exit 1
+fi
 
 echo "=== Build completed successfully ==="
 echo "Generated files:"

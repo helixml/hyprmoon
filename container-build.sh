@@ -30,21 +30,36 @@ mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=ye
 echo "Building deb package..."
 
 # Monitor build output for fatal errors and exit immediately
-dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
+# Use a named pipe to properly handle the fatal error detection
+PIPE_FILE="/tmp/build_pipe_$$"
+mkfifo "$PIPE_FILE"
+
+# Start the build in background and redirect to pipe
+dpkg-buildpackage -us -uc -b 2>&1 > "$PIPE_FILE" &
+BUILD_PID=$!
+
+# Monitor the pipe for fatal errors
+while IFS= read -r line; do
     echo "$line"
-    if [[ "$line" == *"fatal error:"* ]] || [[ "$line" == *"FAILED:"* ]]; then
+    if [[ "$line" == *"fatal error:"* ]]; then
         echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
         echo "Error line: $line"
-        # Kill the dpkg-buildpackage process tree
-        pkill -P $$ dpkg-buildpackage 2>/dev/null || true
-        pkill -P $$ make 2>/dev/null || true
-        pkill -P $$ ninja 2>/dev/null || true
+        # Kill the build process
+        kill -TERM $BUILD_PID 2>/dev/null || true
+        sleep 2
+        kill -KILL $BUILD_PID 2>/dev/null || true
+        rm -f "$PIPE_FILE"
         exit 1
     fi
-done
+done < "$PIPE_FILE"
 
-# Check if the pipe failed
-if [ ${PIPESTATUS[0]} -ne 0 ]; then
+# Wait for build to complete and get exit code
+wait $BUILD_PID
+BUILD_EXIT_CODE=$?
+rm -f "$PIPE_FILE"
+
+# Check if the build failed
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
     echo "=== BUILD FAILED ==="
     exit 1
 fi

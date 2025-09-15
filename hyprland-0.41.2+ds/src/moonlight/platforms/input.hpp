@@ -2,7 +2,7 @@
 
 #include <codecvt>
 #include <moonlight/core/input.hpp>
-#include <events/events.hpp>
+#include <moonlight/core/events.hpp>
 #include <iomanip>
 #include <locale>
 #include <memory>

@@ -46,6 +46,7 @@
 - **CRITICAL: ALWAYS exec sleep 60**: When waiting 60 seconds for build monitoring, MUST use `sleep 60` command - DO NOT just wait passively
 - **NEVER USE --no-cache**: NEVER EVER use --no-cache flags with Docker builds - we trust Docker's caching system completely
 - **DOCKERFILE FILENAME UPDATES CRITICAL**: When moving from Step N to Step N+1, you MUST update the Dockerfile COPY lines to reference the new Step filenames BEFORE running docker build. Docker caching works correctly - if you update the Dockerfile after build starts, it uses cached layers with old filenames.
+- **CRITICAL: ALWAYS CHECK REFERENCE IMPLEMENTATIONS FOR MISSING CODE**: When encountering missing files, headers, or dependencies, ALWAYS check in this order: 1) `~/pm/Hyprland-wlroots/` (previous working implementation), 2) `~/pm/wolf/` (original Wolf source), 3) Only comment out with TODO as last resort. NEVER just comment out missing components without checking these references first.
 
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
@@ -354,3 +355,5 @@ For each step:
 - Test after each change
 - Use build cache for fast iteration
 - Document what breaks at each step
+
+Future: why is vulkan disabled in ./build.sh output?

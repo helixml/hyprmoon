@@ -1,10 +1,10 @@
 #pragma once
 
-#include <control/control.hpp>
+#include <moonlight/control/control.hpp>
 #include <crypto/crypto.hpp>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <events/events.hpp>
+#include <moonlight/core/events.hpp>
 #include <filesystem>
 #include <functional>
 #include <helpers/utils.hpp>
@@ -13,11 +13,11 @@
 #include <moonlight/protocol.hpp>
 #include <platforms/hw.hpp>
 #include <range/v3/view.hpp>
-#include <rest/helpers.hpp>
-#include <rest/rest.hpp>
+#include <moonlight/rest/helpers.hpp>
+#include <moonlight/rest/rest.hpp>
 #include <rtp/udp-ping.hpp>
-#include <state/config.hpp>
-#include <state/sessions.hpp>
+#include <moonlight/state/config.hpp>
+#include <moonlight/state/sessions.hpp>
 #include <utility>
 
 namespace endpoints {

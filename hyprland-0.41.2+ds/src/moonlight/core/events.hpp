@@ -9,17 +9,17 @@
 #include <moonlight/core/virtual-display.hpp>
 #include <cstddef>
 #include <eventbus/event_bus.hpp>
-#include <helpers/tsqueue.hpp>
+#include <moonlight/core/tsqueue.hpp>
 #include <immer/array.hpp>
 #include <immer/atom.hpp>
 #include <immer/box.hpp>
 #include <immer/map.hpp>
 #include <immer/vector.hpp>
-#include <moonlight/control.hpp>
-#include <moonlight/data-structures.hpp>
+#include <moonlight/protocol/moonlight/control.hpp>
+#include <moonlight/state/data-structures.hpp>
 #include <rfl.hpp>
 #include <rfl/json.hpp>
-#include <state/serialised_config.hpp>
+#include <moonlight/state/serialised_config.hpp>
 #include <string_view>
 
 namespace wolf::core::events {

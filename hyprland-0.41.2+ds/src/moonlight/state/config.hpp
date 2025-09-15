@@ -4,12 +4,12 @@
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <crypto/crypto.hpp>
-#include <events/events.hpp>
+#include <moonlight/core/events.hpp>
 #include <helpers/logger.hpp>
 #include <runners/child_session.hpp>
 #include <runners/docker.hpp>
 #include <runners/process.hpp>
-#include <state/data-structures.hpp>
+#include <moonlight/state/data-structures.hpp>
 
 namespace state {
 

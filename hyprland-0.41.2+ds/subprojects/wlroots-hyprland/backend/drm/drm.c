@@ -1005,7 +1005,6 @@ static bool drm_connector_set_cursor(struct wlr_output *output,
 	struct wlr_drm_connector *conn = get_drm_connector_from_output(output);
 	struct wlr_drm_backend *drm = conn->backend;
 	struct wlr_drm_crtc *crtc = conn->crtc;
-	bool ok = false;
 
 	if (!crtc) {
 		return false;
@@ -1034,62 +1033,34 @@ static bool drm_connector_set_cursor(struct wlr_output *output,
 			return false;
 		}
 
-		// First try importing our buffer
-		struct wlr_buffer *local_buf = wlr_buffer_lock(buffer);
-		ok = drm_fb_import(&conn->cursor_pending_fb, drm, local_buf,
-				&plane->formats);
-		wlr_buffer_unlock(local_buf);
-
-		if (!ok) {
-			// If this failed blit a compatible buffer. This will blit it to
-			// our mgpu surface in the case that we are a secondary device
+		struct wlr_buffer *local_buf;
+		if (drm->parent) {
 			struct wlr_drm_format format = {0};
-			// Try to find a common format/modifier
 			if (!drm_plane_pick_render_format(plane, &format, &drm->mgpu_renderer)) {
 				wlr_log(WLR_ERROR, "Failed to pick cursor plane format");
-				// If the above failed it may be because the modifier for this
-				// buffer is not able to be scanned out, as is the case on some
-				// GPUs.  If it failed try to do a linear copy. This will map
-				// the mgpu surface as a linear texture and read pixels from
-				// the buffer into it. This avoids a scenario where the
-				// hardware cannot render to linear textures but only linear
-				// textures are supported for cursors, as is the case with
-				// Nvidia and VmWare GPUs
-
-				// Create a default format with only the linear modifier
-				wlr_drm_format_init(&format, DRM_FORMAT_ARGB8888);
-				if (!wlr_drm_format_add(&format, 0)) {
-					wlr_drm_format_finish(&format);
-					return false;
-				}
+				return false;
 			}
 
-			ok = init_drm_surface(&plane->mgpu_surf, &drm->mgpu_renderer,
-					buffer->width, buffer->height, &format);
+			bool ok = init_drm_surface(&plane->mgpu_surf, &drm->mgpu_renderer,
+				buffer->width, buffer->height, &format);
 			wlr_drm_format_finish(&format);
 			if (!ok) {
 				return false;
 			}
 
-			// First try to blit our cursor image.
 			local_buf = drm_surface_blit(&plane->mgpu_surf, buffer);
-			// If this is not possible due to the GPU not being able to
-			// render to a supported cursor format, then fall back to a
-			// more expensive copy
 			if (local_buf == NULL) {
-				// use the primary GPU for this, which will either be the current DRM
-				// backend or the parent if it has one
-				struct wlr_drm_renderer *drm_renderer =
-					drm->parent ? &drm->parent->mgpu_renderer : &drm->mgpu_renderer;
-				local_buf = drm_cursor_copy(&plane->mgpu_surf, drm_renderer, buffer);
-				if (local_buf == NULL) {
-					return false;
-				}
+				return false;
 			}
+		} else {
+			local_buf = wlr_buffer_lock(buffer);
+		}
 
-			ok = drm_fb_import(&conn->cursor_pending_fb, drm, local_buf,
-					&plane->formats);
-			wlr_buffer_unlock(local_buf);
+		bool ok = drm_fb_import(&conn->cursor_pending_fb, drm, local_buf,
+			&plane->formats);
+		wlr_buffer_unlock(local_buf);
+		if (!ok) {
+			return false;
 		}
 
 		conn->cursor_enabled = true;
@@ -1098,7 +1069,7 @@ static bool drm_connector_set_cursor(struct wlr_output *output,
 	}
 
 	wlr_output_update_needs_frame(output);
-	return ok;
+	return true;
 }
 
 static bool drm_connector_move_cursor(struct wlr_output *output,

@@ -10,11 +10,15 @@ echo "Starting build at $(date)"
 # Navigate to hyprmoon directory
 cd /home/luke/pm/hyprmoon
 
-# Run the container with the bind-mounted build script
+# Create ccache directory on host if it doesn't exist
+mkdir -p /home/luke/.ccache
+
+# Run the container with the bind-mounted build script and ccache
 echo "Executing container build..."
 echo "Build logs will be saved to: container-build-*.log"
 docker run --rm \
     -v $(pwd):/workspace \
+    -v /home/luke/.ccache:/ccache \
     hyprmoon-build-env \
     /workspace/container-build.sh
 

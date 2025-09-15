@@ -69,6 +69,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(peglib)
 
+# Fetch eventbus for Wolf event system
+FetchContent_Declare(
+    eventbus
+    GIT_REPOSITORY https://github.com/games-on-whales/eventbus
+    GIT_TAG abb3a48
+)
+set(EVENTBUS_BUILD_TESTS OFF)
+FetchContent_MakeAvailable(eventbus)
+
 set(HYPRLAND_VERSION ${VER})
 set(PREFIX ${CMAKE_INSTALL_PREFIX})
 set(INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
@@ -343,6 +352,7 @@ target_link_libraries(Hyprland
         udis86
         uuid
         inputtino::libinputtino
+        dp::eventbus
 )
 
 protocol("protocols/wlr-screencopy-unstable-v1.xml" "wlr-screencopy-unstable-v1" true)

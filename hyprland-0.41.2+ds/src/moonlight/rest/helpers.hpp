@@ -4,7 +4,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <helpers/logger.hpp>
 #include <moonlight/protocol.hpp>
-#include <rest/rest.hpp>
+#include <moonlight/rest/rest.hpp>
 #include <string_view>
 
 using namespace std::literals;

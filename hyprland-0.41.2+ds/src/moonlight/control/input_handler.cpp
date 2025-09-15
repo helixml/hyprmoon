@@ -1,7 +1,7 @@
 #include <boost/endian/conversion.hpp>
 #include <boost/locale.hpp>
-#include <control/input_handler.hpp>
-#include <events/events.hpp>
+#include <moonlight/control/input_handler.hpp>
+#include <moonlight/core/events.hpp>
 #include <helpers/logger.hpp>
 #include <immer/box.hpp>
 #include <platforms/input.hpp>

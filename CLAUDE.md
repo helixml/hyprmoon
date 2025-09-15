@@ -123,11 +123,31 @@ docker ps | grep helix
 3. Provide VNC connection details (port 5901)
 4. Only then ask user to manually test via VNC
 
-## REFERENCE: Previous HyprMoon Implementation
-When implementing integration patterns (especially global managers and build system integration), ALWAYS reference the working implementation in:
-- **Previous attempt**: `~/pm/Hyprland-wlroots/` (big-bang approach, caused grey screen but did compile)
-- This directory contains a working global manager integration example
-- Use it as a reference for patterns, includes, and integration points
-- Specifically useful for Step 3: Global Manager Integration
+## CRITICAL: ALWAYS CHECK REFERENCE IMPLEMENTATIONS FOR MISSING CODE
+
+**MANDATORY ORDER when encountering missing files, headers, or dependencies:**
+
+1. **FIRST: Check `~/pm/Hyprland-wlroots/`** - Previous working implementation that compiled successfully
+2. **SECOND: Check `~/pm/wolf/`** - Original Wolf moonlight implementation source
+3. **LAST RESORT: Comment out with TODO** - Only if not found in either reference
+
+**When to use this process:**
+- Missing include files (e.g., `eventbus/event_bus.hpp`, `helpers/logger.hpp`)
+- Missing dependencies or libraries
+- Unknown moonlight components or modules
+- Build errors about missing symbols or definitions
+- Any Wolf-specific functionality that needs implementation
+
+**How to use reference implementations:**
+- Search for the missing component by name in both directories
+- Copy the file structure and adapt include paths for hyprmoon layout
+- Maintain the same functionality while fixing include paths
+- Reference working patterns for integration approaches
+
+**Previous Implementation Locations:**
+- **Previous attempt**: `~/pm/Hyprland-wlroots/` (big-bang approach, caused grey screen but did compile successfully)
+- **Original Wolf source**: `~/pm/wolf/` (battle-tested Wolf moonlight implementation)
+- Use these as authoritative references for patterns, includes, and integration points
+- Specifically useful for Step 3: Global Manager Integration and all Wolf components
 
 This file must be kept up to date with any critical lessons learned during development.

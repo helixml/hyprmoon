@@ -1,7 +1,7 @@
 #pragma once
 
-#include <control/control.hpp>
-#include <events/events.hpp>
+#include <moonlight/control/control.hpp>
+#include <moonlight/core/events.hpp>
 #include <moonlight/control.hpp>
 
 namespace control {

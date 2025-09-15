@@ -1,13 +1,13 @@
 #pragma once
 
-#include <events/events.hpp>
+#include <moonlight/core/events.hpp>
 #include <helpers/logger.hpp>
 #include <helpers/utils.hpp>
 #include <immer/vector.hpp>
 #include <optional>
 #include <range/v3/view.hpp>
-#include <state/config.hpp>
-#include <state/serialised_config.hpp>
+#include <moonlight/state/config.hpp>
+#include <moonlight/state/serialised_config.hpp>
 
 namespace state {
 

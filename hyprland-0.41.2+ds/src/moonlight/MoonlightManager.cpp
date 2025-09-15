@@ -1,6 +1,6 @@
 #include "MoonlightManager.hpp"
-#include "rest/rest.hpp"
-#include "state/data-structures.hpp"
+#include "moonlight/rest/rest.hpp"
+#include "moonlight/state/data-structures.hpp"
 #include "../debug/Log.hpp"
 #include <chrono>
 #include <thread>

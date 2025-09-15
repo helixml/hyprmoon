@@ -7,7 +7,7 @@
 #include <moonlight/core/virtual-display.hpp>
 #include <deque>
 // #include <eventbus/event_bus.hpp>  // TODO: Find or implement eventbus
-#include <events/Events.hpp>
+#include <moonlight/core/events.hpp>
 #include <moonlight/core/tsqueue.hpp>
 #include <immer/array.hpp>
 #include <immer/atom.hpp>

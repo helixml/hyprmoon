@@ -2,9 +2,9 @@
 #include <array>
 #include <boost/endian/conversion.hpp>
 #include <moonlight/core/input.hpp>
-#include <crypto/crypto.hpp>
+#include <moonlight/protocol/crypto/crypto/crypto.hpp>
 #include <cstdint>
-#include <helpers/utils.hpp>
+#include <moonlight/core/utils.hpp>
 #include <memory>
 
 namespace moonlight::control {

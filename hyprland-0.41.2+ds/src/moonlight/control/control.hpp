@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <enet/enet.h>
-#include <events/Events.hpp>
+#include <moonlight/core/events.hpp>
 #include <moonlight/core/logger.hpp>
 // #include <moonlight/control/control.hpp>  // TODO: Circular include - fix
 #include <range/v3/view.hpp>

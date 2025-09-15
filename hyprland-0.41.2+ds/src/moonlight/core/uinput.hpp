@@ -23,7 +23,7 @@
 #include <chrono>
 #include <moonlight/core/input.hpp>
 #include <filesystem>
-#include <helpers/logger.hpp>
+#include <moonlight/core/logger.hpp>
 #include <inputtino/protected_types.hpp>
 #include <libevdev/libevdev-uinput.h>
 #include <libevdev/libevdev.h>

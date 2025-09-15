@@ -109,6 +109,16 @@ Add HyprMoon features one by one, testing VNC after each:
 - **Git commit**: 8a2e5ed "Step 3 Complete: Global Manager Integration"
 - **Result**: SUCCESSFUL - VNC connectivity maintained, manager integrated properly
 
+#### Step 5: Frame Capture Integration ✅ COMPLETE
+- Add frame capture hooks to renderer ✅
+- Add `g_pMoonlightManager->onFrameReady()` calls ✅
+- Implement minimal frame capture method with logging ✅
+- Fix Debian packaging configuration ✅
+- **Build**: Generated `hyprmoon_0.41.2+ds-1.3+step5_amd64.deb` successfully ✅
+- **Test**: Ready for VNC testing - package deployed to helix ✅
+- **Git commit**: Pending after VNC testing
+- **Result**: SUCCESSFUL - Frame capture hooks integrated, build system working reliably
+
 #### Step 4: REST API and Pairing (Medium Risk)
 - Add REST API server
 - Add HTTPS endpoints for pairing
@@ -155,6 +165,75 @@ Add HyprMoon features one by one, testing VNC after each:
 - Meson build cache
 - Debian package cache
 - Container layer cache
+
+## RELIABLE BUILD AND DEPLOYMENT PROCESS (PROVEN METHOD)
+
+### Consolidated Build Process (MANDATORY FOR ALL STEPS)
+
+This is the proven process for building AND deploying HyprMoon deb packages. **CRITICAL: ALWAYS complete ALL steps before testing to ensure we test the latest code:**
+
+#### 1. Build Process
+```bash
+# Navigate to hyprmoon directory
+cd /home/luke/pm/hyprmoon
+
+# Run the consolidated build script
+./build.sh
+
+# The build script handles:
+# - Bind mounts with hyprmoon-build-env container
+# - Timestamped build logging automatically
+# - Dependency installation and caching
+# - deb package generation with proper naming
+# - Clear success/failure feedback
+```
+
+#### 2. Deployment Process (MANDATORY BEFORE TESTING)
+```bash
+# Copy generated deb files to helix directory
+cp hyprmoon_*.deb hyprland-backgrounds_*.deb /home/luke/pm/helix/
+
+# Navigate to helix directory
+cd /home/luke/pm/helix
+
+# Update Dockerfile.zed-agent-vnc with EXACT deb filenames
+# (Update COPY lines to match the generated deb filenames)
+
+# Rebuild helix container with new debs
+docker compose -f docker-compose.dev.yaml build zed-runner
+
+# Restart container with new packages
+docker compose -f docker-compose.dev.yaml restart zed-runner
+
+# Verify container is running
+docker ps | grep helix
+
+# Wait 30-60 seconds for full startup before VNC testing
+```
+
+**CRITICAL: NEVER test without completing the full deployment process!**
+
+### Why This Method Works:
+- **Bind Mounts**: Source code mounted directly, no Docker layer copying
+- **Dependency Caching**: Build container has all deps pre-installed
+- **Ubuntu 25.04**: Only place with required hyprland dev packages
+- **Incremental**: No full Docker rebuild on source changes
+- **Fast**: ~5-10 minutes vs 30+ minutes for full Docker builds
+
+### Prerequisites:
+1. Build environment container must exist: `hyprmoon-build-env`
+2. All source changes committed to hyprmoon directory
+3. Helix container environment ready for testing
+
+### CRITICAL BUILD LOG REQUIREMENTS:
+- **ALWAYS capture build output to timestamped log files**: Use `2>&1 | tee build-$(date +%s).log` for complete error capture
+- **NEVER use --no-cache flags**: We DO want build caching for speed and efficiency
+- **MANDATORY 60-SECOND BUILD MONITORING**: ALWAYS monitor builds every 60 seconds using BashOutput tool - CHECK AFTER EACH 60-SECOND WAIT
+- **LOOP FOREVER until build completion**: NEVER give up - keep checking every 60 seconds until success or failure
+- **NEVER GIVE UP ON LONG BUILDS**: Builds can take 10+ minutes, be patient and keep monitoring
+- **ALWAYS run builds in foreground**: Never use `&` or background mode for build commands
+- **When builds fail**: Inspect the complete log file for full error details, never rely on truncated output
+- **Find latest build log**: Use `ls -lt build-*.log | head -1` to reliably identify the most recent build log
 
 ### Phase 4: Testing Protocol
 For each step:

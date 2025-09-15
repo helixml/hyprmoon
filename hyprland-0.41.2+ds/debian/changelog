@@ -1,4 +1,4 @@
-hyprland (0.41.2+ds-1.helix5) unstable; urgency=medium
+hyprmoon (0.41.2+ds-1.3+step5) unstable; urgency=medium
 
   * HyprMoon Step 5: Frame capture integration with moonlight streaming
   * Add frame capture hooks to Hyprland renderer for streaming support

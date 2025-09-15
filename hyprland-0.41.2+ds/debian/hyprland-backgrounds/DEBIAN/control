@@ -1,0 +1,20 @@
+Package: hyprland-backgrounds
+Source: hyprmoon
+Version: 0.41.2+ds-1.3+step5
+Architecture: all
+Maintainer: Alan M Varghese (NyxTrail) <alan@digistorm.in>
+Installed-Size: 47488
+Suggests: hyprland
+Section: x11
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://hyprland.org
+Description: Set of backgrounds packaged with the hyprland Wayland compositor
+ Hyprland is a dynamic tiling Wayland compositor based on
+ wlroots that doesn't sacrifice on its looks. It provides
+ the latest Wayland features, is highly customizable, has
+ all the eyecandy, the most powerful plugins, easy IPC,
+ much more QoL stuff than other wlr-based compositors and
+ more...
+ .
+ This package contains the backgrounds included with Hyprland.

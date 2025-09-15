@@ -2684,7 +2684,7 @@ void CHyprRenderer::endRender() {
 
     // Step 5: Frame capture hook - notify moonlight manager about completed frame
     if (g_pMoonlightManager && m_pCurrentWlrBuffer) {
-        g_pMoonlightManager->onFrameReady(pMonitor, m_pCurrentWlrBuffer);
+        g_pMoonlightManager->onFrameReady(PMONITOR, m_pCurrentWlrBuffer);
     }
 
     wlr_buffer_unlock(m_pCurrentWlrBuffer);

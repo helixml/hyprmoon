@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.27)
 
 include(CheckIncludeFile)
 include(ExternalProject)
-include(GNUInstallDirs)
 
 # Get version
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/props.json PROPS)
@@ -12,6 +11,9 @@ project(Hyprland
     DESCRIPTION "A Modern C++ Wayland Compositor"
     VERSION ${VER}
 )
+
+# Include GNUInstallDirs after project() to ensure language is enabled
+include(GNUInstallDirs)
 
 set(HYPRLAND_VERSION ${VER})
 set(PREFIX ${CMAKE_INSTALL_PREFIX})

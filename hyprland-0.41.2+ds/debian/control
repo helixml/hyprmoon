@@ -1,4 +1,4 @@
-Source: hyprland
+Source: hyprmoon
 Section: x11
 Priority: optional
 Maintainer: Alan M Varghese (NyxTrail) <alan@digistorm.in>
@@ -41,12 +41,12 @@ Rules-Requires-Root: no
 Vcs-Git: https://salsa.debian.org/NyxTrail/hyprland.git
 Vcs-Browser: https://salsa.debian.org/NyxTrail/hyprland
 
-Package: hyprland
+Package: hyprmoon
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
  polkitd, binutils, libgl1-mesa-dri
 Recommends: xwayland
-Description: Dynamic tiling Wayland compositor
+Description: HyprMoon - Dynamic tiling Wayland compositor with Moonlight streaming
  Hyprland is a dynamic tiling Wayland compositor based on
  wlroots that doesn't sacrifice on its looks. It provides
  the latest Wayland features, is highly customizable, has

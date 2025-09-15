@@ -42,6 +42,74 @@ Before taking any action, ALWAYS read and follow the current `/home/luke/pm/hypr
 Phase 1 Complete: Raw Ubuntu package built and ready for testing
 Next: Test baseline, then incremental moonlight integration
 
+## CONSOLIDATED BUILD AND DEPLOYMENT PROCESS (CRITICAL REFERENCE)
+
+**ALWAYS use this EXACT process for building AND deploying HyprMoon deb packages:**
+
+### Step 1: Build the deb packages
+```bash
+# Navigate to hyprmoon directory
+cd /home/luke/pm/hyprmoon
+
+# Run the consolidated build script (handles everything)
+./build.sh
+
+# This script:
+# - Uses bind mounts with hyprmoon-build-env container
+# - Captures timestamped build output automatically
+# - Runs container-build.sh inside the container
+# - Provides clear success/failure feedback
+# - Generates properly named deb files
+```
+
+### Step 2: Deploy to helix container (MANDATORY BEFORE TESTING)
+```bash
+# Copy deb files to helix directory
+cp hyprmoon_*.deb hyprland-backgrounds_*.deb /home/luke/pm/helix/
+
+# Navigate to helix directory
+cd /home/luke/pm/helix
+
+# Update Dockerfile.zed-agent-vnc with EXACT deb filenames
+# (Update COPY lines to match the generated deb filenames)
+
+# Rebuild helix container with new debs
+docker compose -f docker-compose.dev.yaml build zed-runner
+
+# Restart container with new packages
+docker compose -f docker-compose.dev.yaml restart zed-runner
+```
+
+### Step 3: Verify deployment before testing
+```bash
+# Check container is running
+docker ps | grep helix
+
+# Wait for container to fully start (give it 30-60 seconds)
+# Then connect via VNC on port 5901 for testing
+```
+
+**CRITICAL: NEVER test without completing ALL steps above!**
+
+**Why This Process is Mandatory:**
+- ✅ **Uses bind mounts**: No Docker layer copying overhead
+- ✅ **Ubuntu 25.04 container**: Only environment with required dev packages
+- ✅ **Dependency caching**: Build container pre-loaded with all deps
+- ✅ **Fast iteration**: 5-10 minutes vs 30+ for full rebuilds
+- ✅ **Proven reliable**: Successfully builds with correct versioning
+- ✅ **Always latest**: Ensures we test the actual code we just built
+- ✅ **Incremental safety**: Prevents testing stale versions that invalidate our methodology
+
+**CRITICAL BUILD LOG REQUIREMENTS:**
+- ALWAYS capture build output to timestamped log files: `command 2>&1 | tee build-$(date +%s).log`
+- NEVER use --no-cache flags - we DO want build caching for speed
+- MANDATORY 60-second build monitoring with BashOutput tool - CHECK AFTER EACH 60-SECOND WAIT
+- LOOP FOREVER until the build is finished (success or failure) - NEVER give up
+- NEVER background builds - always foreground and patient monitoring
+- Builds can take 10+ minutes - never give up on long builds
+- When builds fail, inspect the complete log file for full error details
+- Use `ls -lt build-*.log | head -1` to find the latest build log
+
 ## MUST ALWAYS DO BEFORE MANUAL TESTING:
 1. Check if helix container is running: `docker ps | grep helix`
 2. If not running, start it before asking user to test

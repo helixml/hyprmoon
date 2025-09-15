@@ -21,19 +21,19 @@ Changes:
    * Build with libwlroots-0.18-dev. (Closes: #1091775)
 Checksums-Sha1:
  a23790d309f9cb258a5c79c756a4fe673b63b71c 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
- bdf5128f810667bfaf5a5d4a96658f517fa3b33b 122048996 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
- 4dcaacaa314c4fc3103658ba2964795a7d346812 175856 hyprland-dev_0.41.2+ds-1.3_amd64.deb
- 02c53f8943271a6a94fe095ba0732f4b0827523e 17264 hyprland_0.41.2+ds-1.3_amd64.buildinfo
- c2e397875d6ce8ccc3b4afb9f9754a6efcfac917 2054686 hyprland_0.41.2+ds-1.3_amd64.deb
+ 4de73fabcf3fffd2638b2f4f1b406a75d921af51 123670086 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 32f17f9f8d17564984fed4a80e355ffdadd06e76 179144 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ 458492f0df9a53d7fbe80cdfcb4d39cabda0cb5e 17264 hyprland_0.41.2+ds-1.3_amd64.buildinfo
+ cde1c9edc1e4ea48a8f1ee145949a5059b65ef14 2055842 hyprland_0.41.2+ds-1.3_amd64.deb
 Checksums-Sha256:
  3a493113ac938a9ab6e528ce98a4a34c12aa95c9121423b3abb48e276a9c076d 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
- 97c88942855af92dd2c4526697cca1155468c83d08b5b9792c9eabf746cb5931 122048996 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
- 374c65cc99f8c61697d9b68d0f0c2355dc49e023b46265c696bfa07d201a2060 175856 hyprland-dev_0.41.2+ds-1.3_amd64.deb
- ca1008e02781b1d1a4a3889c500e420e4f891b3d8359656c10cd71b05bdcf86c 17264 hyprland_0.41.2+ds-1.3_amd64.buildinfo
- c82db8023b6830e83da79c5833fc248c9cf65109d2d8207e5b77a47e975c945c 2054686 hyprland_0.41.2+ds-1.3_amd64.deb
+ 50304cded42981ecf17742cb6014d834b86b987cdce5846e2e6fc66b77739cc6 123670086 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 235570031c03b5a34ad9511667241d8d2a9a506354783ea713ff3177426afa5b 179144 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ a9135495d22f0859e52a6c19d14f48975630e0e0ce02d97a8f556881742efd8c 17264 hyprland_0.41.2+ds-1.3_amd64.buildinfo
+ e857b2bdea3399bef565cf7f19a12b5a381b8c92c63ec82c530cfe790e8b047d 2055842 hyprland_0.41.2+ds-1.3_amd64.deb
 Files:
  9f6e1e129bddb31c4e6ecda4f38d53c2 46695126 x11 optional hyprland-backgrounds_0.41.2+ds-1.3_all.deb
- 6200f98c72392e5248a69686ae306bc8 122048996 debug optional hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
- 7eadc2d73ce1bc76238d8a1697826923 175856 libdevel optional hyprland-dev_0.41.2+ds-1.3_amd64.deb
- 2327068b5c13c8116db52f3335c2c8eb 17264 x11 optional hyprland_0.41.2+ds-1.3_amd64.buildinfo
- 525cb8510a1d85819b1ca69151e74633 2054686 x11 optional hyprland_0.41.2+ds-1.3_amd64.deb
+ 31a232c2fae79efd88f3029f7f449dd1 123670086 debug optional hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ da7d544ac4d55fd9a3a76ab490350c58 179144 libdevel optional hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ f9d505b204632e383d0b0faf5814e71e 17264 x11 optional hyprland_0.41.2+ds-1.3_amd64.buildinfo
+ 46fb8e1dba996df99fd0608810831135 2055842 x11 optional hyprland_0.41.2+ds-1.3_amd64.deb

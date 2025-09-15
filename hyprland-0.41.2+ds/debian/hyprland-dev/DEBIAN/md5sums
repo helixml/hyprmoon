@@ -115,6 +115,12 @@ d8c0752fad737ef73b8d44255a8b7005  usr/include/hyprland/src/managers/input/InputM
 6d74c1c91a1e093a96de7bb498471e0d  usr/include/hyprland/src/managers/input/InputMethodPopup.hpp
 35d055de5b44c741d2671f002f2463b9  usr/include/hyprland/src/managers/input/InputMethodRelay.hpp
 22ff1fe188b1598fdafe672c206b39e5  usr/include/hyprland/src/managers/input/TextInput.hpp
+7cd97a308f80106c74b3040784ba5005  usr/include/hyprland/src/moonlight/MoonlightManager.hpp
+5c9c5e8e6fc75d658789acf912e3f355  usr/include/hyprland/src/moonlight/crypto/CryptoStub.hpp
+176b9be38336385960a1d05a2bf290bf  usr/include/hyprland/src/moonlight/crypto/crypto/crypto.hpp
+0f3d2fda431f11c71b47693c14fe6fb7  usr/include/hyprland/src/moonlight/crypto/crypto/utils.hpp
+adce03aa148f3bdd2e8ccd65d5912382  usr/include/hyprland/src/moonlight/protocol/RTSPStub.hpp
+98abe6b3399faa2269371ce2e4df6265  usr/include/hyprland/src/moonlight/rtsp/parser.hpp
 9b4d218cdbd2ae15566e414888202f65  usr/include/hyprland/src/pch/pch.hpp
 035ea5655a796676b372b66d0a9ddf86  usr/include/hyprland/src/plugins/HookSystem.hpp
 35c5d0a1f15554c91fa240969fac5346  usr/include/hyprland/src/plugins/PluginAPI.hpp

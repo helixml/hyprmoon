@@ -10,6 +10,20 @@
 - **Helix container environment**: `/home/luke/pm/helix/` (test environment)
 - **Ubuntu source**: `~/pm/hyprmoon/hyprland-0.41.2+ds/` (baseline from Ubuntu 25.04 deb-src)
 
+### Version Documentation
+- **Ubuntu 25.04 (plucky)**: Source distribution for container builds
+- **Hyprland 0.41.2+ds-1.3**: Exact Ubuntu package version from universe repo
+  - Source package: `hyprland_0.41.2+ds-1.3.dsc`
+  - Generated packages: `hyprland_0.41.2+ds-1.3_amd64.deb` (2MB), `hyprland-backgrounds_0.41.2+ds-1.3_all.deb` (47MB), `hyprland-dev_0.41.2+ds-1.3_amd64.deb` (176KB)
+- **Build System**: CMake 3.31.6 with Ninja backend (not meson as initially assumed)
+- **CMake auto-includes**: Uses `file(GLOB_RECURSE SRCFILES "src/*.cpp")` - all .cpp files automatically included
+- **Ubuntu Patches Applied**: 5 debian patches already in source:
+  - 001-use-bash-in-makefile.patch
+  - 002-use-system-udis86.patch
+  - 003-use-system-hyprland-protocols.patch
+  - 004-fix-hyprland-symlink.patch
+  - 005-add-fortify-flags-for-subprojects.patch
+
 ### Previous Findings
 1. **Grey Screen Issue**: Current HyprMoon shows grey screen in VNC instead of black
 2. **Screencopy Works**: `zwlr_screencopy_manager_v1` protocol is functional
@@ -33,6 +47,8 @@
 - **Phase milestone commits**: ALWAYS commit when reaching phase milestones
 - **Manual testing required**: Human verification at every step, no automation
 - **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
+- **MANDATORY 60-SECOND BUILD MONITORING**: ALWAYS monitor builds every 60 seconds using BashOutput tool until completion - NEVER start a build and forget about it
+- **NEVER GIVE UP ON LONG BUILDS**: ALWAYS wait patiently for builds to complete, no matter how long they take - builds can take 10+ minutes, be patient and keep monitoring every 60 seconds
 
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
@@ -55,7 +71,7 @@ Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's e
 
 ## Methodical Approach
 
-### Phase 1: Baseline Setup
+### Phase 1: Baseline Setup ✅ COMPLETE
 1. **Ubuntu Source**: Use exact Ubuntu 25.04 Hyprland 0.41.2+ds-1.3 source ✅
 2. **Apply Ubuntu Patches**: ✅
    - 001-use-bash-in-makefile.patch
@@ -64,9 +80,10 @@ Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's e
    - 004-fix-hyprland-symlink.patch
    - 005-add-fortify-flags-for-subprojects.patch
 3. **Build Cache**: Set up proper Debian build environment with ccache ✅
-4. **Build Raw Ubuntu Package**: Build vanilla Ubuntu Hyprland deb (no changes)
-5. **Test Raw Baseline**: Deploy to helix and verify VNC shows BLACK screen
-6. **Commit Baseline**: Git commit the working vanilla state
+4. **Build Raw Ubuntu Package**: Build vanilla Ubuntu Hyprland deb (no changes) ✅
+5. **Test Raw Baseline**: Deploy to helix and verify VNC connectivity ✅
+6. **Commit Baseline**: Git commit the working vanilla state ✅
+   - **Git commit**: 249b009 "Step 1 Complete: Clean Ubuntu Hyprland baseline"
 
 ### Phase 2: Incremental Modifications
 Add HyprMoon features one by one, testing VNC after each:

@@ -24,6 +24,8 @@ Before taking any action, ALWAYS read and follow the current `/home/luke/pm/hypr
 7. **Phase milestone commits**: ALWAYS commit when reaching phase milestones
 8. **Manual testing required**: Human verification at every step, no automation
 9. **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
+10. **MANDATORY 60-SECOND BUILD MONITORING**: ALWAYS monitor builds every 60 seconds using BashOutput tool until completion - NEVER start a build and forget about it
+11. **NEVER GIVE UP ON LONG BUILDS**: ALWAYS wait patiently for builds to complete, no matter how long they take - builds can take 10+ minutes, be patient and keep monitoring every 60 seconds
 
 ### Current Development Context:
 - **New methodical repo**: `~/pm/hyprmoon/` (this directory)

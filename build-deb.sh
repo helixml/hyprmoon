@@ -7,12 +7,10 @@ echo "Building HyprMoon with Ubuntu caching..."
 echo "Building build container with dependencies..."
 docker build -f Dockerfile.build -t hyprmoon-build-env . || exit 1
 
-# Use BuildKit mount caches for maximum build speed
-echo "Building HyprMoon deb package with cached build environment..."
+# Use simple bind mount (Docker version doesn't support cache mounts)
+echo "Building HyprMoon deb package with build environment..."
 docker run --rm \
-    --mount=type=bind,source="$(pwd)",target=/workspace \
-    --mount=type=cache,target=/ccache \
-    --mount=type=cache,target=/root/.cache/meson \
+    -v "$(pwd):/workspace" \
     hyprmoon-build-env \
     bash -c "
         cd /workspace/hyprland-0.41.2+ds
@@ -26,20 +24,10 @@ docker run --rm \
         echo 'Cleaning previous builds...'
         fakeroot debian/rules clean || true
 
-        # Configure ccache
-        echo 'Configuring ccache...'
-        ccache --set-config=max_size=2G
-        ccache --zero-stats
-
-        # Build with full optimization and caching
+        # Build with parallel compilation
         echo 'Building HyprMoon deb package...'
         export DEB_BUILD_OPTIONS='parallel=\$(nproc)'
-        export CCACHE_DIR=/ccache
         dpkg-buildpackage -us -uc -b
-
-        # Show ccache stats
-        echo 'ccache statistics:'
-        ccache --show-stats
 
         # List built packages
         echo 'Built packages:'

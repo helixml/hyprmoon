@@ -1,0 +1,4 @@
+# hyprland does have a man page. It is under the name Hyprland
+# with a capital 'H'. /usr/bin/hyprland (with a lowercase 'h')
+# is a symlink to /usr/bin/Hyprland.
+hyprland binary: no-manual-page

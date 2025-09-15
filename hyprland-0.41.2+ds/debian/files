@@ -1,0 +1,5 @@
+hyprland-backgrounds_0.41.2+ds-1.3_all.deb x11 optional
+hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb debug optional automatic=yes
+hyprland-dev_0.41.2+ds-1.3_amd64.deb libdevel optional
+hyprland_0.41.2+ds-1.3_amd64.buildinfo x11 optional
+hyprland_0.41.2+ds-1.3_amd64.deb x11 optional

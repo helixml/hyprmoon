@@ -37,6 +37,17 @@
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
 
+## CRITICAL: Use Wolf Moonlight Implementation
+**DO NOT reimplement moonlight protocol from scratch!** Use the battle-tested implementation from `~/pm/wolf`:
+- Wolf has a working, tested moonlight protocol implementation
+- Wolf also has a GStreamer stack for WebRTC implementation
+- Only write glue code between Wolf's moonlight code and Hyprland
+- Copy (using `cp`) the core protocol code from Wolf
+- Copy (using `cp`) the GStreamer/streaming code from Wolf
+- We only need to implement the integration layer and PIN authentication server
+- Refer to existing HyprMoon implementation in `/home/luke/pm/Hyprland-wlroots/` for reference
+- The existing HyprMoon already has this work done - use it as a guide
+
 ## Current Problem
 - HyprMoon container shows grey screen in VNC (should be black like vanilla Hyprland)
 - Need to isolate which modification broke the rendering/capture

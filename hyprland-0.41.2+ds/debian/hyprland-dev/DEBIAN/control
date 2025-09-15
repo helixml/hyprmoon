@@ -1,0 +1,19 @@
+Package: hyprland-dev
+Source: hyprland
+Version: 0.41.2+ds-1.3
+Architecture: amd64
+Maintainer: Alan M Varghese (NyxTrail) <alan@digistorm.in>
+Installed-Size: 1352
+Section: libdevel
+Priority: optional
+Homepage: https://hyprland.org
+Description: Development files for Hyprland
+ Hyprland is a dynamic tiling Wayland compositor based on
+ wlroots that doesn't sacrifice on its looks. It provides
+ the latest Wayland features, is highly customizable, has
+ all the eyecandy, the most powerful plugins, easy IPC,
+ much more QoL stuff than other wlr-based compositors and
+ more...
+ .
+ This package contains header files for developing plugins
+ for Hyprland.

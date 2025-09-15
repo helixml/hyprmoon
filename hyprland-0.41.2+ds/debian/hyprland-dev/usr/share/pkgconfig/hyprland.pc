@@ -1,0 +1,7 @@
+prefix=/usr/include
+
+Name: Hyprland
+URL: https://github.com/hyprwm/Hyprland
+Description: Hyprland header files
+Version: 0.41.2
+Cflags: -I${prefix} -I${prefix}/hyprland/protocols -I${prefix}/hyprland -I${prefix}/hyprland/wlr

@@ -1,0 +1,39 @@
+Format: 1.8
+Date: Thu, 09 Jan 2025 19:56:31 +0000
+Source: hyprland
+Binary: hyprland hyprland-backgrounds hyprland-dev
+Built-For-Profiles: noudeb
+Architecture: all amd64
+Version: 0.41.2+ds-1.3
+Distribution: unstable
+Urgency: medium
+Maintainer: Alan M Varghese (NyxTrail) <alan@digistorm.in>
+Changed-By: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Description:
+ hyprland   - Dynamic tiling Wayland compositor
+ hyprland-backgrounds - Set of backgrounds packaged with the hyprland Wayland compositor
+ hyprland-dev - Development files for Hyprland
+Closes: 1091775
+Changes:
+ hyprland (0.41.2+ds-1.3) unstable; urgency=medium
+ .
+   * Non-maintainer upload.
+   * Build with libwlroots-0.18-dev. (Closes: #1091775)
+Checksums-Sha1:
+ a23790d309f9cb258a5c79c756a4fe673b63b71c 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
+ bdf5128f810667bfaf5a5d4a96658f517fa3b33b 122048996 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 4dcaacaa314c4fc3103658ba2964795a7d346812 175856 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ 02c53f8943271a6a94fe095ba0732f4b0827523e 17264 hyprland_0.41.2+ds-1.3_amd64.buildinfo
+ c2e397875d6ce8ccc3b4afb9f9754a6efcfac917 2054686 hyprland_0.41.2+ds-1.3_amd64.deb
+Checksums-Sha256:
+ 3a493113ac938a9ab6e528ce98a4a34c12aa95c9121423b3abb48e276a9c076d 46695126 hyprland-backgrounds_0.41.2+ds-1.3_all.deb
+ 97c88942855af92dd2c4526697cca1155468c83d08b5b9792c9eabf746cb5931 122048996 hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 374c65cc99f8c61697d9b68d0f0c2355dc49e023b46265c696bfa07d201a2060 175856 hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ ca1008e02781b1d1a4a3889c500e420e4f891b3d8359656c10cd71b05bdcf86c 17264 hyprland_0.41.2+ds-1.3_amd64.buildinfo
+ c82db8023b6830e83da79c5833fc248c9cf65109d2d8207e5b77a47e975c945c 2054686 hyprland_0.41.2+ds-1.3_amd64.deb
+Files:
+ 9f6e1e129bddb31c4e6ecda4f38d53c2 46695126 x11 optional hyprland-backgrounds_0.41.2+ds-1.3_all.deb
+ 6200f98c72392e5248a69686ae306bc8 122048996 debug optional hyprland-dbgsym_0.41.2+ds-1.3_amd64.ddeb
+ 7eadc2d73ce1bc76238d8a1697826923 175856 libdevel optional hyprland-dev_0.41.2+ds-1.3_amd64.deb
+ 2327068b5c13c8116db52f3335c2c8eb 17264 x11 optional hyprland_0.41.2+ds-1.3_amd64.buildinfo
+ 525cb8510a1d85819b1ca69151e74633 2054686 x11 optional hyprland_0.41.2+ds-1.3_amd64.deb

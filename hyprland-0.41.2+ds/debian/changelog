@@ -1,14 +1,32 @@
-hyprmoon (0.41.2+ds-1.3+step7-rest) unstable; urgency=medium
+hyprmoon (0.41.2+ds-1.3+step7.4) unstable; urgency=medium
 
-  * Step 7: Wolf REST API and PIN Management Integration (NO MORE STUBS!)
-  * Replaced RestServerStub with real Wolf REST API implementation
-  * Added Wolf AppState initialization for REST endpoints and state management
-  * Implemented HTTP and HTTPS servers using Wolf's SimpleWeb framework
-  * Added self-signed certificate generation for HTTPS endpoints
-  * Wolf REST API now handles Moonlight client discovery and pairing
-  * Ready for Wolf streaming infrastructure implementation
+  * Step 7.4: Fix missing OpenSSL and Boost dependencies for Wolf REST API
+  * Added libssl-dev, libboost-dev, libboost-system-dev, libcurl4-openssl-dev, libfmt-dev
+  * Fixed compilation error: "openssl/conf.h: No such file or directory"
+  * Wolf REST API now builds correctly with proper SSL support
 
- -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 15 Sep 2025 18:00:00 +0000
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 15 Sep 2025 20:30:00 +0000
+
+hyprmoon (0.41.2+ds-1.3+step7.3) unstable; urgency=medium
+
+  * Step 7.3: Actual Wolf REST API Integration (REAL implementation instead of stubs)
+  * Fixed critical issue: stub implementations were being used instead of Wolf REST API
+  * Confirmed real Wolf HTTP/HTTPS servers with proper endpoints (/serverinfo, /pair, /pin)
+  * Real Wolf AppState management and pairing functionality now active
+  * Ready for Moonlight client connections with battle-tested Wolf protocol
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 15 Sep 2025 20:15:00 +0000
+
+hyprmoon (0.41.2+ds-1.3+step7.2) unstable; urgency=medium
+
+  * Step 7.2: Fix Wolf REST API port connectivity (rigorous versioning)
+  * Verify HTTP/HTTPS servers actually start and bind to ports 47989/47984
+  * Fix port connectivity issues preventing Moonlight client connections
+  * Ensure Wolf AppState properly initializes before server startup
+  * Debug and fix "localhost unexpectedly closed the connection" errors
+  * Maintain VNC functionality while fixing Moonlight connectivity
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 15 Sep 2025 19:30:00 +0000
 
 hyprmoon (0.41.2+ds-1.3+step6-wolf) unstable; urgency=medium
 

@@ -84,6 +84,7 @@ bool CMoonlightManager::startRestAPI() {
 
         // Start HTTP server on port 47989
         int httpPort = state::get_port(state::HTTP_PORT);
+        Debug::log(LOG, "[moonlight] Starting HTTP server on port {}", httpPort);
         std::thread httpThread([this, httpPort]() {
             try {
                 HTTPServers::startServer(m_httpServer.get(), m_appState, httpPort);
@@ -95,6 +96,7 @@ bool CMoonlightManager::startRestAPI() {
 
         // Start HTTPS server on port 47984
         int httpsPort = state::get_port(state::HTTPS_PORT);
+        Debug::log(LOG, "[moonlight] Starting HTTPS server on port {}", httpsPort);
         std::thread httpsThread([this, httpsPort]() {
             try {
                 HTTPServers::startServer(m_httpsServer.get(), m_appState, httpsPort);
@@ -104,8 +106,8 @@ bool CMoonlightManager::startRestAPI() {
         });
         httpsThread.detach();
 
-        // Give servers time to start
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // Give servers more time to start and bind to ports
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         Debug::log(LOG, "[moonlight] Wolf REST API started - HTTP:{}, HTTPS:{}", httpPort, httpsPort);
         return true;

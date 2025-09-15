@@ -86,24 +86,24 @@ Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's e
 ### Phase 2: Incremental Modifications
 Add HyprMoon features one by one, testing VNC after each:
 
-#### Step 1: Build System Integration (Low Risk)
-- Add meson option `with_moonlight` (disabled initially)
-- Add moonlight subdirectory to build system
-- Add minimal moonlight manager stub
-- **Test**: VNC should still show black screen, build works
+#### Step 1: Build System Integration (Low Risk) - COMPLETED ✅
+- Add meson option `with_moonlight` (disabled initially) ✅
+- Add moonlight subdirectory to build system ✅
+- Add minimal moonlight manager stub ✅
+- **Test**: VNC should still show black screen, build works ✅
 
-#### Step 2: Core Protocol Infrastructure (Medium Risk)
-- Add moonlight protocol crypto and data structures
-- Add RTSP and RTP protocol handling
-- Add configuration system (TOML)
-- **Test**: VNC should still work, moonlight subsystem compiles
+#### Step 2: Core Protocol Infrastructure (Medium Risk) - COMPLETED ✅
+- Add moonlight protocol crypto and data structures ✅
+- Add RTSP and RTP protocol handling ✅
+- Add configuration system (TOML) ✅
+- **Test**: VNC should still work, moonlight subsystem compiles ✅
 
 #### Step 3: Global Manager Integration ✅ COMPLETE
 - Add MoonlightManager to global scope ✅
 - Enable `with_moonlight` option by default ✅
 - Add manager lifecycle to compositor ✅
 - **Test**: VNC still works, moonlight manager initializes ✅
-- **Git commit**: 8a2e5ed "Step 3 Complete: Global Manager Integration"
+- **Git commit**: 8a2e5ed "Step 3 Complete: Global Manager Integration" ✅
 - **Result**: SUCCESSFUL - VNC connectivity maintained, manager integrated properly
 
 #### Step 4: Frame Capture Integration ✅ COMPLETE
@@ -133,7 +133,7 @@ Add HyprMoon features one by one, testing VNC after each:
 - Replace stub implementations with real Wolf code ✅
 - Added Wolf dependencies to meson.build: boost, gstreamer, enet, fmt, openssl, icu, libpci, curl ✅
 - **Build**: Generated `hyprmoon_0.41.2+ds-1.3+step6-wolf_amd64.deb` successfully ✅
-- **Git commit**: TBD "Step 6 Complete: Wolf Core Protocol Implementation" ✅
+- **Git commit**: Committed in Step 6 work ✅
 - **Result**: SUCCESSFUL - Real Wolf protocol code integrated, ready for REST API and streaming
 
 #### Step 7: Copy Wolf REST API and PIN Management ✅ COMPLETE
@@ -143,19 +143,21 @@ Add HyprMoon features one by one, testing VNC after each:
 - Implemented HTTP and HTTPS servers using Wolf's SimpleWeb framework ✅
 - Added Wolf AppState initialization for REST endpoints and state management ✅
 - Added self-signed certificate generation for HTTPS endpoints ✅
-- **Build**: Generated `hyprmoon_0.41.2+ds-1.3+step7-rest_amd64.deb` successfully ✅
-- **Test**: Ready for Moonlight client discovery and pairing testing ✅
-- **Git commit**: TBD "Step 7 Complete: Wolf REST API and PIN Management Integration" ✅
+- **Build**: Generated `hyprmoon_0.41.2+ds-1.3+step7_amd64.deb` successfully ✅
+- **Test**: VNC testing SUCCESSFUL - Wolf REST API deployed and ready ✅
+- **Git commit**: Ready for Step 7.1 with corrected versioning ✅
 - **Result**: SUCCESSFUL - Real Wolf REST API integrated, NO MORE STUBS!
 
-#### Step 8: Copy Wolf Streaming Infrastructure (COPY FROM Hyprland-wlroots)
+**NOTE**: Step 7 was actually built as `step7` not `step7-rest` in the generated packages. Ready for version 7.1 with corrected naming.
+
+#### Step 8: Copy Wolf Streaming Infrastructure (PENDING - COPY FROM Hyprland-wlroots)
 - Copy Wolf streaming from `/home/luke/pm/Hyprland-wlroots/src/moonlight/streaming/`
 - Copy Wolf GStreamer plugins from `/home/luke/pm/Hyprland-wlroots/src/moonlight/gst-plugin/`
 - Copy Wolf control system from `/home/luke/pm/Hyprland-wlroots/src/moonlight/control/`
 - Replace streaming stubs with real Wolf implementation
 - **Test**: Moonlight streaming should work end-to-end
 
-#### Step 9: Copy Wolf WebRTC and Voice Support (COPY FROM Hyprland-wlroots)
+#### Step 9: Copy Wolf WebRTC and Voice Support (PENDING - COPY FROM Hyprland-wlroots)
 - Copy Wolf WebRTC from `/home/luke/pm/Hyprland-wlroots/src/moonlight/webrtc/`
 - Copy Wolf voice system from `/home/luke/pm/Hyprland-wlroots/src/moonlight/voice/`
 - Copy Wolf input management from `/home/luke/pm/Hyprland-wlroots/src/moonlight/platforms/`

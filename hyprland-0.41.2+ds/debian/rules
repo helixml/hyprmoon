@@ -22,7 +22,7 @@ override_dh_auto_install:
 
 override_dh_clean:
 	# call clear target provided by Hyprland
-	make clear
+	# DISABLED: make clear  # This kills build cache - let's preserve it for faster iterations
 	
 	# clean up some directories created during the build
 	rm -rf subprojects/wlroots-hyprland/src/wlroots-hyprland-stamp

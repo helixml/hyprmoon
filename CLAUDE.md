@@ -15,19 +15,17 @@ Before taking any action, ALWAYS read and follow the current `/home/luke/pm/hypr
 ## Key Development Rules (from design.md)
 
 ### ALWAYS Follow These Rules:
-1. **Always run builds in foreground**: Never use `&` or background mode for build commands, be patient
-2. **Build caches are critical**: Without ccache/meson cache, iteration takes too long
-3. **Test after every change**: Big-bang approaches are impossible to debug
-4. **Use exact Ubuntu source**: Don't deviate from what Ubuntu ships
-5. **Container build caches matter**: Use BuildKit mount caches for Docker builds
-6. **Git commit discipline**: Make commits after every substantial change
-7. **Phase milestone commits**: ALWAYS commit when reaching phase milestones
-8. **Manual testing required**: Human verification at every step, no automation
-9. **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
-10. **MANDATORY 60-SECOND BUILD MONITORING**: ALWAYS monitor builds every 60 seconds using BashOutput tool until completion - NEVER start a build and forget about it
-11. **NEVER GIVE UP ON LONG BUILDS**: ALWAYS wait patiently for builds to complete, no matter how long they take - builds can take 10+ minutes, be patient and keep monitoring every 60 seconds
-12. **CRITICAL: ALWAYS exec sleep 60**: When waiting 60 seconds for build monitoring, MUST use `sleep 60` command - DO NOT just wait passively
-13. **DOCKERFILE FILENAME UPDATES CRITICAL**: When moving from one Step to the next (e.g., Step 7 -> Step 8), you MUST update the Dockerfile COPY lines to reference the new Step filenames BEFORE running docker build. If you update the Dockerfile after build has started, Docker will use cached layers with the old filenames. ALWAYS verify the Dockerfile has correct Step filenames before building.
+1. **CRITICAL: NEVER USE BACKGROUND BUILDS**: ALWAYS run builds in foreground only. NEVER use `run_in_background: true` or `&` with build commands. Builds MUST be run synchronously with full output visible. This prevents confusion and lost builds.
+2. **CRITICAL: ONLY ONE BUILD AT A TIME**: Never run multiple builds simultaneously. Always wait for current build to complete before starting another.
+3. **Build caches are critical**: Without ccache/meson cache, iteration takes too long
+4. **Test after every change**: Big-bang approaches are impossible to debug
+5. **Use exact Ubuntu source**: Don't deviate from what Ubuntu ships
+6. **Container build caches matter**: Use BuildKit mount caches for Docker builds
+7. **Git commit discipline**: Make commits after every substantial change
+8. **Phase milestone commits**: ALWAYS commit when reaching phase milestones
+9. **Manual testing required**: Human verification at every step, no automation
+10. **CRITICAL: Always start helix container before manual testing**: MUST check `docker ps | grep helix` and start container if needed before asking user to test via VNC
+11. **DOCKERFILE FILENAME UPDATES CRITICAL**: When moving from one Step to the next (e.g., Step 7 -> Step 8), you MUST update the Dockerfile COPY lines to reference the new Step filenames BEFORE running docker build. If you update the Dockerfile after build has started, Docker will use cached layers with the old filenames. ALWAYS verify the Dockerfile has correct Step filenames before building.
 
 ### Current Development Context:
 - **New methodical repo**: `~/pm/hyprmoon/` (this directory)
@@ -104,17 +102,17 @@ docker ps | grep helix
 - ✅ **Always latest**: Ensures we test the actual code we just built
 - ✅ **Incremental safety**: Prevents testing stale versions that invalidate our methodology
 
-**CRITICAL BUILD LOG REQUIREMENTS:**
+**CRITICAL BUILD REQUIREMENTS:**
+- **MANDATORY FOREGROUND ONLY**: NEVER use `run_in_background: true` - ALL builds must run in foreground with full output visible
+- **ONE BUILD AT A TIME**: Never run multiple concurrent builds - wait for completion before starting another
+- **BUILD CACHE ENABLED**: debian/rules has been modified to disable `make clear` - this preserves build cache between runs for much faster iterations
+- **BUILD CACHE LOCATION**: Build cache is stored in `/workspace/hyprland-0.41.2+ds/build/` which is bind-mounted to host filesystem
 - ALWAYS capture build output to timestamped log files: `command 2>&1 | tee build-$(date +%s).log`
 - NEVER use --no-cache flags - we DO want build caching for speed
 - NEVER EVER use --no-cache with docker builds - we trust Docker's caching system completely
 - **CRITICAL: Monitor CONTAINER logs for actual compiler errors**: The outer build-*.log only shows package management
 - **MUST monitor container-build-*.log files**: These contain the actual compilation output and error details
-- MANDATORY 60-second build monitoring with BashOutput tool - CHECK AFTER EACH 60-SECOND WAIT
-- **CRITICAL: ALWAYS exec sleep 60**: When waiting 60 seconds, MUST use `sleep 60` command - DO NOT just wait passively
-- LOOP FOREVER until the build is finished (success or failure) - NEVER give up
-- NEVER background builds - always foreground and patient monitoring
-- Builds can take 10+ minutes - never give up on long builds
+- Builds can take 10+ minutes - be patient and wait for completion
 - When builds fail, inspect the complete CONTAINER log file for compiler errors
 - Use `find . -name "container-build-*.log" | sort | tail -1` to find the latest container build log
 - **Check both logs**: outer build-*.log for overall status, container-build-*.log for compilation errors

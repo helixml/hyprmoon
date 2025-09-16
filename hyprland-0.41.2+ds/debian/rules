@@ -5,6 +5,11 @@ export DEB_CFLAGS_MAINT_APPEND  = -w -Wno-unused -Wno-deprecated -Wno-deprecated
 export DEB_CXXFLAGS_MAINT_APPEND = -w -Wno-unused -Wno-deprecated -Wno-deprecated-declarations
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,-O2
 
+# Step 8.6: Re-enable ccache and ninja for better builds
+# export CCACHE_DISABLE = 1
+# export CC = gcc
+# export CXX = g++
+
 %:
 	dh $@
 
@@ -22,14 +27,10 @@ override_dh_auto_install:
 	dh_auto_install -- PREFIX='$${DESTDIR}/usr'
 
 override_dh_clean:
-	# DISABLED ALL CLEANING TO MAXIMIZE BUILD CACHE PERFORMANCE
-	# call clear target provided by Hyprland
-	# DISABLED: make clear  # This kills build cache - let's preserve it for faster iterations
-
-	# clean up some directories created during the build
-	# DISABLED: rm -rf subprojects/wlroots-hyprland/src/wlroots-hyprland-stamp
-	# DISABLED: rm -f subprojects/udis86/libudis86/itab*
-	# DISABLED: rm -rf subprojects/wlroots-hyprland/tmp
+	# Always clean up auxiliary directories that can cause issues
+	rm -rf subprojects/wlroots-hyprland/src/wlroots-hyprland-stamp
+	rm -f subprojects/udis86/libudis86/itab*
+	rm -rf subprojects/wlroots-hyprland/tmp
 
 	# Reverse the patches in subprojects/wlroots-hyprland
 	cd subprojects/wlroots-hyprland ; \
@@ -39,9 +40,9 @@ override_dh_clean:
 		    patch -p1 -r /dev/null -N --dry-run -s < $$PATCH  || patch -p1 -r /dev/null -R -s < $$PATCH ; \
 		done ;
 
-	# Do not delete scripts/generateVersion.sh.bak
-	# DISABLED: dh_clean -X scripts/generateVersion.sh.bak
-	@echo "Most cleaning disabled to preserve build cache"
+	# Step 8.6: Allow incremental builds with ccache and ninja
+	dh_clean -X scripts/generateVersion.sh.bak -X build/
+	@echo "Incremental build with ccache and ninja enabled"
 
 override_dh_dwz:
 	dh_dwz -XHyprland # Skipping dwz, compression not beneficial on Hyprland

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # Container-side build script for HyprMoon
 # This script runs inside the hyprmoon-build-env container
@@ -8,6 +8,7 @@ set -e
 TIMESTAMP=$(date +%s)
 CONTAINER_LOG="/workspace/container-build-${TIMESTAMP}.log"
 
+# Simple logging with tee
 exec > >(tee -a "$CONTAINER_LOG") 2>&1
 
 echo "=== HyprMoon Container Build Script ==="
@@ -26,59 +27,26 @@ apt-get update -qq
 echo "Installing build dependencies..."
 mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
 
-# Build the deb package
+# Build the deb package with real-time fatal error detection
 echo "Building deb package..."
 
-# Monitor build output for fatal errors and exit immediately
-# Create a temporary file to signal fatal error
-FATAL_ERROR_FLAG="/tmp/fatal_error_$$"
-rm -f "$FATAL_ERROR_FLAG"
-
-# Start build and monitor for fatal errors
-{
-    dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
-        echo "$line"
-        if [[ "$line" == *"fatal error:"* ]]; then
-            echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
-            echo "Error line: $line"
-            touch "$FATAL_ERROR_FLAG"
-            # Kill all build processes
-            pkill -f "dpkg-buildpackage" 2>/dev/null || true
-            pkill -f "cmake" 2>/dev/null || true
-            pkill -f "ninja" 2>/dev/null || true
-            exit 1
-        fi
-    done
-    echo $? > /tmp/build_exit_code_$$
-} &
-
-BUILD_MONITOR_PID=$!
-
-# Wait for either completion or fatal error
-while kill -0 $BUILD_MONITOR_PID 2>/dev/null; do
-    if [[ -f "$FATAL_ERROR_FLAG" ]]; then
-        echo "=== FATAL ERROR DETECTED - EXITING ==="
-        kill $BUILD_MONITOR_PID 2>/dev/null || true
-        rm -f "$FATAL_ERROR_FLAG" /tmp/build_exit_code_$$
+# Stream output line by line and check for fatal errors
+dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
+    echo "$line"
+    if [[ "$line" == *"fatal error:"* ]] || [[ "$line" == *"FATAL"* ]]; then
+        echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
+        echo "Error line: $line"
         exit 1
     fi
-    sleep 1
 done
 
-# Check final exit code
-if [[ -f /tmp/build_exit_code_$$ ]]; then
-    BUILD_EXIT_CODE=$(cat /tmp/build_exit_code_$$)
-    rm -f /tmp/build_exit_code_$$
-else
-    BUILD_EXIT_CODE=1
-fi
-
-rm -f "$FATAL_ERROR_FLAG"
+# Capture the exit code from dpkg-buildpackage (through the pipe)
+BUILD_EXIT_CODE=${PIPESTATUS[0]}
 
 # Check if the build failed
 if [ $BUILD_EXIT_CODE -ne 0 ]; then
-    echo "=== BUILD FAILED ==="
-    exit 1
+    echo "=== BUILD FAILED (exit code: $BUILD_EXIT_CODE) ==="
+    exit $BUILD_EXIT_CODE
 fi
 
 echo "=== Build completed successfully ==="

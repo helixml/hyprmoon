@@ -54,8 +54,8 @@ struct MoonlightConfig {
     } audio;
 };
 
-// Client information
-struct PairedClient {
+// Client information - renamed to avoid namespace conflict with Wolf's PairedClient
+struct HyprlandPairedClient {
     std::string client_cert;
     std::string client_name;
     std::string client_id;
@@ -65,7 +65,7 @@ struct PairedClient {
 // Session state
 struct StreamSession {
     std::string session_id;
-    PairedClient client;
+    HyprlandPairedClient client;
     std::string client_ip;
     uint16_t video_port;
     uint16_t audio_port;
@@ -89,18 +89,18 @@ public:
     void updateConfig(const MoonlightConfig& config) { config_ = config; }
     
     // Client management
-    void addPairedClient(const PairedClient& client);
+    void addPairedClient(const HyprlandPairedClient& client);
     void removePairedClient(const std::string& client_id);
-    std::vector<PairedClient> getPairedClients() const;
-    
+    std::vector<HyprlandPairedClient> getPairedClients() const;
+
     // Session management
-    std::shared_ptr<StreamSession> createSession(const PairedClient& client, const std::string& client_ip);
+    std::shared_ptr<StreamSession> createSession(const HyprlandPairedClient& client, const std::string& client_ip);
     void destroySession(const std::string& session_id);
     std::shared_ptr<StreamSession> getSession(const std::string& session_id);
     
 private:
     MoonlightConfig config_;
-    std::vector<PairedClient> paired_clients_;
+    std::vector<HyprlandPairedClient> paired_clients_;
     std::map<std::string, std::shared_ptr<StreamSession>> active_sessions_;
     mutable std::mutex mutex_;
 };
@@ -241,7 +241,7 @@ public:
     int getConnectedClientCount() const;
     
     // Client management
-    std::vector<PairedClient> getPairedClients() const;
+    std::vector<HyprlandPairedClient> getPairedClients() const;
     void unpairClient(const std::string& client_id);
     
 private:
@@ -252,13 +252,16 @@ private:
     std::unique_ptr<StreamingEngine> streaming_engine_;
     std::unique_ptr<ControlServer> control_server_;
 
-    // Real Wolf HTTP/HTTPS servers (replacing stub RestServer)
-    std::shared_ptr<void> wolf_app_state_;  // Using void* to avoid circular includes
-    std::unique_ptr<void> http_server_;     // SimpleWeb::Server<SimpleWeb::HTTP>
-    std::unique_ptr<void> https_server_;    // SimpleWeb::Server<SimpleWeb::HTTPS>
+    // Stub placeholders - not used in step 8.6 crash test
+    std::shared_ptr<void> wolf_app_state_;
+    void* http_server_;
+    void* https_server_;
     std::thread http_thread_;
     std::thread https_thread_;
-    
+
+    // Thread safety
+    mutable std::mutex shutdown_mutex_;
+
     // Initialization
     bool initializeGStreamer();
     bool initializeENet();

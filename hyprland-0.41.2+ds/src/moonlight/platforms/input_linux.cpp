@@ -1,6 +1,6 @@
-#include "moonlight/core/virtual-display.hpp"
+#include "core/virtual-display.hpp"
 #include "input.hpp"
-#include <moonlight/core/logger.hpp>
+#include <core/logger.hpp>
 #include <libevdev/libevdev.h>
 #include <string>
 

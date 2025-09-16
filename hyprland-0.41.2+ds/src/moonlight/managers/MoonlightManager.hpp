@@ -3,8 +3,8 @@
 #include <memory>
 #include <string>
 #include <wlr/interfaces/wlr_buffer.h>
-#include "../../helpers/Monitor.hpp"
-#include "../../helpers/memory/Memory.hpp"
+#include "helpers/Monitor.hpp"
+#include "helpers/memory/Memory.hpp"
 
 // Forward declarations for Wolf components
 namespace wolf {

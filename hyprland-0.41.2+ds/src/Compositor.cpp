@@ -23,7 +23,7 @@
 #include "protocols/core/Subcompositor.hpp"
 #include "desktop/LayerSurface.hpp"
 #include "xwayland/XWayland.hpp"
-#include "moonlight/MoonlightManager.hpp"
+#include "moonlight/managers/MoonlightManager.hpp"
 
 #include <hyprutils/string/String.hpp>
 using namespace Hyprutils::String;

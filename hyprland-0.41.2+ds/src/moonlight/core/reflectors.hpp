@@ -1,8 +1,8 @@
 #pragma once
 
-#include <moonlight/core/events.hpp>
+#include <core/events.hpp>
 #include <rfl.hpp>
-#include <moonlight/state/serialised_config.hpp>
+#include <state/serialised_config.hpp>
 
 namespace rfl {
 

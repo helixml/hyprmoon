@@ -1,12 +1,12 @@
-#include <moonlight/core/events.hpp>
-#include <moonlight/core/reflectors.hpp>
+#include <core/events.hpp>
+#include <core/reflectors.hpp>
 #include <fstream>
 #include <gst/gstelementfactory.h>
 #include <gst/gstregistry.h>
 #include <platforms/hw.hpp>
 #include <range/v3/view.hpp>
 #include <rfl/toml.hpp>
-#include <moonlight/state/config.hpp>
+#include <state/config.hpp>
 #include <utility>
 
 namespace state {

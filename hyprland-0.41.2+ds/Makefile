@@ -31,7 +31,6 @@ clear:
 	rm -rf ./subprojects/wlroots-hyprland/build
 
 all:
-	$(MAKE) clear
 	$(MAKE) release
 
 install:

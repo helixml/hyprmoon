@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git gc --prune=now --aggressive)",
+      "Bash(git gc --prune=now)",
+      "Bash(grep -E '\\.(deb|ddeb|orig\\.tar\\.gz)$')",
+      "Bash(git count-objects -vH)",
+      "Bash(find .git -type f -exec ls -lh {})",
+      "Bash(sort -k5 -hr)",
+      "Bash(git verify-pack -v .git/objects/pack/pack-18a1d4dedac599bb78d7d7bd6868502ea558e35a.idx)",
+      "Bash(sort -k3 -nr)",
+      "Bash(git rev-list --objects --all)",
+      "Bash(git filter-repo --path 'hyprland-0.41.2+ds/build' --invert-paths --force)",
+      "Bash(git verify-pack -v .git/objects/pack/*.idx)",
+      "Bash(git verify-pack -v .git/objects/pack/pack-*.idx)",
+      "Bash(git verify-pack -v .git/objects/pack/pack-2d90904d92e7f80abbbe25cd09ea5069f04fda71.idx)",
+      "Bash(git filter-repo --path 'hyprland-0.41.2+ds/debian/tmp' --invert-paths --force)",
+      "Bash(git filter-repo --path 'hyprland-0.41.2+ds/debian/.debhelper' --invert-paths --force)",
+      "Bash(awk '$5 > 100000000 {print $5, $9}')",
+      "Bash(awk '$5 > 50000000 {print $5/1024/1024 \"\"\"\"MB\"\"\"\", $9}')"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

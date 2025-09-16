@@ -38,7 +38,7 @@ struct whisper_full_params {};
 #include <unistd.h>
 #include <pulse/simple.h>
 #include <pulse/error.h>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 // HTTP server includes
 #include <sys/socket.h>

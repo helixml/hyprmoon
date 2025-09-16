@@ -3,13 +3,11 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
-#include <moonlight/protocol/crypto/crypto/crypto.hpp>
-#include <moonlight/core/events.hpp>
-#include <moonlight/core/logger.hpp>
-#include <moonlight/runners/child_session.hpp>
-#include <moonlight/runners/docker.hpp>
-#include <moonlight/runners/process.hpp>
-#include <moonlight/state/data-structures.hpp>
+#include <protocol/crypto/crypto/crypto.hpp>
+#include <core/events.hpp>
+#include <core/logger.hpp>
+// Runners removed - in-process execution
+#include <state/data-structures.hpp>
 
 namespace state {
 
@@ -122,19 +120,8 @@ static std::shared_ptr<events::Runner>
 get_runner(const rfl::TaggedUnion<"type", AppCMD, AppDocker, AppChildSession> &runner,
            const std::shared_ptr<events::EventBusType> &ev_bus,
            state::SessionsAtoms running_sessions) {
-  if (rfl::holds_alternative<AppCMD>(runner.variant())) {
-    auto run_cmd = rfl::get<AppCMD>(runner.variant()).run_cmd;
-    return std::make_shared<process::RunProcess>(ev_bus, run_cmd);
-  } else if (rfl::holds_alternative<AppDocker>(runner.variant())) {
-    return std::make_shared<docker::RunDocker>(
-        docker::RunDocker::from_cfg(ev_bus, rfl::get<AppDocker>(runner.variant())));
-  } else if (rfl::holds_alternative<AppChildSession>(runner.variant())) {
-    auto session_id = rfl::get<AppChildSession>(runner.variant()).parent_session_id;
-    return std::make_shared<coop::RunChildSession>(std::stoul(session_id), ev_bus, running_sessions);
-  } else {
-    logs::log(logs::error, "Found runner of unknown type");
-    throw std::runtime_error("Unknown runner type");
-  }
+  // Stub implementation - Hyprland-wlroots runs in-process, no separate runners needed
+  return nullptr;
 }
 
 static moonlight::control::pkts::CONTROLLER_TYPE get_controller_type(const ControllerType &ctrl_type) {

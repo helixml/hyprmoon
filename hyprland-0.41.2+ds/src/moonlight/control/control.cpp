@@ -1,9 +1,9 @@
-#include "moonlight/core/input.hpp"
-#include <moonlight/control/control.hpp>
-#include <moonlight/control/input_handler.hpp>
-#include <moonlight/core/events.hpp>
+#include "core/input.hpp"
+#include <control/control.hpp>
+#include <control/input_handler.hpp>
+#include <core/events.hpp>
 #include <immer/box.hpp>
-#include <moonlight/state/sessions.hpp>
+#include <state/sessions.hpp>
 #include <sys/socket.h>
 
 namespace control {

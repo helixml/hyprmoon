@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <fmt/core.h>
 #include <fstream>
-#include <moonlight/core/logger.hpp>
-#include <moonlight/core/utils.hpp>
+#include <core/logger.hpp>
+#include <core/utils.hpp>
 #include <ifaddrs.h>
 #include <iostream>
 #include <linux/if_packet.h>

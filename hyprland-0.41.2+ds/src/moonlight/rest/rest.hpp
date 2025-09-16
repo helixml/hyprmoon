@@ -1,11 +1,10 @@
 #pragma once
 
 #include <boost/asio/ssl.hpp>
-#include <boost/asio.hpp>
-#include <moonlight/core/logger.hpp>
-#include <moonlight/protocol/moonlight/protocol.hpp>
-// #include <server_http.hpp>  // Not needed - this file IS the server header implementation
-#include <moonlight/state/data-structures.hpp>
+#include <core/logger.hpp>
+#include <protocol/moonlight/protocol.hpp>
+#include <server_http.hpp>
+#include <state/data-structures.hpp>
 #include <thread>
 
 namespace SimpleWeb {

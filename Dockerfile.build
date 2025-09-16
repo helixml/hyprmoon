@@ -23,6 +23,14 @@ RUN apt-get update && apt-get install -y \
     libssl-dev libboost-dev libcurl4-openssl-dev \
     libimmer-dev libenet-dev librange-v3-dev libpci-dev \
     libxcb-errors-dev libxcb-util-dev \
+    libpulse-dev libjsoncpp-dev \
+    # Additional dependencies from debian/control that were missing
+    chrpath cpio hwdata hyprland-protocols hyprwayland-scanner \
+    libwlroots-0.18-dev liblcms2-dev libpugixml1v5 \
+    libxt6t64 libxmu6 libxaw7 libxkbfile1 x11-xkb-utils \
+    xserver-common libdecor-0-0 libxcvt0 libfontenc1 \
+    libxfont2 xwayland libseat-dev libtomlplusplus-dev \
+    libudis86-dev libhyprlang-dev libhyprcursor-dev libhyprutils-dev \
     # Development and debugging
     gdb valgrind strace \
     # Packaging tools

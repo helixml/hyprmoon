@@ -1,4 +1,4 @@
-#include <moonlight/rest/rest.hpp>
+#include <rest/rest.hpp>
 
 namespace SimpleWeb {
 

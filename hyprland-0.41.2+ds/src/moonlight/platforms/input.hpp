@@ -1,8 +1,8 @@
 #pragma once
 
 #include <codecvt>
-#include <moonlight/core/input.hpp>
-#include <moonlight/core/events.hpp>
+#include <core/input.hpp>
+#include <core/events.hpp>
 #include <iomanip>
 #include <locale>
 #include <memory>

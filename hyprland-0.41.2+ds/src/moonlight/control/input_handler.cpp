@@ -1,10 +1,10 @@
 #include <boost/endian/conversion.hpp>
 #include <boost/locale.hpp>
-#include <moonlight/control/input_handler.hpp>
-#include <moonlight/core/events.hpp>
-#include <moonlight/core/logger.hpp>
+#include <control/input_handler.hpp>
+#include <core/events.hpp>
+#include <core/logger.hpp>
 #include <immer/box.hpp>
-#include <moonlight/platforms/input.hpp>
+#include <platforms/input.hpp>
 #include <string>
 
 namespace control {

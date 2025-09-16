@@ -2,23 +2,23 @@
 
 #include <boost/asio.hpp>
 #include <chrono>
-#include <moonlight/core/audio.hpp>
-#include <moonlight/core/input.hpp>
-#include <moonlight/core/virtual-display.hpp>
+#include <core/audio.hpp>
+#include <core/input.hpp>
+#include <core/virtual-display.hpp>
 #include <deque>
-// #include <eventbus/event_bus.hpp>  // TODO: Find or implement eventbus
-#include <moonlight/core/events.hpp>
-#include <moonlight/core/tsqueue.hpp>
+#include <eventbus/event_bus.hpp>
+#include <core/events.hpp>
+#include <core/tsqueue.hpp>
 #include <immer/array.hpp>
 #include <immer/atom.hpp>
 #include <immer/box.hpp>
 #include <immer/map.hpp>
 #include <immer/vector.hpp>
-// #include <moonlight/control/control.hpp>  // TODO: Circular include - causes namespace issues
-#include <moonlight/protocol/moonlight/data-structures.hpp>
+#include <protocol/moonlight/control.hpp>
+#include <protocol/moonlight/data-structures.hpp>
 #include <openssl/x509.h>
 #include <optional>
-#include <moonlight/state/serialised_config.hpp>  // Fixed circular include
+#include <state/serialised_config.hpp>
 #include <utility>
 
 namespace state {
@@ -56,8 +56,6 @@ inline int get_port(STANDARD_PORTS_MAPPING port) {
 }
 
 using PairedClientList = immer::vector<immer::box<wolf::config::PairedClient>>;
-
-// Forward declaration moved to events.hpp to fix include order
 
 enum Encoder {
   NVIDIA,
@@ -131,7 +129,7 @@ struct PairCache {
   PAIR_PHASE last_phase = PAIR_PHASE::NONE;
 };
 
-using SessionsAtoms = std::shared_ptr<immer::atom<immer::vector<wolf::core::events::StreamSession>>>;
+using SessionsAtoms = std::shared_ptr<immer::atom<immer::vector<events::StreamSession>>>;
 
 /**
  * The whole application state as a composition of immutable datastructures

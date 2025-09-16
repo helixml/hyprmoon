@@ -1,23 +1,23 @@
 #pragma once
 
-#include <moonlight/control/control.hpp>
-#include <moonlight/protocol/crypto/crypto/crypto.hpp>
+#include <control/control.hpp>
+#include <protocol/crypto/crypto/crypto.hpp>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <moonlight/core/events.hpp>
+#include <core/events.hpp>
 #include <filesystem>
 #include <functional>
-#include <moonlight/core/utils.hpp>
+#include <core/utils.hpp>
 #include <immer/vector_transient.hpp>
-#include <moonlight/control.hpp>
-#include <moonlight/protocol.hpp>
+#include <protocol/moonlight/control.hpp>
+#include <protocol/moonlight/protocol.hpp>
 #include <platforms/hw.hpp>
 #include <range/v3/view.hpp>
-#include <moonlight/rest/helpers.hpp>
-#include <moonlight/rest/rest.hpp>
-#include <rtp/udp-ping.hpp>
-#include <moonlight/state/config.hpp>
-#include <moonlight/state/sessions.hpp>
+#include <rest/helpers.hpp>
+#include <rest/rest.hpp>
+#include <streaming/rtp/udp-ping.hpp>
+#include <state/config.hpp>
+#include <state/sessions.hpp>
 #include <utility>
 
 namespace endpoints {

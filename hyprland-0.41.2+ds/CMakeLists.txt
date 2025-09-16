@@ -51,7 +51,25 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/sleepybishop/nanors.git
     GIT_TAG 19f07b513e924e471cadd141943c1ec4adc8d0e0
 )
-FetchContent_MakeAvailable(nanors)
+FetchContent_GetProperties(nanors)
+if (NOT nanors_POPULATED)
+    FetchContent_Populate(nanors)
+
+    add_library(nanors)
+    add_library(nanors::nanors ALIAS nanors)
+    target_include_directories(nanors
+            PUBLIC
+            src/moonlight/protocol/nanors
+            ${nanors_SOURCE_DIR}
+            ${nanors_SOURCE_DIR}/deps/obl/)
+
+    target_sources(nanors
+            PRIVATE src/moonlight/protocol/nanors/rswrapper.c
+            PUBLIC src/moonlight/protocol/nanors/rswrapper.h)
+
+    set_source_files_properties(src/moonlight/protocol/nanors/rswrapper.c
+            PROPERTIES COMPILE_FLAGS "-ftree-vectorize -funroll-loops")
+endif ()
 
 # Fetch range-v3 for container algorithms (Wolf protocol)
 FetchContent_Declare(
@@ -67,7 +85,21 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/yhirose/cpp-peglib.git
     GIT_TAG v1.8.5
 )
-FetchContent_MakeAvailable(peglib)
+FetchContent_GetProperties(peglib)
+if (NOT peglib_POPULATED)
+    FetchContent_Populate(peglib)
+
+    add_library(peglib INTERFACE)
+    target_include_directories(peglib INTERFACE ${peglib_SOURCE_DIR})
+endif ()
+
+# Fetch Simple-Web-Server for HTTP/HTTPS server
+FetchContent_Declare(
+    simplewebserver
+    GIT_REPOSITORY https://gitlab.com/eidheim/Simple-Web-Server.git
+    GIT_TAG 4abe349
+)
+FetchContent_MakeAvailable(simplewebserver)
 
 # Fetch eventbus for Wolf event system
 FetchContent_Declare(
@@ -78,13 +110,23 @@ FetchContent_Declare(
 set(EVENTBUS_BUILD_TESTS OFF)
 FetchContent_MakeAvailable(eventbus)
 
-# Fetch reflect-cpp for Wolf reflection (provides rfl.hpp)
+# Fetch reflect-cpp for Wolf reflection (provides rfl.hpp) - using Wolf's exact version
 FetchContent_Declare(
     reflect-cpp
     GIT_REPOSITORY https://github.com/getml/reflect-cpp
-    GIT_TAG v0.10.0
+    GIT_TAG c118963
 )
+set(REFLECTCPP_USE_VCPKG OFF)
+set(REFLECTCPP_BSON OFF)
+set(REFLECTCPP_MSGPACK OFF)
+set(REFLECTCPP_TOML ON)
+set(REFLECTCPP_XML OFF)
+set(REFLECTCPP_YAML OFF)
 FetchContent_MakeAvailable(reflect-cpp)
+
+# Use system libenet like Hyprland-wlroots does
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(ENET REQUIRED libenet)
 
 set(HYPRLAND_VERSION ${VER})
 set(PREFIX ${CMAKE_INSTALL_PREFIX})
@@ -157,6 +199,8 @@ endif()
 include_directories(
   .
   "src/"
+  "src/moonlight/"
+  "src/moonlight/protocol/"
   "subprojects/wlroots-hyprland/include/"
   "subprojects/wlroots-hyprland/build/include/"
   # "subprojects/udis86/"
@@ -192,6 +236,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
 )
 
 find_package(hyprwayland-scanner 0.3.10 REQUIRED)
+find_package(Boost 1.77 REQUIRED)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
@@ -362,6 +407,13 @@ target_link_libraries(Hyprland
         inputtino::libinputtino
         dp::eventbus
         reflectcpp
+        immer
+        nanors::nanors
+        range-v3::range-v3
+        peglib
+        ${ENET_LIBRARIES}
+        Boost::boost
+        simple-web-server
 )
 
 protocol("protocols/wlr-screencopy-unstable-v1.xml" "wlr-screencopy-unstable-v1" true)

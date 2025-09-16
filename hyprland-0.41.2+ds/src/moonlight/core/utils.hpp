@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <boost/endian.hpp>
 #include <boost/json.hpp>
-#include <moonlight/core/logger.hpp>
+#include <core/logger.hpp>
 #include <optional>
 #include <range/v3/view.hpp>
 #include <sstream>

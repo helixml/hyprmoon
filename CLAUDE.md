@@ -106,6 +106,7 @@ docker ps | grep helix
 - **MANDATORY FOREGROUND ONLY**: NEVER use `run_in_background: true` - ALL builds must run in foreground with full output visible
 - **CRITICAL: 15-MINUTE TIMEOUT**: ALWAYS use 15-minute timeout (900000ms) for builds - the default 2-minute timeout is too short and causes hanging with tail -f commands
 - **ONE BUILD AT A TIME**: Never run multiple concurrent builds - wait for completion before starting another
+- **CRITICAL: DEPENDENCY SYNCHRONIZATION**: When adding new dependencies to `debian/control`, ALWAYS also add them to `Dockerfile.build` in the same session. Both files must be kept in sync to ensure build environment has all required packages.
 - **BUILD CACHE ENABLED**: debian/rules has been modified to disable `make clear` - this preserves build cache between runs for much faster iterations
 - **BUILD CACHE LOCATION**: Build cache is stored in `/workspace/hyprland-0.41.2+ds/build/` which is bind-mounted to host filesystem
 - ALWAYS capture build output to timestamped log files: `command 2>&1 | tee build-$(date +%s).log`

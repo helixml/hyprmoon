@@ -1,5 +1,5 @@
 #pragma once
-#include <moonlight/core/gstreamer.hpp>
+#include <core/gstreamer.hpp>
 #include <gst/gst.h>
 #include <immer/array.hpp>
 #include <immer/vector.hpp>

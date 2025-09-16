@@ -4,22 +4,22 @@
 #define BOOST_THREAD_PROVIDES_FUTURE
 #include <boost/thread.hpp>
 #include <boost/thread/future.hpp>
-#include <moonlight/core/audio.hpp>
-#include <moonlight/core/input.hpp>
-#include <moonlight/core/virtual-display.hpp>
+#include <core/audio.hpp>
+#include <core/input.hpp>
+#include <core/virtual-display.hpp>
 #include <cstddef>
 #include <eventbus/event_bus.hpp>
-#include <moonlight/core/tsqueue.hpp>
+#include <core/tsqueue.hpp>
 #include <immer/array.hpp>
 #include <immer/atom.hpp>
 #include <immer/box.hpp>
 #include <immer/map.hpp>
 #include <immer/vector.hpp>
-#include <moonlight/protocol/moonlight/control.hpp>
-#include <moonlight/state/data-structures.hpp>
+#include <protocol/moonlight/control.hpp>
+#include <protocol/moonlight/data-structures.hpp>
 #include <rfl.hpp>
 #include <rfl/json.hpp>
-#include <moonlight/state/serialised_config.hpp>
+#include <state/serialised_config.hpp>
 #include <string_view>
 
 namespace wolf::core::events {
@@ -159,24 +159,18 @@ struct StopStreamEvent {
 struct RTPVideoPingEvent {
   std::string client_ip;
   unsigned short client_port;
-  // TODO: rfl::Skip incompatible with reflect-cpp v0.10.0 - needs investigation
-  // rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> video_socket;
+  rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> video_socket;
   std::optional<std::array<char, 16>> payload;
 };
 
 struct RTPAudioPingEvent {
   std::string client_ip;
   unsigned short client_port;
-  // TODO: rfl::Skip incompatible with reflect-cpp v0.10.0 - needs investigation
-  // rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> audio_socket;
+  rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> audio_socket;
   std::optional<std::array<char, 16>> payload;
 };
 
 struct StreamSession;
-
-} // namespace wolf::core::events
-
-namespace wolf::core::events {
 
 struct StartRunner {
   bool stop_stream_when_over = false;
@@ -285,8 +279,3 @@ struct StreamSession {
 };
 
 } // namespace wolf::core::events
-
-// Define SessionsAtoms here after StreamSession is fully defined
-namespace state {
-using SessionsAtoms = std::shared_ptr<immer::atom<immer::vector<wolf::core::events::StreamSession>>>;
-}

@@ -24,7 +24,7 @@ namespace Debug {
 
 #include <gst/sdp/sdp.h>
 #include <gst/app/gstappsink.h>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 #include <random>
 #include <chrono>
 

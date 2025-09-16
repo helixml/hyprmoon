@@ -2,11 +2,11 @@
 
 #include <chrono>
 #include <enet/enet.h>
-#include <moonlight/core/events.hpp>
-#include <moonlight/core/logger.hpp>
-// #include <moonlight/control/control.hpp>  // TODO: Circular include - fix
+#include <core/events.hpp>
+#include <core/logger.hpp>
+#include <protocol/moonlight/control.hpp>
 #include <range/v3/view.hpp>
-#include <moonlight/state/data-structures.hpp>
+#include <state/data-structures.hpp>
 #include <thread>
 
 namespace control {

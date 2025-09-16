@@ -13,7 +13,7 @@
 #include "../protocols/PresentationTime.hpp"
 #include "../protocols/core/DataDevice.hpp"
 #include "../protocols/core/Compositor.hpp"
-#include "../moonlight/MoonlightManager.hpp"
+#include "moonlight/managers/MoonlightManager.hpp"
 
 extern "C" {
 #include <xf86drm.h>

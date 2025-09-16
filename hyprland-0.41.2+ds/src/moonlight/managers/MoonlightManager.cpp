@@ -1,8 +1,8 @@
 #include "MoonlightManager.hpp"
-#include "../../Compositor.hpp"
-#include "../../managers/eventLoop/EventLoopManager.hpp"
-#include "../../debug/Log.hpp"
-#include "../../helpers/memory/Memory.hpp"
+#include "Compositor.hpp"
+#include "managers/eventLoop/EventLoopManager.hpp"
+#include "debug/Log.hpp"
+#include "helpers/memory/Memory.hpp"
 
 // Wolf includes will be replaced with stubs for now
 // TODO: Replace with actual Wolf implementation once include paths are fixed

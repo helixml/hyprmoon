@@ -1,10 +1,10 @@
 #pragma once
 #include <array>
 #include <boost/endian/conversion.hpp>
-#include <moonlight/core/input.hpp>
-#include <moonlight/protocol/crypto/crypto/crypto.hpp>
+#include <core/input.hpp>
+#include <protocol/crypto/crypto/crypto.hpp>
 #include <cstdint>
-#include <moonlight/core/utils.hpp>
+#include <core/utils.hpp>
 #include <memory>
 
 namespace moonlight::control {

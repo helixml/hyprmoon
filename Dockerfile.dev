@@ -1,0 +1,167 @@
+# HyprMoon Development Environment for Crash Debugging
+FROM ubuntu:25.04
+
+# Install comprehensive build dependencies and debugging tools
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y \
+    # Build essentials and debugging tools
+    build-essential cmake ninja-build meson pkgconf gdb valgrind \
+    git wget curl ca-certificates strace \
+    # HyprMoon build dependencies (comprehensive list from working deb build)
+    libcairo-dev libdrm-dev libxkbcommon-dev \
+    libegl-dev libegl1-mesa-dev libgles-dev \
+    libhyprlang-dev libhyprcursor-dev libhyprutils-dev \
+    libinput-dev libpango1.0-dev libpixman-1-dev \
+    libseat-dev libtomlplusplus-dev libudev-dev \
+    libudis86-dev libwayland-dev libwlroots-0.18-dev \
+    libxcb-errors-dev libxcb-util-dev \
+    wayland-protocols xwayland hyprwayland-scanner \
+    # Additional moonlight dependencies
+    libcurl4-openssl-dev libssl-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly gstreamer1.0-libav \
+    libenet-dev libfmt-dev \
+    libboost-system-dev libboost-filesystem-dev \
+    libboost-locale-dev libboost-thread-dev \
+    libnice-dev libjsoncpp-dev libpulse-dev \
+    # Additional dependencies from successful deb build
+    libgdk-pixbuf2.0-dev libzip-dev librsvg2-dev libmagic-dev \
+    libpci-dev \
+    # GPU and display dependencies for runtime
+    mesa-utils mesa-utils-extra \
+    libgl1-mesa-dri libglx-mesa0 \
+    libegl-mesa0 libgles2-mesa-dev \
+    libgbm1 libdrm2 \
+    # Wayland display protocol libraries
+    libwayland-dev libwayland-server0 libinput-dev libxkbcommon-dev \
+    # Additional tools for debugging
+    vim nano less htop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up workspace
+WORKDIR /workspace
+
+# Environment for build cache
+ENV GOCACHE=/workspace/build-cache
+ENV GOMODCACHE=/workspace/build-cache
+ENV MESON_BUILD_ROOT=/workspace/build-cache
+
+# Environment for GPU acceleration and debugging
+ENV WLR_RENDERER=gles2
+ENV WLR_BACKENDS=headless
+ENV WLR_NO_HARDWARE_CURSORS=1
+ENV WLR_HEADLESS_OUTPUTS=1
+ENV LIBGL_ALWAYS_SOFTWARE=1
+ENV GBM_BACKEND=gbm
+ENV __GLX_VENDOR_LIBRARY_NAME=mesa
+ENV WLR_DRM_NO_ATOMIC=1
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+ENV EGL_PLATFORM=surfaceless
+ENV WLR_RENDERER_ALLOW_SOFTWARE=1
+
+# Create script to configure and build HyprMoon
+RUN cat > /build-hyprmoon.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Setting up HyprMoon build environment..."
+
+# Ensure we have source code mounted
+if [ ! -f "/workspace/hyprmoon-src/meson.build" ]; then
+    echo "ERROR: Source code not found! Ensure ~/pm/Hyprland-wlroots is bind-mounted to /workspace/hyprmoon-src"
+    exit 1
+fi
+
+cd /workspace/hyprmoon-src
+
+# Clean any existing build
+rm -rf /workspace/build-cache/hyprmoon-build || true
+
+# Create build directory with cache
+mkdir -p /workspace/build-cache/hyprmoon-build
+
+echo "Configuring meson build with debug symbols..."
+meson setup /workspace/build-cache/hyprmoon-build \
+    --buildtype=debug \
+    --prefix=/usr \
+    --libdir=lib \
+    -Dwith_moonlight=true \
+    -Dlegacy_renderer=disabled \
+    -Dxwayland=disabled \
+    -Db_sanitize=address
+
+echo "Building HyprMoon with debug symbols..."
+cd /workspace/build-cache/hyprmoon-build
+ninja -j$(nproc)
+
+echo "Installing HyprMoon..."
+ninja install
+
+echo "HyprMoon build complete! Binary available as /usr/bin/Hyprland"
+echo "To debug crashes, run: gdb /usr/bin/Hyprland"
+EOF
+
+RUN chmod +x /build-hyprmoon.sh
+
+# Create script to run HyprMoon with debugging
+RUN cat > /run-hyprmoon-debug.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Starting HyprMoon with comprehensive debugging..."
+
+# Set up runtime directories
+export XDG_RUNTIME_DIR=/tmp/runtime-debug
+mkdir -p $XDG_RUNTIME_DIR
+chmod 700 $XDG_RUNTIME_DIR
+
+# Set up minimal Hyprland config for testing
+mkdir -p /root/.config/hypr
+cat > /root/.config/hypr/hyprland.conf << 'HYPR_EOF'
+# Minimal HyprMoon config for debugging
+debug {
+    logs = true
+    damage_tracking = false
+}
+
+general {
+    gaps_in = 0
+    gaps_out = 0
+    border_size = 1
+}
+
+decoration {
+    rounding = 0
+    drop_shadow = false
+}
+
+animations {
+    enabled = false
+}
+
+input {
+    kb_layout = us
+}
+HYPR_EOF
+
+echo "Environment variables:"
+echo "WLR_RENDERER: $WLR_RENDERER"
+echo "WLR_BACKENDS: $WLR_BACKENDS"
+echo "LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE"
+echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
+
+echo "Starting HyprMoon with full debug output..."
+echo "Command: /usr/bin/Hyprland"
+
+# Start with strace to capture system calls if it crashes
+strace -o /tmp/hyprmoon-strace.log /usr/bin/Hyprland 2>&1 | tee /tmp/hyprmoon-debug.log
+EOF
+
+RUN chmod +x /run-hyprmoon-debug.sh
+
+# Default command starts a shell for debugging
+CMD ["/bin/bash"]

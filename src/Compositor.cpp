@@ -217,23 +217,13 @@ void CCompositor::initServer() {
     wlr_multi_for_each_backend(
         m_sWLRBackend,
         [](wlr_backend* backend, void* isHeadlessOnly) {
-            if (!wlr_backend_is_headless(backend)) {
-                // Skip libinput check for headless builds
-                // && !wlr_backend_is_libinput(backend)
+            if (!wlr_backend_is_headless(backend) && !wlr_backend_is_libinput(backend))
                 *(bool*)isHeadlessOnly = false;
-            }
         },
         &isHeadlessOnly);
 
-    // Check for containerized/headless environment and force software rendering
-    const char* wlr_backends = getenv("WLR_BACKENDS");
-    const char* libgl_software = getenv("LIBGL_ALWAYS_SOFTWARE");
-    bool force_software = (wlr_backends && strcmp(wlr_backends, "headless") == 0) ||
-                         (libgl_software && strcmp(libgl_software, "1") == 0);
-
-    if (isHeadlessOnly || force_software) {
-        Debug::log(LOG, "Using software renderer (headless or forced software mode)");
-        m_sWLRRenderer = wlr_renderer_autocreate(m_sWLRBackend);
+    if (isHeadlessOnly) {
+        m_sWLRRenderer = wlr_renderer_autocreate(m_sWLRBackend); // TODO: remove this, it's barely needed now.
     } else {
         m_iDRMFD = wlr_backend_get_drm_fd(m_sWLRBackend);
         if (m_iDRMFD < 0) {
@@ -242,17 +232,11 @@ void CCompositor::initServer() {
         }
 
         m_sWLRRenderer = wlr_gles2_renderer_create_with_drm_fd(m_iDRMFD);
-
-        // Fallback to autocreate if hardware renderer fails (containerized environments)
-        if (!m_sWLRRenderer) {
-            Debug::log(WARN, "Hardware renderer failed, trying software fallback...");
-            m_sWLRRenderer = wlr_renderer_autocreate(m_sWLRBackend);
-        }
     }
 
     if (!m_sWLRRenderer) {
         Debug::log(CRIT, "m_sWLRRenderer was NULL! This usually means wlroots could not find a GPU or enountered some issues.");
-        throwError("All renderer creation methods failed!");
+        throwError("wlr_gles2_renderer_create_with_drm_fd() failed!");
     }
 
     m_sWLRAllocator = wlr_allocator_autocreate(m_sWLRBackend, m_sWLRRenderer);
@@ -271,12 +255,11 @@ void CCompositor::initServer() {
 
     initManagers(STAGE_BASICINIT);
 
-    // DRM lease manager disabled for headless builds (VR support)
-    m_sWRLDRMLeaseMgr = nullptr;
-    // m_sWRLDRMLeaseMgr = wlr_drm_lease_v1_manager_create(m_sWLDisplay, m_sWLRBackend);
-    // if (!m_sWRLDRMLeaseMgr) {
-        Debug::log(INFO, "DRM lease manager disabled for headless build - VR will not be available");
-    // }
+    m_sWRLDRMLeaseMgr = wlr_drm_lease_v1_manager_create(m_sWLDisplay, m_sWLRBackend);
+    if (!m_sWRLDRMLeaseMgr) {
+        Debug::log(INFO, "Failed to create wlr_drm_lease_v1_manager");
+        Debug::log(INFO, "VR will not be available");
+    }
 
     m_sWLRHeadlessBackend = wlr_headless_backend_create(m_sWLEventLoop);
 
@@ -2121,7 +2104,7 @@ void CCompositor::moveWorkspaceToMonitor(PHLWORKSPACE pWorkspace, CMonitor* pMon
                         w->m_vRealSize     = pMonitor->vecSize;
                     }
                 } else {
-                    w->m_vRealPosition = Vector2D{(double)((int)w->m_vRealPosition.goal().x % (int)pMonitor->vecSize.x), (double)((int)w->m_vRealPosition.goal().y % (int)pMonitor->vecSize.y)};
+                    w->m_vRealPosition = Vector2D{(int)w->m_vRealPosition.goal().x % (int)pMonitor->vecSize.x, (int)w->m_vRealPosition.goal().y % (int)pMonitor->vecSize.y};
                 }
             }
 

@@ -110,33 +110,55 @@ std::shared_ptr<boost::promise<XMLResult>> pair_phase1(const immer::box<state::A
                                                        const std::string &salt,
                                                        const std::string &cache_key) {
   auto future_result = std::make_shared<boost::promise<XMLResult>>();
-  if (state->pairing_cache->load()->find(cache_key)) {
-    future_result->set_value(
-        {SimpleWeb::StatusCode::client_error_bad_request, fail_pair("Out of order pair request (phase 1)")});
+
+  logs::log(logs::debug, "[PAIR DEBUG] Phase 1 attempt - cache_key: {}, client_ip: {}", cache_key, client_ip);
+
+  auto existing_cache = state->pairing_cache->load()->find(cache_key);
+  if (existing_cache) {
+    logs::log(logs::warning, "[PAIR DEBUG] Found existing cache entry for {}, last_phase: {}, removing stale entry",
+              cache_key, static_cast<int>(existing_cache->last_phase));
+
+    // Remove stale cache entry and allow new pairing attempt
     remove_pair_session(state, cache_key);
-    return future_result;
+    logs::log(logs::info, "[PAIR DEBUG] Cleared stale cache entry for {}, allowing new pairing attempt", cache_key);
   }
+
+  logs::log(logs::info, "[PAIR DEBUG] Starting PIN generation for client {}", client_ip);
 
   auto future_pin = std::make_shared<boost::promise<std::string>>();
   state->event_bus->fire_event( // Emit a signal and wait for the promise to be fulfilled
       immer::box<events::PairSignal>(
           events::PairSignal{.client_ip = client_ip, .host_ip = host_ip, .user_pin = future_pin}));
 
+  logs::log(logs::info, "[PAIR DEBUG] PIN event fired, waiting for user input...");
+
   future_pin->get_future().then(
       [state, salt, client_cert_str, cache_key, future_result](boost::future<std::string> fut_pin) {
-        auto server_pem = x509::get_cert_pem(state->host->server_cert);
-        auto result = moonlight::pair::get_server_cert(fut_pin.get(), salt, server_pem);
+        try {
+          auto pin_received = fut_pin.get();
+          logs::log(logs::info, "[PAIR DEBUG] PIN received from user: {} for cache_key: {}", pin_received, cache_key);
 
-        auto client_cert_parsed = crypto::hex_to_str(client_cert_str, true);
+          auto server_pem = x509::get_cert_pem(state->host->server_cert);
+          auto result = moonlight::pair::get_server_cert(pin_received, salt, server_pem);
 
-        state->pairing_cache->update([&](const immer::map<std::string, state::PairCache> &pairing_cache) {
-          return pairing_cache.set(cache_key,
-                                   {.client_cert = client_cert_parsed,
-                                    .aes_key = result.second,
-                                    .last_phase = state::PAIR_PHASE::GETSERVERCERT});
-        });
+          logs::log(logs::info, "[PAIR DEBUG] Server cert generated successfully for {}", cache_key);
 
-        future_result->set_value({SimpleWeb::StatusCode::success_ok, result.first});
+          auto client_cert_parsed = crypto::hex_to_str(client_cert_str, true);
+
+          state->pairing_cache->update([&](const immer::map<std::string, state::PairCache> &pairing_cache) {
+            return pairing_cache.set(cache_key,
+                                     {.client_cert = client_cert_parsed,
+                                      .aes_key = result.second,
+                                      .last_phase = state::PAIR_PHASE::GETSERVERCERT});
+          });
+
+          future_result->set_value({SimpleWeb::StatusCode::success_ok, result.first});
+
+          logs::log(logs::info, "[PAIR DEBUG] Phase 1 completed successfully for {}", cache_key);
+        } catch (const std::exception& e) {
+          logs::log(logs::error, "[PAIR DEBUG] PIN processing failed for {}: {}", cache_key, e.what());
+          future_result->set_value({SimpleWeb::StatusCode::client_error_bad_request, fail_pair("PIN processing failed")});
+        }
       });
 
   return future_result;
@@ -220,6 +242,12 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
   auto client_cert_str = get_header(headers, "clientcert");
   auto client_id = get_header(headers, "uniqueid");
   auto client_ip = request->remote_endpoint().address().to_string();
+
+  logs::log(logs::info, "[PAIR DEBUG] Pairing request from {} - uniqueid: {}, has_salt: {}, has_clientcert: {}",
+            client_ip,
+            client_id.value_or("NONE"),
+            salt.has_value() ? "YES" : "NO",
+            client_cert_str.has_value() ? "YES" : "NO");
 
   if (!client_id) {
     send_xml<SimpleWeb::HTTP>(response,

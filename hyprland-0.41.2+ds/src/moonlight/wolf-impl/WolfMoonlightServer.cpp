@@ -5,6 +5,15 @@
 #include <random>
 #include <cstring>
 
+// Real Wolf server includes
+#include "../rest/servers.cpp"
+#include "../rest/endpoints.hpp"
+#include "../rest/helpers.hpp"
+
+// SimpleWeb server types
+using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
+using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
+
 namespace wolf {
 namespace core {
 
@@ -593,16 +602,59 @@ std::string RestServer::handleServerInfo() {
 }
 
 std::string RestServer::handlePair(const std::map<std::string, std::string>& params) {
-    // Simplified pairing response
-    std::string body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"200\"><paired>1</paired></root>";
-    
+    Debug::log(LOG, "[PAIR DEBUG] WolfRestServer: Received pairing request with {} parameters", params.size());
+
+    // Log all parameters for debugging
+    for (const auto& param : params) {
+        Debug::log(LOG, "[PAIR DEBUG] Parameter: {} = {}", param.first,
+                  param.second.length() > 50 ? param.second.substr(0, 50) + "..." : param.second);
+    }
+
+    // Extract common parameters
+    auto uniqueid = params.find("uniqueid");
+    auto salt = params.find("salt");
+    auto clientcert = params.find("clientcert");
+    auto clientchallenge = params.find("clientchallenge");
+    auto serverchallengeresp = params.find("serverchallengeresp");
+    auto clientpairingsecret = params.find("clientpairingsecret");
+
+    Debug::log(LOG, "[PAIR DEBUG] Pairing phase detection - uniqueid: {}, salt: {}, clientcert: {}, clientchallenge: {}, serverchallengeresp: {}, clientpairingsecret: {}",
+              uniqueid != params.end() ? "YES" : "NO",
+              salt != params.end() ? "YES" : "NO",
+              clientcert != params.end() ? "YES" : "NO",
+              clientchallenge != params.end() ? "YES" : "NO",
+              serverchallengeresp != params.end() ? "YES" : "NO",
+              clientpairingsecret != params.end() ? "YES" : "NO");
+
+    // For now, return a more detailed failure response that explains the issue
+    std::string body;
+    if (uniqueid == params.end()) {
+        Debug::log(WARN, "[PAIR DEBUG] Missing uniqueid parameter - rejecting pairing request");
+        body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"400\"><paired>0</paired><message>Missing uniqueid parameter</message></root>";
+    } else if (salt != params.end() && clientcert != params.end()) {
+        Debug::log(INFO, "[PAIR DEBUG] Phase 1 detected - need to implement Wolf pairing integration");
+        body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"400\"><paired>0</paired><message>Wolf pairing integration needed - Phase 1</message></root>";
+    } else if (clientchallenge != params.end()) {
+        Debug::log(INFO, "[PAIR DEBUG] Phase 2 detected - need to implement Wolf pairing integration");
+        body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"400\"><paired>0</paired><message>Wolf pairing integration needed - Phase 2</message></root>";
+    } else if (serverchallengeresp != params.end()) {
+        Debug::log(INFO, "[PAIR DEBUG] Phase 3 detected - need to implement Wolf pairing integration");
+        body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"400\"><paired>0</paired><message>Wolf pairing integration needed - Phase 3</message></root>";
+    } else if (clientpairingsecret != params.end()) {
+        Debug::log(INFO, "[PAIR DEBUG] Phase 4 detected - need to implement Wolf pairing integration");
+        body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"400\"><paired>0</paired><message>Wolf pairing integration needed - Phase 4</message></root>";
+    } else {
+        Debug::log(WARN, "[PAIR DEBUG] Unknown pairing phase - parameters don't match expected patterns");
+        body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><root status_code=\"400\"><paired>0</paired><message>Unknown pairing phase</message></root>";
+    }
+
     std::stringstream response;
     response << "HTTP/1.1 200 OK\r\n";
     response << "Content-Type: application/xml\r\n";
     response << "Content-Length: " << body.length() << "\r\n";
     response << "\r\n";
     response << body;
-    
+
     return response.str();
 }
 
@@ -724,11 +776,20 @@ bool WolfMoonlightServer::initialize(const MoonlightConfig& config) {
         return false;
     }
     
-    rest_server_ = std::make_unique<RestServer>(state_);
-    if (!rest_server_->initialize()) {
-        Debug::log(ERR, "WolfMoonlightServer: Failed to initialize REST server");
-        return false;
-    }
+    // Replace stub REST server with real Wolf HTTP/HTTPS servers
+    Debug::log(LOG, "WolfMoonlightServer: Initializing real Wolf HTTP/HTTPS servers");
+
+    // Initialize Wolf AppState for real endpoints
+    wolf_app_state_ = std::make_shared<state::AppState>();
+    initializeWolfAppState();
+
+    // Start HTTP server (port 47989) using real Wolf implementation
+    http_server_ = std::make_unique<HttpServer>();
+    initializeHttpServer();
+
+    // Start HTTPS server (port 47984) using real Wolf implementation
+    https_server_ = std::make_unique<HttpsServer>();
+    initializeHttpsServer();
     
     initialized_ = true;
     Debug::log(LOG, "WolfMoonlightServer: Moonlight server ready on ports HTTP:{}, Control:{}, Video:{}", 
@@ -739,10 +800,29 @@ bool WolfMoonlightServer::initialize(const MoonlightConfig& config) {
 
 void WolfMoonlightServer::shutdown() {
     if (!initialized_) return;
-    
+
     Debug::log(LOG, "WolfMoonlightServer: Shutting down moonlight server");
-    
-    rest_server_.reset();
+
+    // Shutdown new HTTP/HTTPS servers
+    if (http_server_) {
+        auto server = static_cast<HttpServer*>(http_server_.get());
+        server->stop();
+        if (http_thread_.joinable()) {
+            http_thread_.join();
+        }
+        http_server_.reset();
+    }
+
+    if (https_server_) {
+        auto server = static_cast<HttpsServer*>(https_server_.get());
+        server->stop();
+        if (https_thread_.joinable()) {
+            https_thread_.join();
+        }
+        https_server_.reset();
+    }
+
+    wolf_app_state_.reset();
     control_server_.reset();
     streaming_engine_.reset();
     state_.reset();
@@ -802,6 +882,70 @@ bool WolfMoonlightServer::initializeGStreamer() {
 bool WolfMoonlightServer::initializeENet() {
     // ENet initialization is handled by ControlServer
     return true;
+}
+
+void WolfMoonlightServer::initializeWolfAppState() {
+    Debug::log(LOG, "WolfMoonlightServer: Initializing Wolf AppState for real endpoints");
+
+    // Create minimal Wolf AppState for endpoints to work
+    // Note: This is a simplified version - real Wolf has more complex state management
+    auto app_state = std::make_shared<state::AppState>();
+
+    // Initialize basic configuration
+    app_state->config = std::make_shared<state::Config>();
+    app_state->config->hostname = state_->getConfig().hostname;
+    app_state->config->uuid = state_->getConfig().uuid;
+    app_state->config->support_hevc = true;
+    app_state->config->support_av1 = false;
+
+    // Initialize pairing cache
+    app_state->pairing_cache = std::make_shared<immer::atom<immer::map<std::string, state::PairCache>>>();
+
+    // Initialize event bus for pairing signals
+    app_state->event_bus = std::make_shared<events::EventBus>();
+
+    // Initialize pairing atom for PIN handling
+    app_state->pairing_atom = std::make_shared<immer::atom<immer::map<std::string, immer::box<events::PairSignal>>>>();
+
+    // Initialize running sessions
+    app_state->running_sessions = std::make_shared<immer::atom<immer::vector<events::StreamSession>>>();
+
+    wolf_app_state_ = app_state;
+    Debug::log(LOG, "WolfMoonlightServer: Wolf AppState initialized successfully");
+}
+
+void WolfMoonlightServer::initializeHttpServer() {
+    Debug::log(LOG, "WolfMoonlightServer: Starting real Wolf HTTP server on port {}", state_->getConfig().http_port);
+
+    auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+    auto server = std::make_unique<HttpServer>();
+
+    // Use the real Wolf HTTP server implementation from servers.cpp
+    http_thread_ = std::thread([server = server.get(), app_state, port = state_->getConfig().http_port]() {
+        HTTPServers::startServer(server, app_state, port);
+    });
+
+    http_server_ = std::move(server);
+    Debug::log(LOG, "WolfMoonlightServer: HTTP server thread started");
+}
+
+void WolfMoonlightServer::initializeHttpsServer() {
+    Debug::log(LOG, "WolfMoonlightServer: Starting real Wolf HTTPS server on port {}", state_->getConfig().https_port);
+
+    auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+    auto server = std::make_unique<HttpsServer>();
+
+    // Configure HTTPS with self-signed certificates
+    server->config.cert_chain_file = "/tmp/hyprmoon-certs/server.crt";
+    server->config.private_key_file = "/tmp/hyprmoon-certs/server.key";
+
+    // Use the real Wolf HTTPS server implementation from servers.cpp
+    https_thread_ = std::thread([server = server.get(), app_state, port = state_->getConfig().https_port]() {
+        HTTPServers::startServer(server, app_state, port);
+    });
+
+    https_server_ = std::move(server);
+    Debug::log(LOG, "WolfMoonlightServer: HTTPS server thread started");
 }
 
 } // namespace core

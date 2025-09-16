@@ -251,11 +251,20 @@ private:
     std::shared_ptr<MoonlightState> state_;
     std::unique_ptr<StreamingEngine> streaming_engine_;
     std::unique_ptr<ControlServer> control_server_;
-    std::unique_ptr<RestServer> rest_server_;
+
+    // Real Wolf HTTP/HTTPS servers (replacing stub RestServer)
+    std::shared_ptr<void> wolf_app_state_;  // Using void* to avoid circular includes
+    std::unique_ptr<void> http_server_;     // SimpleWeb::Server<SimpleWeb::HTTP>
+    std::unique_ptr<void> https_server_;    // SimpleWeb::Server<SimpleWeb::HTTPS>
+    std::thread http_thread_;
+    std::thread https_thread_;
     
     // Initialization
     bool initializeGStreamer();
     bool initializeENet();
+    void initializeWolfAppState();
+    void initializeHttpServer();
+    void initializeHttpsServer();
 };
 
 } // namespace core

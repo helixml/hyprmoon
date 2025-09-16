@@ -1,3 +1,32 @@
+hyprmoon (0.41.2+ds-1.3+step8.4) unstable; urgency=medium
+
+  * MAJOR: Replace stub REST server with real Wolf server implementation
+  * Integrate proper HTTP/HTTPS server split with SimpleWeb servers
+  * Add all missing HTTPS endpoints (/applist, /launch, /resume, /cancel, /appasset)
+  * Enable real Wolf pairing protocol with 4-phase authentication
+  * Connect Wolf endpoints.hpp with enhanced debug logging
+  * Initialize Wolf AppState for proper state management
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 16 Sep 2025 13:50:00 +0000
+
+hyprmoon (0.41.2+ds-1.3+step8.3) unstable; urgency=medium
+
+  * Replace stub REST server with enhanced debug logging
+  * Added detailed pairing phase detection and parameter logging
+  * Fixed REST server to properly identify and log pairing phases
+  * Improved pairing debugging to identify Wolf integration gaps
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 16 Sep 2025 12:20:00 +0000
+
+hyprmoon (0.41.2+ds-1.3+step8.2) unstable; urgency=medium
+
+  * Added debug logging for moonlight pairing issues
+  * Fixed stale cache entry handling in pairing process
+  * Added libnice dependency for WebRTC support
+  * Improved pairing error handling and debugging
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 16 Sep 2025 11:30:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step8.1) unstable; urgency=medium
 
   * Step 8.1: Complete Wolf Moonlight integration with full dependency alignment

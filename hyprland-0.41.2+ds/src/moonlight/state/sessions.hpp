@@ -1,8 +1,8 @@
 #pragma once
 
 #include <moonlight/core/events.hpp>
-#include <helpers/logger.hpp>
-#include <helpers/utils.hpp>
+#include <moonlight/core/logger.hpp>
+#include <moonlight/core/utils.hpp>
 #include <immer/vector.hpp>
 #include <optional>
 #include <range/v3/view.hpp>

@@ -2,9 +2,9 @@
 #include <boost/locale.hpp>
 #include <moonlight/control/input_handler.hpp>
 #include <moonlight/core/events.hpp>
-#include <helpers/logger.hpp>
+#include <moonlight/core/logger.hpp>
 #include <immer/box.hpp>
-#include <platforms/input.hpp>
+#include <moonlight/platforms/input.hpp>
 #include <string>
 
 namespace control {

@@ -30,33 +30,50 @@ mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=ye
 echo "Building deb package..."
 
 # Monitor build output for fatal errors and exit immediately
-# Use a named pipe to properly handle the fatal error detection
-PIPE_FILE="/tmp/build_pipe_$$"
-mkfifo "$PIPE_FILE"
+# Create a temporary file to signal fatal error
+FATAL_ERROR_FLAG="/tmp/fatal_error_$$"
+rm -f "$FATAL_ERROR_FLAG"
 
-# Start the build in background and redirect to pipe
-dpkg-buildpackage -us -uc -b 2>&1 > "$PIPE_FILE" &
-BUILD_PID=$!
+# Start build and monitor for fatal errors
+{
+    dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
+        echo "$line"
+        if [[ "$line" == *"fatal error:"* ]]; then
+            echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
+            echo "Error line: $line"
+            touch "$FATAL_ERROR_FLAG"
+            # Kill all build processes
+            pkill -f "dpkg-buildpackage" 2>/dev/null || true
+            pkill -f "cmake" 2>/dev/null || true
+            pkill -f "ninja" 2>/dev/null || true
+            exit 1
+        fi
+    done
+    echo $? > /tmp/build_exit_code_$$
+} &
 
-# Monitor the pipe for fatal errors
-while IFS= read -r line; do
-    echo "$line"
-    if [[ "$line" == *"fatal error:"* ]]; then
-        echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
-        echo "Error line: $line"
-        # Kill the build process
-        kill -TERM $BUILD_PID 2>/dev/null || true
-        sleep 2
-        kill -KILL $BUILD_PID 2>/dev/null || true
-        rm -f "$PIPE_FILE"
+BUILD_MONITOR_PID=$!
+
+# Wait for either completion or fatal error
+while kill -0 $BUILD_MONITOR_PID 2>/dev/null; do
+    if [[ -f "$FATAL_ERROR_FLAG" ]]; then
+        echo "=== FATAL ERROR DETECTED - EXITING ==="
+        kill $BUILD_MONITOR_PID 2>/dev/null || true
+        rm -f "$FATAL_ERROR_FLAG" /tmp/build_exit_code_$$
         exit 1
     fi
-done < "$PIPE_FILE"
+    sleep 1
+done
 
-# Wait for build to complete and get exit code
-wait $BUILD_PID
-BUILD_EXIT_CODE=$?
-rm -f "$PIPE_FILE"
+# Check final exit code
+if [[ -f /tmp/build_exit_code_$$ ]]; then
+    BUILD_EXIT_CODE=$(cat /tmp/build_exit_code_$$)
+    rm -f /tmp/build_exit_code_$$
+else
+    BUILD_EXIT_CODE=1
+fi
+
+rm -f "$FATAL_ERROR_FLAG"
 
 # Check if the build failed
 if [ $BUILD_EXIT_CODE -ne 0 ]; then

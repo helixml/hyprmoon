@@ -14,6 +14,9 @@ namespace control {
 using namespace std::chrono_literals;
 using namespace wolf::core;
 
+// Import state namespace types from events.hpp
+using state::SessionsAtoms;
+
 void run_control(int port,
                  const state::SessionsAtoms &running_sessions,
                  const std::shared_ptr<events::EventBusType> &event_bus,

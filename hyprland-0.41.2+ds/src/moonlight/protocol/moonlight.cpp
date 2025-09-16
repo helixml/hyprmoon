@@ -1,5 +1,5 @@
-#include <crypto/crypto.hpp>
-#include <moonlight/protocol.hpp>
+#include <moonlight/protocol/crypto/crypto/crypto.hpp>
+#include <moonlight/protocol/moonlight/protocol.hpp>
 
 namespace pt = boost::property_tree;
 

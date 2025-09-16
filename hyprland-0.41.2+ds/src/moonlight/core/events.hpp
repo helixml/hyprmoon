@@ -159,18 +159,24 @@ struct StopStreamEvent {
 struct RTPVideoPingEvent {
   std::string client_ip;
   unsigned short client_port;
-  rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> video_socket;
+  // TODO: rfl::Skip incompatible with reflect-cpp v0.10.0 - needs investigation
+  // rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> video_socket;
   std::optional<std::array<char, 16>> payload;
 };
 
 struct RTPAudioPingEvent {
   std::string client_ip;
   unsigned short client_port;
-  rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> audio_socket;
+  // TODO: rfl::Skip incompatible with reflect-cpp v0.10.0 - needs investigation
+  // rfl::Skip<std::shared_ptr<boost::asio::ip::udp::socket>> audio_socket;
   std::optional<std::array<char, 16>> payload;
 };
 
 struct StreamSession;
+
+} // namespace wolf::core::events
+
+namespace wolf::core::events {
 
 struct StartRunner {
   bool stop_stream_when_over = false;
@@ -279,3 +285,8 @@ struct StreamSession {
 };
 
 } // namespace wolf::core::events
+
+// Define SessionsAtoms here after StreamSession is fully defined
+namespace state {
+using SessionsAtoms = std::shared_ptr<immer::atom<immer::vector<wolf::core::events::StreamSession>>>;
+}

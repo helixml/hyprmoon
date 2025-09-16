@@ -1,5 +1,5 @@
 #include "uinput.hpp"
-#include <helpers/logger.hpp>
+#include <moonlight/core/logger.hpp>
 #include <inputtino/protected_types.hpp>
 
 namespace wolf::core::input {

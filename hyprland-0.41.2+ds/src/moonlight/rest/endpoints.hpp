@@ -1,13 +1,13 @@
 #pragma once
 
 #include <moonlight/control/control.hpp>
-#include <crypto/crypto.hpp>
+#include <moonlight/protocol/crypto/crypto/crypto.hpp>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <moonlight/core/events.hpp>
 #include <filesystem>
 #include <functional>
-#include <helpers/utils.hpp>
+#include <moonlight/core/utils.hpp>
 #include <immer/vector_transient.hpp>
 #include <moonlight/control.hpp>
 #include <moonlight/protocol.hpp>

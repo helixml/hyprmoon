@@ -2,7 +2,6 @@
 
 #include <moonlight/control/control.hpp>
 #include <moonlight/core/events.hpp>
-#include <moonlight/control.hpp>
 
 namespace control {
 

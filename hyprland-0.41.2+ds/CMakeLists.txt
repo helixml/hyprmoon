@@ -78,6 +78,14 @@ FetchContent_Declare(
 set(EVENTBUS_BUILD_TESTS OFF)
 FetchContent_MakeAvailable(eventbus)
 
+# Fetch reflect-cpp for Wolf reflection (provides rfl.hpp)
+FetchContent_Declare(
+    reflect-cpp
+    GIT_REPOSITORY https://github.com/getml/reflect-cpp
+    GIT_TAG v0.10.0
+)
+FetchContent_MakeAvailable(reflect-cpp)
+
 set(HYPRLAND_VERSION ${VER})
 set(PREFIX ${CMAKE_INSTALL_PREFIX})
 set(INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
@@ -353,6 +361,7 @@ target_link_libraries(Hyprland
         uuid
         inputtino::libinputtino
         dp::eventbus
+        reflectcpp
 )
 
 protocol("protocols/wlr-screencopy-unstable-v1.xml" "wlr-screencopy-unstable-v1" true)

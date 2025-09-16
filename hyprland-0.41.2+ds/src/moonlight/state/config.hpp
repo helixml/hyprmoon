@@ -3,12 +3,12 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
-#include <crypto/crypto.hpp>
+#include <moonlight/protocol/crypto/crypto/crypto.hpp>
 #include <moonlight/core/events.hpp>
-#include <helpers/logger.hpp>
-#include <runners/child_session.hpp>
-#include <runners/docker.hpp>
-#include <runners/process.hpp>
+#include <moonlight/core/logger.hpp>
+#include <moonlight/runners/child_session.hpp>
+#include <moonlight/runners/docker.hpp>
+#include <moonlight/runners/process.hpp>
 #include <moonlight/state/data-structures.hpp>
 
 namespace state {

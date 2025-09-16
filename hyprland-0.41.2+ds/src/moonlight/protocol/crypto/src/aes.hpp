@@ -1,6 +1,6 @@
 #pragma once
 
-#include <crypto/utils.hpp>
+#include <moonlight/protocol/crypto/crypto/utils.hpp>
 #include <cstdint>
 #include <openssl/aes.h>
 #include <openssl/evp.h>

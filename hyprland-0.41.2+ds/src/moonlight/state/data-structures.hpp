@@ -18,7 +18,7 @@
 #include <moonlight/protocol/moonlight/data-structures.hpp>
 #include <openssl/x509.h>
 #include <optional>
-// #include <moonlight/state/serialised_config.hpp>  // TODO: Circular include in state dir
+#include <moonlight/state/serialised_config.hpp>  // Fixed circular include
 #include <utility>
 
 namespace state {
@@ -56,6 +56,8 @@ inline int get_port(STANDARD_PORTS_MAPPING port) {
 }
 
 using PairedClientList = immer::vector<immer::box<wolf::config::PairedClient>>;
+
+// Forward declaration moved to events.hpp to fix include order
 
 enum Encoder {
   NVIDIA,

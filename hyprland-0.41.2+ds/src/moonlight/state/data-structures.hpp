@@ -14,7 +14,7 @@
 #include <immer/box.hpp>
 #include <immer/map.hpp>
 #include <immer/vector.hpp>
-#include <moonlight/control/control.hpp>
+// #include <moonlight/control/control.hpp>  // TODO: Circular include - causes namespace issues
 #include <moonlight/protocol/moonlight/data-structures.hpp>
 #include <openssl/x509.h>
 #include <optional>
@@ -131,7 +131,7 @@ struct PairCache {
   PAIR_PHASE last_phase = PAIR_PHASE::NONE;
 };
 
-using SessionsAtoms = std::shared_ptr<immer::atom<immer::vector<events::StreamSession>>>;
+using SessionsAtoms = std::shared_ptr<immer::atom<immer::vector<wolf::core::events::StreamSession>>>;
 
 /**
  * The whole application state as a composition of immutable datastructures

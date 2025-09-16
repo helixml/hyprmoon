@@ -17,6 +17,12 @@ RUN apt-get update && apt-get install -y \
     libfmt-dev libudis86-dev libhyprlang-dev \
     libhyprutils-dev libhyprcursor-dev \
     libboost-system-dev libboost-filesystem-dev \
+    # New HyprMoon dependencies
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-good1.0-dev \
+    libssl-dev libboost-dev libcurl4-openssl-dev \
+    libimmer-dev libenet-dev librange-v3-dev libpci-dev \
+    libxcb-errors-dev libxcb-util-dev \
     # Development and debugging
     gdb valgrind strace \
     # Packaging tools

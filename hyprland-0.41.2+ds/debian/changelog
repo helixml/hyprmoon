@@ -1,3 +1,13 @@
+hyprmoon (0.41.2+ds-1.3+step8.1) unstable; urgency=medium
+
+  * Step 8.1: Complete Wolf Moonlight integration with full dependency alignment
+  * Fixed all dependency version mismatches to match Hyprland-wlroots exactly
+  * Added proper system package detection for header-only libraries (immer, range-v3)
+  * Integrated complete Wolf protocol, streaming, and input system architecture
+  * Ready for input functionality testing via inputtino devices
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 16 Sep 2025 09:45:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step7.5) unstable; urgency=medium
 
   * Step 7.5: Optimize build cache by disabling most dh_clean operations

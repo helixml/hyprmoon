@@ -39,9 +39,9 @@ bool init() {
 enet_host create_host(std::string_view host, std::uint16_t port, std::size_t peers) {
   ENetAddress addr;
   enet_address_set_host(&addr, host.data());
-  enet_address_set_port(&addr, port);
+  addr.port = port;
 
-  auto enet_host = enet_host_create(AF_INET, &addr, peers, 0, 0, 0);
+  auto enet_host = enet_host_create(&addr, peers, 0, 0, 0);
   if (enet_host == nullptr) {
     logs::log(logs::error, "An error occurred while trying to create an ENet server host.");
   }
@@ -50,25 +50,17 @@ enet_host create_host(std::string_view host, std::uint16_t port, std::size_t pee
 }
 
 /**
- * The Moonlight fork of ENET doesn't include host and port as easily accessible parts of the struct,
- * we have to extract them manually
+ * Extract IP and port from ENetAddress for ENet 1.3.18
  */
-std::pair<std::string /* ip */, int /* port */> get_ip(const sockaddr *const ip_addr) {
-  char data[INET6_ADDRSTRLEN];
+std::pair<std::string /* ip */, int /* port */> get_ip(const ENetAddress &address) {
+  char data[INET_ADDRSTRLEN];
 
-  auto family = ip_addr->sa_family;
-  std::uint16_t port;
-  if (family == AF_INET6) {
-    inet_ntop(AF_INET6, &((sockaddr_in6 *)ip_addr)->sin6_addr, data, INET6_ADDRSTRLEN);
-    port = ((sockaddr_in6 *)ip_addr)->sin6_port;
-  }
+  // Convert host from network byte order to string
+  struct in_addr addr;
+  addr.s_addr = address.host;
+  inet_ntop(AF_INET, &addr, data, INET_ADDRSTRLEN);
 
-  if (family == AF_INET) {
-    inet_ntop(AF_INET, &((sockaddr_in *)ip_addr)->sin_addr, data, INET_ADDRSTRLEN);
-    port = ((sockaddr_in *)ip_addr)->sin_port;
-  }
-
-  return {std::string{data}, port};
+  return {std::string{data}, address.port};
 }
 
 bool send_packet(std::string_view payload, ENetPeer *peer) {
@@ -158,7 +150,7 @@ void run_control(int port,
 
   while (true) {
     if (enet_host_service(host.get(), &event, timeout.count()) > 0) {
-      auto [client_ip, client_port] = get_ip((sockaddr *)&event.peer->address.address);
+      auto [client_ip, client_port] = get_ip(event.peer->address);
       auto client_session = get_current_session(connected_clients, running_sessions, client_ip, event);
       if (client_session) {
         switch (event.type) {
@@ -166,7 +158,7 @@ void run_control(int port,
           break;
         case ENET_EVENT_TYPE_CONNECT:
           logs::log(logs::debug, "[ENET] connected client: {}:{}", client_ip, client_port);
-          connected_clients.update([peer = event.peer, client_session](const enet_clients_map &m) {
+          connected_clients.update([peer = event.peer, &client_session](const enet_clients_map &m) {
             return m.set(peer, client_session.value());
           });
           event_bus->fire_event(
@@ -210,7 +202,7 @@ void run_control(int port,
                 handle_input(client_session.value(), enet_client, (INPUT_PKT *)decrypted.data());
               } else if (sub_type == IDR_FRAME) {
                 auto ev = IDRRequestEvent{.session_id = client_session->session_id};
-                event_bus->fire_event(immer::box<IDRRequestEvent>{ev});
+                event_bus->fire_event(immer::box<IDRRequestEvent>(ev));
               }
             } catch (std::runtime_error &e) {
               logs::log(logs::warning, "[ENET] Unable to decrypt incoming packet: {}", e.what());

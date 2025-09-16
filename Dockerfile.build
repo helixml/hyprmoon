@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     # New HyprMoon dependencies
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-good1.0-dev \
-    libssl-dev libboost-dev libcurl4-openssl-dev \
+    libssl-dev libboost-dev libboost-log-dev libcurl4-openssl-dev \
     libimmer-dev libenet-dev librange-v3-dev libpci-dev \
     libxcb-errors-dev libxcb-util-dev \
     libpulse-dev libjsoncpp-dev \

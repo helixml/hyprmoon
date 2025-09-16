@@ -51,6 +51,53 @@
 ## Goal
 Build HyprMoon (Hyprland + Moonlight integration) systematically from Ubuntu's exact source, adding features incrementally while maintaining VNC connectivity.
 
+## CRITICAL: DEPENDENCY AUDIT PLAN (PRIORITY #1)
+
+**MANDATORY: EXACT DEPENDENCY VERSION MATCHING WITH Hyprland-wlroots**
+
+User instruction: "I WANT YOU TO CHECK ALL THE DEPENDENCIES ONE AT A TIME AND MAKE SURE THEY ARE USING EXACTLY THE SAME VERSIONS as Hyprland-wlroots. Then we can maybe revert any changes we made to try and patch things up against the wrong versions of things"
+
+### Systematic Dependency Audit Process:
+
+#### Phase A: Identify All Dependencies ⏳ IN PROGRESS
+- [ ] Extract all FetchContent_Declare from `/home/luke/pm/hyprmoon/hyprland-0.41.2+ds/CMakeLists.txt`
+- [ ] Extract all FetchContent_Declare from `/home/luke/pm/Hyprland-wlroots/CMakeLists.txt`
+- [ ] Compare system pkg_check_modules in both projects
+- [ ] Document EXACT git commits/versions used in Hyprland-wlroots
+
+#### Phase B: Version Comparison Analysis ⏳ PENDING
+- [ ] **inputtino**: Check git commit versions (currently: fd136cf)
+- [ ] **Simple-Web-Server**: Check repository URL and git tag (currently: gitlab 4abe349)
+- [ ] **immer**: Check git commit versions (currently: e02cbd795e9424a8405a8cb01f659ad61c0cbbc7)
+- [ ] **nanors**: Check git commit versions (currently: 19f07b513e924e471cadd141943c1ec4adc8d0e0)
+- [ ] **range-v3**: Check git tag versions (currently: 0.12.0)
+- [ ] **peglib**: Check git tag versions (currently: v1.8.5)
+- [ ] **reflect-cpp**: Check git commit versions (currently: c118963)
+- [ ] **eventbus**: Check git commit versions (currently: abb3a48)
+- [ ] **ENet**: CRITICAL - Check exact version/source (currently system libenet vs what Hyprland-wlroots uses)
+
+#### Phase C: Systematic Corrections ⏳ PENDING
+- [ ] Update CMakeLists.txt with EXACT matching versions from Hyprland-wlroots
+- [ ] Test build after each dependency correction
+- [ ] Revert any code changes made to accommodate wrong versions
+- [ ] Verify all dependencies compile with exact matching versions
+
+#### Phase D: Final Validation ⏳ PENDING
+- [ ] Full clean build test with all dependencies matching
+- [ ] Verify NO compilation errors remain
+- [ ] Complete successful HyprMoon build
+- [ ] Deploy and test functionality
+
+**CRITICAL PRINCIPLE**: "USE EXACTLY THE SAME DEPENDENCY VERSIONS AS Hyprland-wlroots, DO NOT DIVERGE DEPS AT ALL"
+
+### ENet Specific Investigation (URGENT)
+User instruction: "install the moonlight fork of enet then. you must be able to inspect where it comes from by investigating the meson build infrastructure."
+
+- [ ] Investigate Hyprland-wlroots meson build system for ENet source
+- [ ] Check if Hyprland-wlroots uses special moonlight fork of ENet
+- [ ] Compare ENet API usage between implementations
+- [ ] Install exact same ENet version/fork as Hyprland-wlroots
+
 ## CRITICAL: Use Wolf Moonlight Implementation
 **DO NOT reimplement moonlight protocol from scratch!** Use the battle-tested implementation from `~/pm/wolf`:
 - Wolf has a working, tested moonlight protocol implementation

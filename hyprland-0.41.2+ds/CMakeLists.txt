@@ -33,17 +33,9 @@ FetchContent_MakeAvailable(inputtino)
 # )
 # FetchContent_MakeAvailable(SimpleWeb)
 
-# Fetch immer for immutable data structures (Wolf protocol)
-FetchContent_Declare(
-    immer
-    GIT_REPOSITORY https://github.com/arximboldi/immer.git
-    GIT_TAG e02cbd795e9424a8405a8cb01f659ad61c0cbbc7
-)
-set(immer_BUILD_TESTS OFF)
-set(immer_BUILD_EXAMPLES OFF)
-set(immer_BUILD_DOCS OFF)
-set(immer_BUILD_EXTRAS OFF)
-FetchContent_MakeAvailable(immer)
+# Use system libimmer-dev (available in Ubuntu 25.04)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(IMMER REQUIRED IMPORTED_TARGET immer)
 
 # Fetch nanors for FEC implementation (Wolf protocol)
 FetchContent_Declare(
@@ -236,7 +228,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
 )
 
 find_package(hyprwayland-scanner 0.3.10 REQUIRED)
-find_package(Boost 1.77 REQUIRED)
+find_package(Boost 1.77 REQUIRED COMPONENTS log)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
@@ -407,12 +399,13 @@ target_link_libraries(Hyprland
         inputtino::libinputtino
         dp::eventbus
         reflectcpp
-        immer
+        PkgConfig::IMMER
         nanors::nanors
         range-v3::range-v3
         peglib
         ${ENET_LIBRARIES}
         Boost::boost
+        Boost::log
         simple-web-server
 )
 

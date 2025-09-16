@@ -18,14 +18,14 @@ Changes:
    * Hyprland with integrated Moonlight streaming support
    * Built from custom wlroots with moonlight patches
 Checksums-Sha1:
- 8c57181b69a58e5161ff2d197d021da2c3937f01 72243272 hyprmoon-dbgsym_1.0-1_amd64.ddeb
- 6395b0ca6096543451870286f980f8a822d8237a 17641 hyprmoon_1.0-1_amd64.buildinfo
- 16ec732d9826fba4a950e1347fc483fc8fd5ec43 48788672 hyprmoon_1.0-1_amd64.deb
+ 593a0c9818419ef08f597254282ed8a87fa5e3a0 72239198 hyprmoon-dbgsym_1.0-1_amd64.ddeb
+ 71044c6744fa6a3a6e4f0aed39223ffb081919d2 17641 hyprmoon_1.0-1_amd64.buildinfo
+ a3d41446be0caa6189faab219ed83792c937698c 48788908 hyprmoon_1.0-1_amd64.deb
 Checksums-Sha256:
- 07b166821016d382b23da9c3681a041fdefdff881f6ae2e332059ea99bcfcd81 72243272 hyprmoon-dbgsym_1.0-1_amd64.ddeb
- f881c112a06d53e01ea81a054621997bc0dc0512aa1e16dfa8354606e35e64ef 17641 hyprmoon_1.0-1_amd64.buildinfo
- f31ebc17bcea08a0611986283da9a99a3820ddf6416b557f7743b81107836ff9 48788672 hyprmoon_1.0-1_amd64.deb
+ dbb71c85b467a1dddcb6a4acc2c59a261cb601a71581d7fc6574555b0defcfd3 72239198 hyprmoon-dbgsym_1.0-1_amd64.ddeb
+ 5160bc90f8f19be9f3773d4efdfb41d5a4cf6bfd12fd52acc028daba3d8277bf 17641 hyprmoon_1.0-1_amd64.buildinfo
+ f97eb01904ede1dda386fef316bbc6e8fc1bfa013f37e1fce3af6bbeb3aaa567 48788908 hyprmoon_1.0-1_amd64.deb
 Files:
- 4437583545d801efb04e7e54c9ab5b17 72243272 debug optional hyprmoon-dbgsym_1.0-1_amd64.ddeb
- e89a6f99d35a640476b296f6cfa7951d 17641 x11 optional hyprmoon_1.0-1_amd64.buildinfo
- 4ab122a7d76d3c2c8228d005563119c4 48788672 x11 optional hyprmoon_1.0-1_amd64.deb
+ 2db96e5e0753427753f4bbc0e34ac469 72239198 debug optional hyprmoon-dbgsym_1.0-1_amd64.ddeb
+ 173a34bee717611e497d7685d99c1742 17641 x11 optional hyprmoon_1.0-1_amd64.buildinfo
+ 66040385469f10da01ed719bc0a74d9c 48788908 x11 optional hyprmoon_1.0-1_amd64.deb

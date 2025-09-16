@@ -16,6 +16,9 @@ project(Hyprland
 # Include GNUInstallDirs after project() to ensure language is enabled
 include(GNUInstallDirs)
 
+# Use system packages like Hyprland-wlroots does
+find_package(PkgConfig REQUIRED)
+
 # Fetch inputtino for Wolf REST API virtual input devices
 FetchContent_Declare(
     inputtino
@@ -33,11 +36,23 @@ FetchContent_MakeAvailable(inputtino)
 # )
 # FetchContent_MakeAvailable(SimpleWeb)
 
-# Use system libimmer-dev (available in Ubuntu 25.04)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(IMMER REQUIRED IMPORTED_TARGET immer)
+# Use system packages available in Ubuntu 25.04
+# Header-only libraries (no pkg-config files)
+find_path(IMMER_INCLUDE_DIR NAMES immer/vector.hpp REQUIRED)
+find_path(RANGE_V3_INCLUDE_DIR NAMES range/v3/all.hpp REQUIRED)
 
-# Fetch nanors for FEC implementation (Wolf protocol)
+# Libraries with pkg-config files
+pkg_check_modules(FMT REQUIRED IMPORTED_TARGET fmt)
+pkg_check_modules(JSONCPP REQUIRED IMPORTED_TARGET jsoncpp)
+
+# Create interface targets for header-only libraries
+add_library(immer INTERFACE)
+target_include_directories(immer INTERFACE ${IMMER_INCLUDE_DIR})
+
+add_library(range-v3 INTERFACE)
+target_include_directories(range-v3 INTERFACE ${RANGE_V3_INCLUDE_DIR})
+
+# Fetch nanors for FEC implementation (Wolf protocol) - vendored in Hyprland-wlroots
 FetchContent_Declare(
     nanors
     GIT_REPOSITORY https://github.com/sleepybishop/nanors.git
@@ -63,15 +78,9 @@ if (NOT nanors_POPULATED)
             PROPERTIES COMPILE_FLAGS "-ftree-vectorize -funroll-loops")
 endif ()
 
-# Fetch range-v3 for container algorithms (Wolf protocol)
-FetchContent_Declare(
-    range-v3
-    GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-    GIT_TAG 0.12.0
-)
-FetchContent_MakeAvailable(range-v3)
+# range-v3 now handled as system package above
 
-# Fetch peglib for custom parser (Wolf protocol)
+# Fetch peglib for custom parser (Wolf protocol) - not available as Ubuntu package
 FetchContent_Declare(
     peglib
     GIT_REPOSITORY https://github.com/yhirose/cpp-peglib.git
@@ -93,7 +102,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(simplewebserver)
 
-# Fetch eventbus for Wolf event system
+# Fetch eventbus for Wolf event system - not available as Ubuntu package
 FetchContent_Declare(
     eventbus
     GIT_REPOSITORY https://github.com/games-on-whales/eventbus
@@ -102,7 +111,7 @@ FetchContent_Declare(
 set(EVENTBUS_BUILD_TESTS OFF)
 FetchContent_MakeAvailable(eventbus)
 
-# Fetch reflect-cpp for Wolf reflection (provides rfl.hpp) - using Wolf's exact version
+# Fetch reflect-cpp for Wolf reflection (provides rfl.hpp) - not available as Ubuntu package
 FetchContent_Declare(
     reflect-cpp
     GIT_REPOSITORY https://github.com/getml/reflect-cpp
@@ -227,8 +236,14 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
     gstreamer-1.0 gstreamer-plugins-base-1.0
 )
 
+# Additional Moonlight/Wolf dependencies from Hyprland-wlroots meson.build
+pkg_check_modules(MOONLIGHT_DEPS REQUIRED IMPORTED_TARGET
+    gstreamer-app-1.0 gstreamer-video-1.0 gstreamer-webrtc-1.0 gstreamer-sdp-1.0
+    libcurl openssl icu-uc libpci libpulse-simple libpulse nice
+)
+
 find_package(hyprwayland-scanner 0.3.10 REQUIRED)
-find_package(Boost 1.77 REQUIRED COMPONENTS log)
+find_package(Boost 1.77 REQUIRED COMPONENTS log locale)
 
 file(GLOB_RECURSE SRCFILES "src/*.cpp")
 
@@ -399,14 +414,20 @@ target_link_libraries(Hyprland
         inputtino::libinputtino
         dp::eventbus
         reflectcpp
-        PkgConfig::IMMER
+        immer
         nanors::nanors
-        range-v3::range-v3
+        range-v3
         peglib
         ${ENET_LIBRARIES}
         Boost::boost
         Boost::log
+        Boost::locale
         simple-web-server
+        PkgConfig::FMT
+        PkgConfig::JSONCPP
+        # Additional Moonlight/Wolf dependencies matching Hyprland-wlroots exactly
+        PkgConfig::MOONLIGHT_DEPS
+        m  # Math library for audio processing (from meson.build)
 )
 
 protocol("protocols/wlr-screencopy-unstable-v1.xml" "wlr-screencopy-unstable-v1" true)

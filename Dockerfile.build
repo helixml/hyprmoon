@@ -16,14 +16,16 @@ RUN apt-get update && apt-get install -y \
     libwlroots-dev libtomlplusplus-dev libzip-dev \
     libfmt-dev libudis86-dev libhyprlang-dev \
     libhyprutils-dev libhyprcursor-dev \
-    libboost-system-dev libboost-filesystem-dev \
+    libboost-system-dev libboost-filesystem-dev libboost-locale-dev \
     # New HyprMoon dependencies
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-good1.0-dev \
     libssl-dev libboost-dev libboost-log-dev libcurl4-openssl-dev \
-    libimmer-dev libenet-dev librange-v3-dev libpci-dev \
+    libimmer-dev libenet-dev libfmt-dev librange-v3-dev libpci-dev \
     libxcb-errors-dev libxcb-util-dev \
     libpulse-dev libjsoncpp-dev \
+    # Additional Moonlight dependencies from Hyprland-wlroots (GStreamer already installed above)
+    libicu-dev libnice-dev \
     # Additional dependencies from debian/control that were missing
     chrpath cpio hwdata hyprland-protocols hyprwayland-scanner \
     libwlroots-0.18-dev liblcms2-dev libpugixml1v5 \

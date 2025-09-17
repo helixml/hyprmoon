@@ -99,7 +99,9 @@ void startServer(HttpServer *server, const immer::box<state::AppState> state, in
 
   auto pair_handler = state->event_bus->register_handler<immer::box<events::PairSignal>>(
       [pairing_atom](const immer::box<events::PairSignal> pair_sig) {
-        pairing_atom->update([&pair_sig](const immer::map<std::string, immer::box<events::PairSignal>> &m) {
+        try {
+          logs::log(logs::warning, "[EVENT DEBUG] PairSignal event handler called for client {}", pair_sig->client_ip);
+          pairing_atom->update([&pair_sig](const immer::map<std::string, immer::box<events::PairSignal>> &m) {
           auto secret = crypto::str_to_hex(crypto::random(8));
           // Make PIN URL VERY visible in logs
           logs::log(logs::warning, "=====================================");
@@ -118,12 +120,20 @@ void startServer(HttpServer *server, const immer::box<state::AppState> state, in
           t_map.set(secret, pair_sig);
           return t_map.persistent();
         });
+        logs::log(logs::warning, "[EVENT DEBUG] PairSignal event handler completed successfully");
+        } catch (const std::exception& e) {
+          logs::log(logs::error, "[EVENT DEBUG] Exception in PairSignal event handler: {}", e.what());
+        } catch (...) {
+          logs::log(logs::error, "[EVENT DEBUG] Unknown exception in PairSignal event handler");
+        }
       });
 
-  // Start server
+  // Start server (this blocks, so pair_handler stays registered)
   server->start([](unsigned short port) { logs::log(logs::info, "HTTP server listening on port: {} ", port); });
 
-  pair_handler.unregister();
+  // Note: pair_handler.unregister() is intentionally NOT called here
+  // The handler must remain registered for the lifetime of the server
+  // In Wolf, this unregister would never be reached since server->start() blocks
 }
 
 std::optional<state::PairedClient>

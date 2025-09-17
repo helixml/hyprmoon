@@ -238,7 +238,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
 
 # Additional Moonlight/Wolf dependencies from Hyprland-wlroots meson.build
 pkg_check_modules(MOONLIGHT_DEPS REQUIRED IMPORTED_TARGET
-    gstreamer-app-1.0 gstreamer-video-1.0 gstreamer-webrtc-1.0 gstreamer-sdp-1.0
+    gstreamer-app-1.0 gstreamer-video-1.0 gstreamer-webrtc-1.0 gstreamer-sdp-1.0 gstreamer-allocators-1.0
     libcurl openssl icu-uc libpci libpulse-simple libpulse nice
 )
 

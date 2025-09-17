@@ -18,7 +18,19 @@ inline std::string xml_to_str(const XML &xml) {
 }
 
 template <class T> std::string get_client_ip(std::shared_ptr<typename SimpleWeb::ServerBase<T>::Request> request) {
-  return request->remote_endpoint().address().to_string();
+  try {
+    if (!request) {
+      logs::log(logs::error, "[get_client_ip] Null request pointer");
+      return "UNKNOWN_NULL_REQUEST";
+    }
+    return request->remote_endpoint().address().to_string();
+  } catch (const std::exception& e) {
+    logs::log(logs::error, "[get_client_ip] Exception getting client IP: {}", e.what());
+    return "UNKNOWN_EXCEPTION";
+  } catch (...) {
+    logs::log(logs::error, "[get_client_ip] Unknown exception getting client IP");
+    return "UNKNOWN_ERROR";
+  }
 }
 
 /**

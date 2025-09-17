@@ -224,54 +224,54 @@ Add HyprMoon features one by one, testing VNC after each:
 - Debian package cache
 - Container layer cache
 
-## RELIABLE BUILD AND DEPLOYMENT PROCESS (PROVEN METHOD)
+## AUTOMATED BUILD AND DEPLOYMENT SYSTEM (STREAMLINED)
 
-### Consolidated Build Process (MANDATORY FOR ALL STEPS)
+### Single-Command Build & Deploy (NEW SIMPLIFIED PROCESS)
 
-This is the proven process for building AND deploying HyprMoon deb packages. **CRITICAL: ALWAYS complete ALL steps before testing to ensure we test the latest code:**
+The HyprMoon build system now features **complete automation**:
 
-#### 1. Build Process
 ```bash
 # Navigate to hyprmoon directory
-cd /home/luke/pm/hyprmoon
+cd /path/to/hyprmoon
 
-# Run the consolidated build script
+# Single command does EVERYTHING:
 ./build.sh
-
-# The build script handles:
-# - Bind mounts with hyprmoon-build-env container
-# - Timestamped build logging automatically
-# - Dependency installation and caching
-# - deb package generation with proper naming
-# - Clear success/failure feedback
 ```
 
-#### 2. Deployment Process (MANDATORY BEFORE TESTING)
-```bash
-# Copy generated deb files to helix directory
-cp hyprmoon_*.deb hyprland-backgrounds_*.deb /home/luke/pm/helix/
+#### What This Command Does Automatically:
+1. **Builds** HyprMoon packages with your changes
+2. **Auto-detects** adjacent helix directory (`../helix`)
+3. **Copies** new .deb packages to helix
+4. **Updates** Dockerfile.zed-agent-vnc with new version numbers
+5. **Rebuilds** Docker container with new packages
+6. **Restarts** container if it was already running
+7. **Reports** full deployment status
 
-# Navigate to helix directory
-cd /home/luke/pm/helix
-
-# Update Dockerfile.zed-agent-vnc with EXACT deb filenames
-# (Update COPY lines to match the generated deb filenames)
-
-# Rebuild helix container with new debs
-docker compose -f docker-compose.dev.yaml build zed-runner
-
-# CRITICAL: Recreate container to get clean state from image
-# NEVER just restart - that preserves modified container state!
-docker compose -f docker-compose.dev.yaml down zed-runner
-docker compose -f docker-compose.dev.yaml up -d zed-runner
-
-# Verify container is running
-docker ps | grep helix
-
-# Wait 30-60 seconds for full startup before VNC testing
+#### Project Structure Requirements:
+```
+parent-directory/
+├── hyprmoon/          # HyprMoon development (this repo)
+│   ├── build.sh       # Automated build & deploy script
+│   └── ...
+└── helix/             # Helix deployment (auto-detected)
+    ├── Dockerfile.zed-agent-vnc  # Auto-updated
+    └── ...
 ```
 
-**CRITICAL: NEVER test without completing the full deployment process!**
+#### Advanced Features:
+- **Stale Build Detection**: Detects if changes aren't being compiled
+- **Smart Cache Management**: Use `FORCE_CLEAN=1 ./build.sh` for clean builds
+- **Automatic Versioning**: Updates Docker files with new package versions
+- **Safe Container Management**: Only restarts if container was running
+- **Error Handling**: Clear error messages with helpful suggestions
+
+#### Migration from Manual Process:
+- **OLD**: Manual copy, manual Dockerfile edits, manual rebuilds
+- **NEW**: Single `./build.sh` command handles everything
+- **SPEED**: No manual steps = faster iteration cycles
+- **SAFETY**: Automated version updates prevent manual errors
+
+**Result: One command from code change to deployed container!**
 
 ### Why This Method Works:
 - **Bind Mounts**: Source code mounted directly, no Docker layer copying

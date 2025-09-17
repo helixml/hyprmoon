@@ -27,27 +27,17 @@ apt-get update -qq
 echo "Installing build dependencies..."
 mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
 
-# Build the deb package with real-time fatal error detection
+# Build the deb package
 echo "Building deb package..."
 
-# Stream output line by line and check for fatal errors
-dpkg-buildpackage -us -uc -b 2>&1 | while IFS= read -r line; do
-    echo "$line"
-    if [[ "$line" == *"fatal error:"* ]] || [[ "$line" == *"FATAL"* ]]; then
-        echo "=== FATAL ERROR DETECTED - STOPPING BUILD ==="
-        echo "Error line: $line"
-        exit 1
-    fi
-done
-
-# Capture the exit code from dpkg-buildpackage (through the pipe)
-BUILD_EXIT_CODE=${PIPESTATUS[0]}
-
-# Check if the build failed
-if [ $BUILD_EXIT_CODE -ne 0 ]; then
-    echo "=== BUILD FAILED (exit code: $BUILD_EXIT_CODE) ==="
-    exit $BUILD_EXIT_CODE
+# Simple approach - run dpkg-buildpackage directly and check exit code
+if ! dpkg-buildpackage -us -uc -b; then
+    echo "=== BUILD FAILED ==="
+    echo "dpkg-buildpackage failed with exit code $?"
+    exit 1
 fi
+
+echo "dpkg-buildpackage completed successfully"
 
 echo "=== Build completed successfully ==="
 echo "Generated files:"
@@ -56,7 +46,18 @@ ls -la /workspace/*.deb 2>/dev/null || echo "No deb files found in /workspace"
 # Show package details
 if ls /workspace/hyprmoon_*.deb >/dev/null 2>&1; then
     echo "Package details:"
-    dpkg-deb --info /workspace/hyprmoon_*.deb | head -10
+    for deb in /workspace/hyprmoon_*.deb; do
+        if [ -f "$deb" ]; then
+            echo "=== $(basename "$deb") ==="
+            dpkg-deb --info "$deb" | head -5
+            echo ""
+        fi
+    done
 fi
 
 echo "Container build log saved to: $CONTAINER_LOG"
+
+# Explicit successful exit
+echo "=== CONTAINER BUILD SCRIPT COMPLETED SUCCESSFULLY ==="
+echo "Exiting with code 0"
+exit 0

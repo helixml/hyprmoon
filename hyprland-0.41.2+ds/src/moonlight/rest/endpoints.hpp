@@ -137,11 +137,12 @@ std::shared_ptr<boost::promise<XMLResult>> pair_phase1(const immer::box<state::A
   logs::log(logs::info, "[PAIR DEBUG] Starting PIN generation for client {}", client_ip);
 
   auto future_pin = std::make_shared<boost::promise<std::string>>();
+  logs::log(logs::warning, "[PAIR DEBUG] About to fire PIN event for client {}", client_ip);
   state->event_bus->fire_event( // Emit a signal and wait for the promise to be fulfilled
       immer::box<events::PairSignal>(
           events::PairSignal{.client_ip = client_ip, .host_ip = host_ip, .user_pin = future_pin}));
 
-  logs::log(logs::info, "[PAIR DEBUG] PIN event fired, waiting for user input...");
+  logs::log(logs::warning, "[PAIR DEBUG] PIN event fired, waiting for user input...");
 
   future_pin->get_future().then(
       [state, salt, client_cert_str, cache_key, future_result](boost::future<std::string> fut_pin) {
@@ -149,7 +150,13 @@ std::shared_ptr<boost::promise<XMLResult>> pair_phase1(const immer::box<state::A
           auto pin_received = fut_pin.get();
           logs::log(logs::info, "[PAIR DEBUG] PIN received from user: {} for cache_key: {}", pin_received, cache_key);
 
+          logs::log(logs::warning, "[CERT DEBUG] About to call x509::get_cert_pem, server_cert ptr: {}",
+                    state->host->server_cert ? "VALID" : "NULL");
           auto server_pem = x509::get_cert_pem(state->host->server_cert);
+          logs::log(logs::warning, "[CERT DEBUG] x509::get_cert_pem returned PEM length: {}", server_pem.length());
+          logs::log(logs::warning, "[CERT DEBUG] PEM first 100 chars: '{}'",
+                    server_pem.length() > 0 ? server_pem.substr(0, std::min(100ul, server_pem.length())) : "EMPTY");
+
           auto result = moonlight::pair::get_server_cert(pin_received, salt, server_pem);
 
           logs::log(logs::info, "[PAIR DEBUG] Server cert generated successfully for {}", cache_key);
@@ -481,7 +488,7 @@ auto create_run_session(const SimpleWeb::CaseInsensitiveMultimap &headers,
                         const state::PairedClient &current_client,
                         immer::box<state::AppState> state,
                         const events::App &run_app) {
-  auto display_mode_str = utils::split(get_header(headers, "mode").value_or("1920x1080x60"), 'x');
+  auto display_mode_str = utils::split(get_header(headers, "mode").value_or("2360x1640x120"), 'x');
   moonlight::DisplayMode display_mode = {std::stoi(display_mode_str[0].data()),
                                          std::stoi(display_mode_str[1].data()),
                                          std::stoi(display_mode_str[2].data()),
@@ -570,25 +577,72 @@ void cancel(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
             const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
             const state::PairedClient &current_client,
             const immer::box<state::AppState> &state) {
-  log_req<SimpleWeb::HTTPS>(request);
+  logs::log(logs::warning, "[CANCEL DEBUG] Cancel request received");
 
-  auto client_session = state::get_session_by_client(state->running_sessions->load(), current_client);
-  if (client_session) {
-    state->event_bus->fire_event(
-        immer::box<events::StopStreamEvent>(events::StopStreamEvent{.session_id = client_session->session_id}));
+  try {
+    log_req<SimpleWeb::HTTPS>(request);
+    logs::log(logs::warning, "[CANCEL DEBUG] Request logged successfully");
 
-    state->running_sessions->update([&client_session](const immer::vector<events::StreamSession> &ses_v) {
-      return state::remove_session(ses_v, client_session.value());
-    });
-  } else {
-    auto client_ip = get_client_ip<SimpleWeb::HTTPS>(request);
-    logs::log(logs::warning, "[HTTPS] Received resume event from an unregistered session, ip: {}", client_ip);
+    auto client_session = state::get_session_by_client(state->running_sessions->load(), current_client);
+    logs::log(logs::warning, "[CANCEL DEBUG] Retrieved client session: {}", client_session ? "FOUND" : "NOT_FOUND");
+
+    if (client_session) {
+      logs::log(logs::warning, "[CANCEL DEBUG] Firing stop stream event for session: {}", client_session->session_id);
+      state->event_bus->fire_event(
+          immer::box<events::StopStreamEvent>(events::StopStreamEvent{.session_id = client_session->session_id}));
+
+      logs::log(logs::warning, "[CANCEL DEBUG] Updating running sessions to remove session");
+      state->running_sessions->update([&client_session](const immer::vector<events::StreamSession> &ses_v) {
+        return state::remove_session(ses_v, client_session.value());
+      });
+      logs::log(logs::warning, "[CANCEL DEBUG] Session removed successfully");
+    } else {
+      logs::log(logs::warning, "[CANCEL DEBUG] Attempting to get client IP for unknown session");
+      try {
+        auto client_ip = get_client_ip<SimpleWeb::HTTPS>(request);
+        logs::log(logs::warning, "[HTTPS] Received cancel event from an unregistered session, ip: {}", client_ip);
+      } catch (const std::exception& e) {
+        logs::log(logs::error, "[CANCEL DEBUG] Failed to get client IP: {}", e.what());
+        logs::log(logs::warning, "[HTTPS] Received cancel event from an unregistered session, ip: UNKNOWN");
+      }
+    }
+
+    logs::log(logs::warning, "[CANCEL DEBUG] Creating XML response");
+    XML xml;
+    xml.put("root.<xmlattr>.status_code", 200);
+    xml.put("root.cancel", 1);
+
+    logs::log(logs::warning, "[CANCEL DEBUG] Sending XML response");
+    try {
+      send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
+      logs::log(logs::warning, "[CANCEL DEBUG] Cancel request completed successfully");
+    } catch (const std::exception& e) {
+      logs::log(logs::error, "[CANCEL DEBUG] CRITICAL: send_xml failed: {}", e.what());
+      // Don't try to send another response - just return
+      return;
+    } catch (...) {
+      logs::log(logs::error, "[CANCEL DEBUG] CRITICAL: send_xml failed with unknown exception");
+      return;
+    }
+
+  } catch (const std::exception& e) {
+    logs::log(logs::error, "[CANCEL DEBUG] Exception in cancel function: {}", e.what());
+    try {
+      XML error_xml;
+      error_xml.put("root.<xmlattr>.status_code", 500);
+      error_xml.put("root.cancel", 0);
+      logs::log(logs::warning, "[CANCEL DEBUG] Attempting to send error response");
+      send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::server_error_internal_server_error, error_xml);
+      logs::log(logs::warning, "[CANCEL DEBUG] Error response sent successfully");
+    } catch (const std::exception& send_e) {
+      logs::log(logs::error, "[CANCEL DEBUG] Failed to send error response: {}", send_e.what());
+    } catch (...) {
+      logs::log(logs::error, "[CANCEL DEBUG] Failed to send error response - unknown exception");
+    }
+  } catch (...) {
+    logs::log(logs::error, "[CANCEL DEBUG] Unknown exception in cancel function");
+    // Don't attempt any response - SSL stream might be corrupted
   }
-
-  XML xml;
-  xml.put("root.<xmlattr>.status_code", 200);
-  xml.put("root.cancel", 1);
-  send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
 }
 
 } // namespace https

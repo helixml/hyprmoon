@@ -187,32 +187,125 @@ void CMoonlightManager::stopStreaming() {
     m_streamingMonitor = nullptr;
 }
 
-void CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {
-    if (!m_streaming || !buffer) return;
-    
+bool CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {
+    if (!m_streaming || !buffer) return false;
+
     // Only process frames for the monitor we're streaming
-    if (monitor != m_streamingMonitor) return;
-    
-    processFrame(buffer);
+    if (monitor != m_streamingMonitor) return false;
+
+    return processFrame(buffer);
 }
 
-void CMoonlightManager::processFrame(wlr_buffer* buffer) {
+bool CMoonlightManager::processFrame(wlr_buffer* buffer) {
     // Convert wlr_buffer and push to Wolf moonlight server
-    
+
     if (!m_wolfServer || !m_initialized) {
-        return;
+        return false; // Didn't take buffer ownership
     }
-    
+
     // Get buffer properties
     int width = buffer->width;
     int height = buffer->height;
-    
-    // For now, we need to map the buffer to get pixel data
-    // In a real implementation, we'd want to pass the DMA-BUF directly to GStreamer
-    // TODO: Implement proper zero-copy DMA-BUF to GStreamer conversion
-    
-    // Pass frame to Wolf server (placeholder with empty data for now)
-    m_wolfServer->onFrameReady(nullptr, 0, width, height, 0x34325258); // DRM_FORMAT_XRGB8888
+
+    // ZERO-COPY-OR-NOTHING: Try DMA-BUF sharing with proper buffer lifecycle
+    int dmabuf_fd;
+    uint32_t stride;
+    uint64_t modifier;
+
+    if (extractDMABufInfo(buffer, &dmabuf_fd, &stride, &modifier)) {
+        // Zero-copy: Take ownership of buffer for GStreamer processing
+        m_wolfServer->onFrameReadyDMABuf(dmabuf_fd, stride, modifier, width, height, 0x34325258, buffer);
+        Debug::log(TRACE, "MoonlightManager: Took buffer ownership for DMA-BUF frame (zero-copy) - {}x{}, fd: {}, stride: {}",
+                  width, height, dmabuf_fd, stride);
+
+        return true; // Took buffer ownership - renderer should NOT unlock
+    } else {
+        Debug::log(WARN, "MoonlightManager: DMA-BUF extraction failed - no frame sent (zero-copy-or-nothing)");
+        return false; // Didn't take buffer ownership - renderer should unlock normally
+    }
+
+    // Commented out fallbacks for zero-copy-or-nothing testing:
+    /*
+    else if (extractFrameData(buffer, &frame_data, &frame_size)) {
+        // Fallback: Extract actual pixel data from the wlr_buffer
+        m_wolfServer->onFrameReady(frame_data, frame_size, width, height, 0x34325258);
+        if (frame_data) {
+            free(frame_data);
+        }
+        Debug::log(TRACE, "MoonlightManager: Sent copied frame data - {}x{}, size: {}", width, height, frame_size);
+    } else {
+        // Fallback to test pattern if extraction fails
+        size_t test_size = width * height * 4;
+        void* test_data = malloc(test_size);
+        if (test_data) {
+            uint32_t* pixels = (uint32_t*)test_data;
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    uint8_t gray = 128 + (x + y) % 64;
+                    pixels[y * width + x] = 0xFF000000 | (gray << 16) | (gray << 8) | gray;
+                }
+            }
+            m_wolfServer->onFrameReady(test_data, test_size, width, height, 0x34325258);
+            free(test_data);
+        } else {
+            m_wolfServer->onFrameReady(nullptr, 0, width, height, 0x34325258);
+        }
+    }
+    */
+}
+
+bool CMoonlightManager::extractFrameData(wlr_buffer* buffer, void** frame_data, size_t* frame_size) {
+    if (!buffer || !frame_data || !frame_size) {
+        return false;
+    }
+
+    // Try to use wlr_buffer_begin_data_ptr_access for direct memory access
+    void* data;
+    uint32_t format;
+    size_t stride;
+
+    if (wlr_buffer_begin_data_ptr_access(buffer, WLR_BUFFER_DATA_PTR_ACCESS_READ, &data, &format, &stride)) {
+        // Calculate frame size based on buffer properties
+        *frame_size = stride * buffer->height;
+
+        // Allocate memory for the frame data copy
+        *frame_data = malloc(*frame_size);
+        if (*frame_data) {
+            memcpy(*frame_data, data, *frame_size);
+            wlr_buffer_end_data_ptr_access(buffer);
+            Debug::log(TRACE, "MoonlightManager: Extracted frame data - {}x{}, size: {}, stride: {}",
+                      buffer->width, buffer->height, *frame_size, stride);
+            return true;
+        }
+
+        wlr_buffer_end_data_ptr_access(buffer);
+    }
+
+    Debug::log(WARN, "MoonlightManager: Failed to extract frame data from wlr_buffer");
+    return false;
+}
+
+bool CMoonlightManager::extractDMABufInfo(wlr_buffer* buffer, int* fd, uint32_t* stride, uint64_t* modifier) {
+    if (!buffer || !fd || !stride || !modifier) {
+        return false;
+    }
+
+    // Check if this is a DMA-BUF buffer
+    wlr_dmabuf_attributes dmabuf_attrs;
+    if (wlr_buffer_get_dmabuf(buffer, &dmabuf_attrs)) {
+        if (dmabuf_attrs.n_planes > 0) {
+            *fd = dmabuf_attrs.fd[0];  // Use first plane
+            *stride = dmabuf_attrs.stride[0];
+            *modifier = dmabuf_attrs.modifier;
+
+            Debug::log(TRACE, "MoonlightManager: Extracted DMA-BUF - fd: {}, stride: {}, modifier: {}",
+                      *fd, *stride, *modifier);
+            return true;
+        }
+    }
+
+    Debug::log(TRACE, "MoonlightManager: Buffer is not a DMA-BUF or has no planes");
+    return false;
 }
 
 void CMoonlightManager::setupNetworkServices() {

@@ -1,5 +1,6 @@
 #include <protocol/crypto/crypto/crypto.hpp>
 #include <protocol/moonlight/protocol.hpp>
+#include <core/logger.hpp>
 
 namespace pt = boost::property_tree;
 
@@ -75,7 +76,11 @@ get_server_cert(const std::string &user_pin, const std::string &salt, const std:
   auto key = gen_aes_key(salt, user_pin);
   auto cert_hex = crypto::str_to_hex(server_cert_pem);
 
-  resp.put("root.paired", 1);
+  logs::log(logs::warning, "[PAIR DEBUG] server_cert_pem length: {}", server_cert_pem.length());
+  logs::log(logs::warning, "[PAIR DEBUG] cert_hex length: {}", cert_hex.length());
+  logs::log(logs::warning, "[PAIR DEBUG] cert_hex first 100 chars: {}", cert_hex.substr(0, 100));
+
+  resp.put("root.paired", 0);  // Phase 1: pairing in progress, not complete
   resp.put("root.plaincert", cert_hex);
   resp.put("root.<xmlattr>.status_code", 200);
 
@@ -102,7 +107,7 @@ std::pair<XML, std::pair<std::string, std::string>> send_server_challenge(const 
   auto plain_text = hash + server_challenge;
   auto encrypted = crypto::aes_encrypt_ecb(plain_text, aes_key, crypto::random(AES_BLOCK_SIZE), false);
 
-  resp.put("root.paired", 1);
+  resp.put("root.paired", 0);  // Phase 2: pairing in progress, not complete
   resp.put("root.challengeresponse", crypto::str_to_hex(encrypted));
   resp.put("root.<xmlattr>.status_code", 200);
 
@@ -120,7 +125,7 @@ std::pair<XML, std::string> get_client_hash(const std::string &aes_key,
   auto signature = crypto::sign(server_secret, server_cert_private_key);
 
   resp.put("root.pairingsecret", crypto::str_to_hex(server_secret + signature));
-  resp.put("root.paired", 1);
+  resp.put("root.paired", 0);  // Phase 3: pairing in progress, not complete
   resp.put("root.<xmlattr>.status_code", 200);
 
   return std::make_pair(resp, decrypted_challenge);

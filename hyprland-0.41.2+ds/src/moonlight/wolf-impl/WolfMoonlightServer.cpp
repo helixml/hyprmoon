@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <random>
 #include <cstring>
+#include <gst/allocators/gstdmabuf.h>
+#include <gst/video/video.h>
 
 // Wolf REST server includes - only declarations to avoid linker conflicts
 #include "../rest/rest.hpp"
@@ -136,19 +138,19 @@ void StreamingEngine::pushFrame(const void* frame_data, size_t size, int width, 
     if (!running_ || !app_src_) {
         return;
     }
-    
+
     // Create GStreamer buffer from frame data
     GstBuffer* buffer = gst_buffer_new_allocate(nullptr, size, nullptr);
     if (!buffer) {
         Debug::log(ERR, "WolfStreamingEngine: Failed to allocate GstBuffer");
         return;
     }
-    
+
     GstMapInfo map;
     if (gst_buffer_map(buffer, &map, GST_MAP_WRITE)) {
         memcpy(map.data, frame_data, size);
         gst_buffer_unmap(buffer, &map);
-        
+
         // Push buffer to app source
         GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(app_src_), buffer);
         if (ret != GST_FLOW_OK) {
@@ -158,6 +160,69 @@ void StreamingEngine::pushFrame(const void* frame_data, size_t size, int width, 
         Debug::log(ERR, "WolfStreamingEngine: Failed to map GstBuffer");
         gst_buffer_unref(buffer);
     }
+}
+
+void StreamingEngine::pushFrameDMABuf(int dmabuf_fd, uint32_t stride, uint64_t modifier, int width, int height, uint32_t format, wlr_buffer* buffer_ref) {
+    if (!running_ || !app_src_) {
+        if (buffer_ref) {
+            wlr_buffer_unlock(buffer_ref); // Release buffer if we can't process
+        }
+        return;
+    }
+
+    Debug::log(LOG, "WolfStreamingEngine: Zero-copy DMA-BUF frame - fd: {}, {}x{}, stride: {}, modifier: {}",
+              dmabuf_fd, width, height, stride, modifier);
+
+    // Create GStreamer buffer from DMA-BUF file descriptor
+    // Use gst_dmabuf_allocator for zero-copy GPU buffer sharing
+    GstAllocator* dmabuf_allocator = gst_dmabuf_allocator_new();
+    if (!dmabuf_allocator) {
+        Debug::log(ERR, "WolfStreamingEngine: Failed to create DMA-BUF allocator");
+        if (buffer_ref) {
+            wlr_buffer_unlock(buffer_ref); // Release on error
+        }
+        return;
+    }
+
+    // Create memory object wrapping the DMA-BUF
+    size_t dmabuf_size = stride * height;
+    GstMemory* dmabuf_memory = gst_dmabuf_allocator_alloc(dmabuf_allocator, dmabuf_fd, dmabuf_size);
+
+    if (!dmabuf_memory) {
+        Debug::log(ERR, "WolfStreamingEngine: Failed to wrap DMA-BUF fd {} in GstMemory", dmabuf_fd);
+        gst_object_unref(dmabuf_allocator);
+        if (buffer_ref) {
+            wlr_buffer_unlock(buffer_ref); // Release on error
+        }
+        return;
+    }
+
+    // Create GStreamer buffer using the DMA-BUF memory
+    GstBuffer* buffer = gst_buffer_new();
+    gst_buffer_append_memory(buffer, dmabuf_memory);
+
+    // Add video metadata for proper format handling
+    gst_buffer_add_video_meta(buffer, GST_VIDEO_FRAME_FLAG_NONE, GST_VIDEO_FORMAT_BGRx, width, height);
+
+    // Attach buffer reference for cleanup when GStreamer finishes processing
+    if (buffer_ref) {
+        gst_mini_object_set_qdata(GST_MINI_OBJECT(buffer),
+                                 g_quark_from_static_string("wlr_buffer_ref"),
+                                 buffer_ref,
+                                 (GDestroyNotify)wlr_buffer_unlock);
+    }
+
+    // Push zero-copy buffer to app source
+    GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(app_src_), buffer);
+    if (ret != GST_FLOW_OK) {
+        Debug::log(WARN, "WolfStreamingEngine: Failed to push DMA-BUF buffer: {}", (int)ret);
+        // Buffer cleanup will happen automatically via qdata destructor
+    } else {
+        Debug::log(LOG, "WolfStreamingEngine: Successfully pushed zero-copy DMA-BUF frame");
+    }
+
+    gst_object_unref(dmabuf_allocator);
+    // Note: wlr_buffer will be unlocked automatically when GStreamer finishes with the buffer
 }
 
 bool StreamingEngine::startStreaming(const std::string& session_id) {
@@ -217,7 +282,7 @@ bool StreamingEngine::setupGStreamerPipeline() {
     
     // Configure app source
     g_object_set(app_src_,
-        "caps", gst_caps_from_string("video/x-raw,format=BGRA,width=1920,height=1080,framerate=60/1"),
+        "caps", gst_caps_from_string("video/x-raw,format=BGRA,width=2360,height=1640,framerate=120/1"),
         "format", GST_FORMAT_TIME,
         "is-live", TRUE,
         nullptr);
@@ -852,6 +917,12 @@ void WolfMoonlightServer::onFrameReady(const void* frame_data, size_t size, int 
     }
 }
 
+void WolfMoonlightServer::onFrameReadyDMABuf(int dmabuf_fd, uint32_t stride, uint64_t modifier, int width, int height, uint32_t format, wlr_buffer* buffer_ref) {
+    if (streaming_engine_) {
+        streaming_engine_->pushFrameDMABuf(dmabuf_fd, stride, modifier, width, height, format, buffer_ref);
+    }
+}
+
 void WolfMoonlightServer::updateConfig(const MoonlightConfig& config) {
     if (state_) {
         state_->updateConfig(config);
@@ -915,6 +986,24 @@ void WolfMoonlightServer::initializeWolfAppState() {
     config.support_av1 = false;
     app_state->config = immer::box<state::Config>(config);
 
+    // Initialize host information with proper certificate paths
+    state::Host host_info;
+    host_info.internal_ip = "127.0.0.1"; // Will be updated when server starts
+    host_info.mac_address = "00:00:00:00:00:00"; // Default MAC
+
+    // Initialize display modes
+    moonlight::DisplayMode default_mode{2360, 1640, 120, true, false};
+    host_info.display_modes = immer::array<moonlight::DisplayMode>{default_mode};
+
+    // CRITICAL: Initialize certificate paths for pairing
+    // These will be loaded when HTTPS server initializes certificates
+    cert_file_path_ = "/tmp/moonlight-cert.pem";
+    key_file_path_ = "/tmp/moonlight-key.pem";
+
+    Debug::log(LOG, "WolfMoonlightServer: Will load certificates from {} and {}", cert_file_path_, key_file_path_);
+
+    app_state->host = immer::box<state::Host>(host_info);
+
     // Initialize pairing cache
     app_state->pairing_cache = std::make_shared<immer::atom<immer::map<std::string, state::PairCache>>>();
 
@@ -962,6 +1051,9 @@ void WolfMoonlightServer::initializeHttpsServer() {
     if (system(gen_cert_cmd.c_str()) == 0) {
         Debug::log(LOG, "WolfMoonlightServer: Generated self-signed certificates");
 
+        // CRITICAL: Load certificates into Wolf AppState for pairing endpoints
+        loadCertificatesIntoAppState(cert_file, key_file);
+
         try {
             // Create HTTPS server with certificates
             auto new_server = std::make_unique<HttpsServer>(cert_file, key_file);
@@ -991,6 +1083,56 @@ void WolfMoonlightServer::initializeHttpsServer() {
     } else {
         Debug::log(WARN, "WolfMoonlightServer: Failed to generate certificates, disabling HTTPS server");
         https_server_ = nullptr;
+    }
+}
+
+void WolfMoonlightServer::loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file) {
+    Debug::log(LOG, "WolfMoonlightServer: Loading certificates into Wolf AppState from {} and {}", cert_file, key_file);
+
+    auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+
+    try {
+        // Load certificate using Wolf's x509 functions
+        auto server_cert = x509::cert_from_file(cert_file);
+        if (!server_cert) {
+            Debug::log(ERR, "WolfMoonlightServer: Failed to load certificate from {}", cert_file);
+            return;
+        }
+
+        // Load private key using Wolf's x509 functions
+        auto server_pkey = x509::pkey_from_file(key_file);
+        if (!server_pkey) {
+            Debug::log(ERR, "WolfMoonlightServer: Failed to load private key from {}", key_file);
+            return;
+        }
+
+        Debug::log(LOG, "WolfMoonlightServer: Successfully loaded certificate and private key from files");
+
+        // Update the host info in AppState with the loaded certificates
+        auto current_host = app_state->host.get();
+        state::Host updated_host = current_host;
+
+        // CRITICAL: Set the server certificate and private key that pairing endpoints expect
+        updated_host.server_cert = server_cert;
+        updated_host.server_pkey = server_pkey;
+
+        // Update AppState with new host info containing certificates
+        app_state->host = immer::box<state::Host>(updated_host);
+
+        Debug::log(LOG, "WolfMoonlightServer: CERTIFICATES LOADED INTO WOLF APPSTATE - pairing should now work!");
+
+        // Verify the certificates are properly loaded by testing the pairing functions
+        try {
+            auto test_pem = x509::get_cert_pem(server_cert);
+            Debug::log(LOG, "WolfMoonlightServer: Certificate PEM verification - length: {}, first 50 chars: {}",
+                      test_pem.length(),
+                      test_pem.length() > 0 ? test_pem.substr(0, std::min(50ul, test_pem.length())) : "EMPTY");
+        } catch (const std::exception& e) {
+            Debug::log(ERR, "WolfMoonlightServer: Certificate PEM test failed: {}", e.what());
+        }
+
+    } catch (const std::exception& e) {
+        Debug::log(ERR, "WolfMoonlightServer: Exception loading certificates into AppState: {}", e.what());
     }
 }
 

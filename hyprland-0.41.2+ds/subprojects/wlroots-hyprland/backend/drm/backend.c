@@ -53,7 +53,9 @@ static void backend_destroy(struct wlr_backend *backend) {
 	wl_list_remove(&drm->dev_change.link);
 	wl_list_remove(&drm->dev_remove.link);
 
-	finish_drm_renderer(&drm->mgpu_renderer);
+	if (drm->parent) {
+		finish_drm_renderer(&drm->mgpu_renderer);
+	}
 
 	finish_drm_resources(drm);
 
@@ -222,20 +224,22 @@ struct wlr_backend *wlr_drm_backend_create(struct wlr_session *session,
 		goto error_event;
 	}
 
-	if (!init_drm_renderer(drm, &drm->mgpu_renderer)) {
-		wlr_log(WLR_ERROR, "Failed to initialize renderer");
-		goto error_resources;
-	}
+	if (drm->parent) {
+		if (!init_drm_renderer(drm, &drm->mgpu_renderer)) {
+			wlr_log(WLR_ERROR, "Failed to initialize renderer");
+			goto error_resources;
+		}
 
-	// We'll perform a multi-GPU copy for all submitted buffers, we need
-	// to be able to texture from them
-	struct wlr_renderer *renderer = drm->mgpu_renderer.wlr_rend;
-	const struct wlr_drm_format_set *texture_formats =
-		wlr_renderer_get_dmabuf_texture_formats(renderer);
-	// Some configurations (alpine CI job) will have a renderer here that does not
-	// support dmabuf formats. We don't want to fail creation of the drm backend
-	// as a result of this, we simply don't populate the format set in that case.
-	if (texture_formats) {
+		// We'll perform a multi-GPU copy for all submitted buffers, we need
+		// to be able to texture from them
+		struct wlr_renderer *renderer = drm->mgpu_renderer.wlr_rend;
+		const struct wlr_drm_format_set *texture_formats =
+			wlr_renderer_get_dmabuf_texture_formats(renderer);
+		if (texture_formats == NULL) {
+			wlr_log(WLR_ERROR, "Failed to query renderer texture formats");
+			goto error_mgpu_renderer;
+		}
+
 		// Forbid implicit modifiers, because their meaning changes from one
 		// GPU to another.
 		for (size_t i = 0; i < texture_formats->len; i++) {
@@ -255,6 +259,8 @@ struct wlr_backend *wlr_drm_backend_create(struct wlr_session *session,
 
 	return &drm->backend;
 
+error_mgpu_renderer:
+	finish_drm_renderer(&drm->mgpu_renderer);
 error_resources:
 	finish_drm_resources(drm);
 error_event:

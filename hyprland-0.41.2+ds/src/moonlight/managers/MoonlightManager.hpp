@@ -3,6 +3,9 @@
 #include <memory>
 #include <string>
 #include <wlr/interfaces/wlr_buffer.h>
+#include <wlr/types/wlr_buffer.h>
+#include <wlr/types/wlr_linux_dmabuf_v1.h>
+#include <drm_fourcc.h>
 #include "helpers/Monitor.hpp"
 #include "helpers/memory/Memory.hpp"
 
@@ -64,7 +67,7 @@ public:
     std::vector<std::pair<std::string, std::string>> getVoiceCommands() const;
     
     // Frame callback from renderer
-    void onFrameReady(CMonitor* monitor, wlr_buffer* buffer);
+    bool onFrameReady(CMonitor* monitor, wlr_buffer* buffer); // Returns true if took buffer ownership
     
     // Configuration
     void loadConfig();
@@ -82,7 +85,9 @@ private:
     void cleanupResources();
     
     // Frame processing
-    void processFrame(wlr_buffer* buffer);
+    bool processFrame(wlr_buffer* buffer); // Returns true if took buffer ownership
+    bool extractFrameData(wlr_buffer* buffer, void** frame_data, size_t* frame_size);
+    bool extractDMABufInfo(wlr_buffer* buffer, int* fd, uint32_t* stride, uint64_t* modifier);
     void setupFrameSource();
     
     // WebRTC integration

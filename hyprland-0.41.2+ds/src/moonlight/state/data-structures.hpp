@@ -229,6 +229,8 @@ const static immer::array<moonlight::DisplayMode> DISPLAY_CONFIGURATIONS = {{
     {.width = 1920, .height = 1080, .refreshRate = 120},
     {.width = 1920, .height = 1080, .refreshRate = 60},
     {.width = 1920, .height = 1080, .refreshRate = 30},
+    // 2360x1640 (iPad resolution)
+    {.width = 2360, .height = 1640, .refreshRate = 120},
     // 1440p
     {.width = 2560, .height = 1440, .refreshRate = 120},
     {.width = 2560, .height = 1440, .refreshRate = 90},

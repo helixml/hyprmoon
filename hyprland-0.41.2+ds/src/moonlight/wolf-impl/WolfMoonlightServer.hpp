@@ -115,6 +115,7 @@ public:
     
     // Frame input from Hyprland
     void pushFrame(const void* frame_data, size_t size, int width, int height, uint32_t format);
+    void pushFrameDMABuf(int dmabuf_fd, uint32_t stride, uint64_t modifier, int width, int height, uint32_t format, wlr_buffer* buffer_ref);
     
     // Session control
     bool startStreaming(const std::string& session_id);
@@ -230,6 +231,7 @@ public:
     
     // Frame input from Hyprland renderer
     void onFrameReady(const void* frame_data, size_t size, int width, int height, uint32_t format);
+    void onFrameReadyDMABuf(int dmabuf_fd, uint32_t stride, uint64_t modifier, int width, int height, uint32_t format, wlr_buffer* buffer_ref);
     
     // Configuration
     void updateConfig(const MoonlightConfig& config);
@@ -262,12 +264,17 @@ private:
     // Thread safety
     mutable std::mutex shutdown_mutex_;
 
+    // Certificate paths for loading into AppState
+    std::string cert_file_path_;
+    std::string key_file_path_;
+
     // Initialization
     bool initializeGStreamer();
     bool initializeENet();
     void initializeWolfAppState();
     void initializeHttpServer();
     void initializeHttpsServer();
+    void loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file);
 };
 
 } // namespace core

@@ -1,4 +1,4 @@
-hyprmoon (0.41.2+ds-1.3+step8.9) unstable; urgency=medium
+hyprmoon (0.41.2+ds-1.3+step8.9.2) unstable; urgency=medium
 
   * CRITICAL: Fix double-free vulnerabilities in WolfMoonlightServer
   * Replace raw delete patterns with RAII using std::unique_ptr
@@ -7,8 +7,13 @@ hyprmoon (0.41.2+ds-1.3+step8.9) unstable; urgency=medium
   * Implement safe server replacement to prevent memory corruption
   * Add initialization state guards to prevent unsafe operations
   * Fixes "double free or corruption (!prev)" SIGABRT crashes
+  * FIX: Restore HTTP/HTTPS server functionality (was disabled for crash testing)
+  * CRITICAL: Restore full Wolf endpoints for proper Moonlight protocol compatibility
+  * Fix linker conflicts by using proper header includes instead of source inclusion
+  * Restore HTTPS server initialization with proper certificate generation
+  * Fix initialization order bug preventing HTTPS server startup
 
- -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 16 Sep 2025 23:00:00 +0000
+ -- HyprMoon Builder <builder@hyprmoon.local>  Tue, 17 Sep 2025 03:10:00 +0000
 
 hyprmoon (0.41.2+ds-1.3+step8.8) unstable; urgency=medium
 

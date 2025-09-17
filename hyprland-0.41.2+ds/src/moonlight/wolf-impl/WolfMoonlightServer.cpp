@@ -5,13 +5,10 @@
 #include <random>
 #include <cstring>
 
-// Step 8.6: Include SimpleWeb headers directly, avoiding Wolf endpoints that cause linker conflicts
-#include <server_http.hpp>
-#include <server_https.hpp>
-
-// SimpleWeb server types
-using HttpServer = SimpleWeb::Server<SimpleWeb::HTTP>;
-using HttpsServer = SimpleWeb::Server<SimpleWeb::HTTPS>;
+// Wolf REST server includes - now properly linked as separate compilation units
+#include "../rest/rest.hpp"
+#include "../rest/endpoints.hpp"
+#include "../rest/helpers.hpp"
 
 namespace wolf {
 namespace core {
@@ -906,34 +903,55 @@ bool WolfMoonlightServer::initializeENet() {
 }
 
 void WolfMoonlightServer::initializeWolfAppState() {
-    Debug::log(LOG, "WolfMoonlightServer: Initializing minimal Wolf AppState stub");
+    Debug::log(LOG, "WolfMoonlightServer: Initializing Wolf AppState for real endpoints");
 
-    // Create minimal stub AppState for step 8.6 crash test
-    // This is a placeholder to avoid compilation errors
-    wolf_app_state_ = std::make_shared<int>(42); // Simple placeholder
+    // Create minimal Wolf AppState for endpoints to work
+    // Note: This is a simplified version - real Wolf has more complex state management
+    auto app_state = std::make_shared<state::AppState>();
 
-    Debug::log(LOG, "WolfMoonlightServer: Minimal AppState stub initialized");
+    // Initialize basic configuration
+    state::Config config;
+    config.hostname = state_->getConfig().hostname;
+    config.uuid = state_->getConfig().uuid;
+    config.support_hevc = true;
+    config.support_av1 = false;
+    app_state->config = immer::box<state::Config>(config);
+
+    // Initialize pairing cache
+    app_state->pairing_cache = std::make_shared<immer::atom<immer::map<std::string, state::PairCache>>>();
+
+    // Initialize event bus for pairing signals
+    app_state->event_bus = std::make_shared<events::EventBusType>();
+
+    // Initialize pairing atom for PIN handling
+    app_state->pairing_atom = std::make_shared<immer::atom<immer::map<std::string, immer::box<events::PairSignal>>>>();
+
+    // Initialize running sessions
+    app_state->running_sessions = std::make_shared<immer::atom<immer::vector<events::StreamSession>>>();
+
+    wolf_app_state_ = app_state;
+    Debug::log(LOG, "WolfMoonlightServer: Wolf AppState initialized successfully");
 }
 
 void WolfMoonlightServer::initializeHttpServer() {
-    Debug::log(LOG, "WolfMoonlightServer: Skipping HTTP server for step 8.6 crash test");
+    Debug::log(LOG, "WolfMoonlightServer: Starting real Wolf HTTP server on port {}", state_->getConfig().http_port);
 
-    // Placeholder for step 8.6 crash test - skip complex HTTP server
-    http_server_ = nullptr;
+    auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+    auto server = static_cast<HttpServer*>(http_server_);
 
-    Debug::log(LOG, "WolfMoonlightServer: HTTP server stub initialized");
+    // Use the real Wolf HTTP server implementation from servers.cpp
+    http_thread_ = std::thread([server, app_state, port = state_->getConfig().http_port]() {
+        HTTPServers::startServer(server, immer::box<state::AppState>(*app_state), port);
+    });
+
+    Debug::log(LOG, "WolfMoonlightServer: HTTP server thread started");
 }
 
 void WolfMoonlightServer::initializeHttpsServer() {
-    Debug::log(LOG, "WolfMoonlightServer: Initializing HTTPS server with self-signed certificates");
+    Debug::log(LOG, "WolfMoonlightServer: Initializing real Wolf HTTPS server with self-signed certificates");
 
     // Thread-safe server initialization
     std::lock_guard<std::mutex> lock(shutdown_mutex_);
-
-    if (!initialized_) {
-        Debug::log(WARN, "WolfMoonlightServer: Cannot initialize HTTPS server - not initialized");
-        return;
-    }
 
     // Create self-signed certificate files for moonlight HTTPS
     std::string cert_file = "/tmp/moonlight-cert.pem";
@@ -947,7 +965,7 @@ void WolfMoonlightServer::initializeHttpsServer() {
         Debug::log(LOG, "WolfMoonlightServer: Generated self-signed certificates");
 
         try {
-            // Safe server replacement - only delete if we have a valid replacement
+            // Create HTTPS server with certificates
             auto new_server = std::make_unique<HttpsServer>(cert_file, key_file);
 
             // Clean up old server safely
@@ -957,7 +975,16 @@ void WolfMoonlightServer::initializeHttpsServer() {
             }
 
             https_server_ = new_server.release();
-            Debug::log(LOG, "WolfMoonlightServer: HTTPS server initialized with certificates");
+
+            // Start HTTPS server with real Wolf endpoints
+            auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+            auto server = static_cast<HttpsServer*>(https_server_);
+
+            https_thread_ = std::thread([server, app_state, port = state_->getConfig().https_port]() {
+                HTTPServers::startServer(server, immer::box<state::AppState>(*app_state), port);
+            });
+
+            Debug::log(LOG, "WolfMoonlightServer: HTTPS server initialized and started with certificates");
 
         } catch (const std::exception& e) {
             Debug::log(ERR, "WolfMoonlightServer: Failed to create HTTPS server: {}", e.what());

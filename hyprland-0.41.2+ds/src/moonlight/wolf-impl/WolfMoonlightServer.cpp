@@ -804,7 +804,7 @@ WolfMoonlightServer::~WolfMoonlightServer() {
 }
 
 bool WolfMoonlightServer::initialize(const MoonlightConfig& config) {
-    Debug::log(LOG, "WolfMoonlightServer: Initializing moonlight server");
+    logs::log(logs::warning, "WolfMoonlightServer: Initializing moonlight server");
 
     if (!initializeGStreamer()) {
         Debug::log(ERR, "WolfMoonlightServer: Failed to initialize GStreamer");
@@ -1035,7 +1035,7 @@ void WolfMoonlightServer::initializeHttpServer() {
 }
 
 void WolfMoonlightServer::initializeHttpsServer() {
-    Debug::log(LOG, "WolfMoonlightServer: Initializing real Wolf HTTPS server with self-signed certificates");
+    logs::log(logs::warning, "WolfMoonlightServer: Initializing real Wolf HTTPS server with self-signed certificates");
 
     // Thread-safe server initialization
     std::lock_guard<std::mutex> lock(shutdown_mutex_);
@@ -1048,12 +1048,12 @@ void WolfMoonlightServer::initializeHttpsServer() {
     std::string gen_cert_cmd = "openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
                               " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost'";
 
-    Debug::log(LOG, "WolfMoonlightServer: Executing certificate generation command: {}", gen_cert_cmd);
+    logs::log(logs::warning, "WolfMoonlightServer: Executing certificate generation command: {}", gen_cert_cmd);
     int cert_result = system(gen_cert_cmd.c_str());
-    Debug::log(LOG, "WolfMoonlightServer: Certificate generation result: {}", cert_result);
+    logs::log(logs::warning, "WolfMoonlightServer: Certificate generation result: {}", cert_result);
 
     if (cert_result == 0) {
-        Debug::log(LOG, "WolfMoonlightServer: Generated self-signed certificates");
+        logs::log(logs::warning, "WolfMoonlightServer: Generated self-signed certificates");
 
         // CRITICAL: Load certificates into Wolf AppState for pairing endpoints
         loadCertificatesIntoAppState(cert_file, key_file);

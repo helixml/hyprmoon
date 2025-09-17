@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Function to log exit with reason
+# Function to log exit with reason (for explicit use only)
 exit_with_reason() {
     local exit_code=$1
     local reason="$2"
@@ -9,14 +9,10 @@ exit_with_reason() {
     echo "🚨 === SCRIPT EXITING ==="
     echo "Exit code: $exit_code"
     echo "Reason: $reason"
-    echo "Location: Line $BASH_LINENO in $BASH_SOURCE"
     echo "Time: $(date)"
     echo "=== END EXIT LOG ==="
     exit $exit_code
 }
-
-# Trap any unhandled exits
-trap 'exit_with_reason $? "Unexpected exit caught by trap"' EXIT
 
 # Host-side trigger script for HyprMoon builds
 # Usage: ./build.sh
@@ -151,8 +147,6 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
                 echo "This will remove the build directory and ensure your changes are compiled."
                 cd - >/dev/null
                 rm -rf "$TEMP_DIR"
-                trap - EXIT
-
                 # STILL DEPLOY even with stale cache - user might want to test existing build
                 echo ""
                 echo "⚠️ WARNING: Continuing with auto-deployment despite stale cache..."
@@ -291,8 +285,6 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
 
     cd - >/dev/null  # Return to hyprmoon directory
 
-    # Disable exit trap for successful completion
-    trap - EXIT
     echo ""
     echo "🎉 === BUILD.SH COMPLETED SUCCESSFULLY ==="
     echo "All tasks completed: build, deploy, and container restart"

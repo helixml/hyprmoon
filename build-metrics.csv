@@ -1,3 +1,12 @@
 timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,ccache_size_before,ccache_hit_rate_after,ccache_files_after,ccache_size_after,ninja_targets_before,ninja_cache_files_before,ninja_targets_after,ninja_object_files_after,hyprland_binary_md5,git_commit_hash,git_changed_files
 1758120003,0.41.2+ds-1.3+step8.9.13,534,70.77,0,0.1,70.91,0,0.1,0,0,229,e9c80071971cdd18,08386bec,2
 1758120550,0.41.2+ds-1.3+step8.9.13,70,70.91,0,0.1,70.91,0,0.1,680,22,229,e9c80071971cdd18,08386bec,2
+1758121360,0.41.2+ds-1.3+step8.9.13,67,70.91,0,0.1,70.91,0,0.1,680,22,229,e9c80071971cdd18,a0d0bd5e,0
+1758121962,0.41.2+ds-1.3+step8.9.14,91,70.91,0,0.1,70.91,0,0.1,680,22,229,e9c80071971cdd18,a0d0bd5e,3
+1758122592,0.41.2+ds-1.3+step8.9.15,101,70.91,0,0.1,70.91,0,0.1,680,22,229,e9c80071971cdd18,a0d0bd5e,4
+1758126067,0.41.2+ds-1.3+step8.9.16,487,70.91,0,0.1,70.24,0,0.1,0,0,229,b84220a5314d3da6,a0d0bd5e,7
+1758127164,0.41.2+ds-1.3+step8.9.17,85,70.24,0,0.1,70.24,0,0.1,680,22,229,92e30f0c20fbc756,a0d0bd5e,9,INCREMENTAL,unknown,unknown
+1758128140,0.41.2+ds-1.3+step8.9.22,126,70.64,0,0.1,70.81,0,0.1,602,22,229,7b238d22ccf0b80b,a0d0bd5e,9,FULL,unknown,unknown
+1758128334,0.41.2+ds-1.3+step8.9.23,123,70.81,0,0.1,70.98,0,0.1,602,22,229,8a571ec671d3c3d8,a0d0bd5e,9,FULL,unknown,unknown
+1758128759,0.41.2+ds-1.3+step8.9.29,400,70.92,0,0.1,70.37,0,0.2,602,22,229,92e30f0c20fbc756,a0d0bd5e,10,INCREMENTAL,unknown,unknown
+1758129202,0.41.2+ds-1.3+step8.9.30,102,70.37,0,0.2,70.37,0,0.2,602,22,229,92e30f0c20fbc756,a0d0bd5e,11,INCREMENTAL,unknown,unknown

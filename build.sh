@@ -36,6 +36,34 @@ if [ "$FORCE_CLEAN" = "1" ]; then
     fi
 fi
 
+# Auto-bump version to ensure code changes are always deployed
+CURRENT_VERSION=$(grep -m1 '^hyprmoon (' hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/')
+
+# Extract current step number and increment it
+CURRENT_STEP=$(echo "$CURRENT_VERSION" | sed 's/.*step8\.9\.\([0-9]\+\).*/\1/')
+NEXT_STEP=$((CURRENT_STEP + 1))
+NEW_VERSION=$(echo "$CURRENT_VERSION" | sed "s/step8\.9\.[0-9]\+/step8.9.${NEXT_STEP}/")
+
+if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+    echo "Auto-bumping version: $CURRENT_VERSION → $NEW_VERSION"
+
+    # Prepend new changelog entry
+    TEMP_CHANGELOG=$(mktemp)
+    cat > "$TEMP_CHANGELOG" << EOF
+hyprmoon ($NEW_VERSION) unstable; urgency=medium
+
+  * Auto-build step8.9.${NEXT_STEP} - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  $(date -R)
+
+EOF
+    cat hyprland-0.41.2+ds/debian/changelog >> "$TEMP_CHANGELOG"
+    mv "$TEMP_CHANGELOG" hyprland-0.41.2+ds/debian/changelog
+    echo "✓ Version bumped to step8.9.${NEXT_STEP}"
+else
+    echo "Version unchanged: $CURRENT_VERSION"
+fi
+
 # Step 8.6: Re-enable ccache for faster builds
 mkdir -p /home/luke/.ccache
 
@@ -215,8 +243,27 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
         exit_with_reason 1 "Helix directory not found at $HELIX_DIR - cannot deploy"
     fi
 
-    echo "1. Copying deb files to $HELIX_DIR/"
-    cp hyprmoon_*.deb "$HELIX_DIR/"
+    echo "1. Copying build artifacts to $HELIX_DIR/"
+
+    # Copy latest .deb file (for full builds)
+    if ls hyprmoon_*.deb >/dev/null 2>&1; then
+        LATEST_DEB=$(ls -t hyprmoon_*.deb | head -1)
+        cp "$LATEST_DEB" "$HELIX_DIR/"
+        echo "   Copied .deb: $LATEST_DEB"
+    fi
+
+    # Copy versioned binary and version file (for incremental builds)
+    if ls Hyprland-* >/dev/null 2>&1; then
+        LATEST_BINARY=$(ls -t Hyprland-* | head -1)
+        cp "$LATEST_BINARY" "$HELIX_DIR/"
+        echo "   Copied binary: $LATEST_BINARY"
+    fi
+
+    # Copy version file if it exists
+    if [ -f HYPRMOON_VERSION.txt ]; then
+        cp HYPRMOON_VERSION.txt "$HELIX_DIR/"
+        echo "   Copied version file: HYPRMOON_VERSION.txt"
+    fi
 
     # Check if backgrounds package exists and is not corrupted before copying
     if ls hyprland-backgrounds_*.deb >/dev/null 2>&1; then
@@ -236,21 +283,81 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
         echo "   (No backgrounds package found - that's OK)"
     fi
 
-    # Step 2: Update Dockerfile.zed-agent-vnc with new version numbers
-    echo "2. Updating Dockerfile.zed-agent-vnc with new package versions"
+    # Step 2: Update Dockerfile.zed-agent-vnc intelligently based on what we built
+    echo "2. Updating Dockerfile.zed-agent-vnc with new version and deployment strategy"
     cd "$HELIX_DIR"
 
-    # Get the new version numbers from the copied debs
-    NEW_VERSION=$(ls hyprmoon_*.deb | head -1 | sed 's/hyprmoon_\(.*\)_amd64.deb/\1/')
+    # Determine what we built and what's newest
+    LATEST_DEB=""
+    LATEST_BINARY=""
+    DEB_TIME=0
+    BINARY_TIME=0
+
+    if ls hyprmoon_*.deb >/dev/null 2>&1; then
+        LATEST_DEB=$(ls -t hyprmoon_*.deb | head -1)
+        DEB_TIME=$(stat -c %Y "$LATEST_DEB")
+    fi
+
+    if ls Hyprland-* >/dev/null 2>&1; then
+        LATEST_BINARY=$(ls -t Hyprland-* | head -1)
+        BINARY_TIME=$(stat -c %Y "$LATEST_BINARY")
+    fi
+
+    # Decide deployment strategy based on what's newer
+    if [ -n "$LATEST_BINARY" ] && [ "$BINARY_TIME" -gt "$DEB_TIME" ]; then
+        # Incremental build - need .deb for base installation
+        if [ -z "$LATEST_DEB" ]; then
+            echo "❌ ERROR: Incremental build detected but no .deb package exists!"
+            echo "   You must do a full build first to create the base .deb package."
+            echo "   Run: FORCE_CLEAN=1 ./build.sh"
+            exit_with_reason 1 "Incremental build requires existing .deb package for base installation"
+        fi
+
+        echo "   🔥 INCREMENTAL STRATEGY: Binary newer than .deb - will clobber"
+        DEPLOY_MODE="INCREMENTAL"
+        # Use the version we just calculated from changelog auto-bump
+        DEPLOY_VERSION="$NEW_VERSION"
+        BINARY_VERSION=$(echo "$LATEST_BINARY" | sed 's/Hyprland-\(.*\)/\1/')
+    else
+        echo "   📦 STANDARD STRATEGY: Using .deb package installation"
+        DEPLOY_MODE="STANDARD"
+        # Use the version we just calculated from changelog auto-bump
+        DEPLOY_VERSION="$NEW_VERSION"
+    fi
+
     OLD_VERSION_PATTERN="step8\.9\.[0-9]\+"
+    echo "   Deployment mode: $DEPLOY_MODE, Version: $NEW_VERSION"
 
-    echo "   Updating from pattern $OLD_VERSION_PATTERN to $NEW_VERSION"
+    # Update .deb package references to use latest available .deb (not incremental version)
+    if [ -n "$LATEST_DEB" ]; then
+        DEB_VERSION=$(echo "$LATEST_DEB" | sed 's/hyprmoon_\(.*\)_amd64.deb/\1/')
+        sed -i "s/hyprmoon_0\.41\.2+ds-1\.3+${OLD_VERSION_PATTERN}_amd64\.deb/hyprmoon_${DEB_VERSION}_amd64.deb/g" Dockerfile.zed-agent-vnc
+        sed -i "s/hyprland-backgrounds_0\.41\.2+ds-1\.3+${OLD_VERSION_PATTERN}_all\.deb/hyprland-backgrounds_${DEB_VERSION}_all.deb/g" Dockerfile.zed-agent-vnc
+        echo "   ✓ Dockerfile .deb references updated to: $DEB_VERSION"
+    fi
 
-    # Update the COPY commands and dpkg install commands
-    sed -i "s/hyprmoon_0\.41\.2+ds-1\.3+${OLD_VERSION_PATTERN}_amd64\.deb/hyprmoon_${NEW_VERSION}_amd64.deb/g" Dockerfile.zed-agent-vnc
-    sed -i "s/hyprland-backgrounds_0\.41\.2+ds-1\.3+${OLD_VERSION_PATTERN}_all\.deb/hyprland-backgrounds_${NEW_VERSION}_all.deb/g" Dockerfile.zed-agent-vnc
+    # Enable/disable incremental binary clobbering based on deployment mode
+    if [ "$DEPLOY_MODE" = "INCREMENTAL" ]; then
+        echo "   Enabling binary clobbering in Dockerfile..."
+        # Uncomment the incremental binary section and update the version
+        sed -i 's/^# COPY Hyprland-VERSION/COPY '"$LATEST_BINARY"'/g' Dockerfile.zed-agent-vnc
+        sed -i '/^# COPY HYPRMOON_VERSION.txt/s/^# //' Dockerfile.zed-agent-vnc
+        sed -i '/^# RUN echo.*INCREMENTAL DEPLOY/,/^# INCREMENTAL_BINARY_COPY_END/s/^# //' Dockerfile.zed-agent-vnc
+    else
+        echo "   Ensuring binary clobbering is disabled in Dockerfile..."
+        # Ensure incremental binary section is commented out
+        sed -i '/^COPY Hyprland-/s/^/# /' Dockerfile.zed-agent-vnc
+        sed -i '/^COPY HYPRMOON_VERSION.txt/s/^/# /' Dockerfile.zed-agent-vnc
+        sed -i '/^RUN echo.*INCREMENTAL DEPLOY/,/^# INCREMENTAL_BINARY_COPY_END/s/^/# /' Dockerfile.zed-agent-vnc
+    fi
 
-    echo "   ✓ Dockerfile updated with version $NEW_VERSION"
+    echo "   ✓ Dockerfile updated for $DEPLOY_MODE deployment with version $NEW_VERSION"
+
+    # Write deployment info for CSV logging
+    echo "DEPLOY_MODE=${DEPLOY_MODE}" > deployment-info.env
+    echo "DEB_VERSION=${DEB_VERSION:-none}" >> deployment-info.env
+    echo "BINARY_VERSION=${BINARY_VERSION:-none}" >> deployment-info.env
+    echo "✓ Deployment info saved for metrics logging"
 
     # Step 3: Check if zed-runner container is running and rebuild
     echo "3. Checking if zed-runner container is running..."

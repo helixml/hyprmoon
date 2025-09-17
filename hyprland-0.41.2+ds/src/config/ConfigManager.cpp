@@ -617,7 +617,7 @@ CConfigManager::CConfigManager() {
     resetHLConfig();
 
     Debug::log(INFO,
-               "!!!!HEY YOU, YES YOU, YEAH BABY I'M TALKING TO YOU!!!!: further logs to stdout / logfile are disabled by default. BEFORE SENDING THIS LOG, ENABLE THEM. Use debug:disable_logs = false to do so: "
+               "!!!!HEY YOU, YES YOU, YEAH BABY I'M TALKING TO YOU, OVER THERE!!!!: further logs to stdout / logfile are disabled by default. BEFORE SENDING THIS LOG, ENABLE THEM. Use debug:disable_logs = false to do so: "
                "https://wiki.hyprland.org/Configuring/Variables/#debug");
 
     Debug::disableLogs = reinterpret_cast<int64_t* const*>(m_pConfig->getConfigValuePtr("debug:disable_logs")->getDataStaticPtr());

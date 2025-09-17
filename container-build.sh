@@ -15,7 +15,7 @@ export PATH="/usr/lib/ccache:$PATH"
 
 # Initialize CSV header if it doesn't exist
 if [ ! -f "$METRICS_CSV" ]; then
-    echo "timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,ccache_size_before,ccache_hit_rate_after,ccache_files_after,ccache_size_after,ninja_targets_before,ninja_cache_files_before,ninja_targets_after,ninja_object_files_after,hyprland_binary_md5,git_commit_hash,git_changed_files" > "$METRICS_CSV"
+    echo "timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,ccache_size_before,ccache_hit_rate_after,ccache_files_after,ccache_size_after,ninja_targets_before,ninja_cache_files_before,ninja_targets_after,ninja_object_files_after,hyprland_binary_md5,git_commit_hash,git_changed_files,build_type,deployed_deb_version,deployed_binary_version" > "$METRICS_CSV"
 fi
 
 # Function to extract ccache stats
@@ -52,47 +52,93 @@ echo "Container log file: $CONTAINER_LOG"
 # Navigate to source directory
 cd /workspace/hyprland-0.41.2+ds
 
-# Update package lists
-echo "Updating package lists..."
-apt-get update -qq
-
-# Skip build dependencies if pre-installed in container, only install if missing
-echo "Checking build dependencies..."
-if ! dpkg-checkbuilddeps debian/control >/dev/null 2>&1; then
-    echo "Missing dependencies detected - installing via mk-build-deps"
-    mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
-else
-    echo "All build dependencies satisfied - skipping mk-build-deps"
-fi
-
 # Get version from changelog
 VERSION=$(grep -m1 '^hyprmoon (' /workspace/hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/')
 
-# Collect metrics before build
-echo "=== COLLECTING BUILD METRICS ==="
-CCACHE_BEFORE=$(get_ccache_stats)
-NINJA_BEFORE=$(get_ninja_stats)
-echo "Pre-build - ccache: $CCACHE_BEFORE, ninja: $NINJA_BEFORE"
+# CRITICAL: Check for incremental build BEFORE any Debian commands that might wipe build directory
+echo "🔍 DEBUG: Checking for incremental build files (BEFORE any cleaning)..."
+echo "  build dir exists: $([ -d build ] && echo YES || echo NO)"
+echo "  ninja log exists: $([ -f build/.ninja_log ] && echo YES || echo NO)"
+echo "  build.ninja exists: $([ -f build/build.ninja ] && echo YES || echo NO)"
 
-# Build the deb package
-echo "Building deb package..."
-
-# Show ccache stats before build
-echo "=== CCACHE STATS BEFORE BUILD ==="
-CCACHE_DIR=/ccache ccache -s | head -10
-
-# Use incremental build approach for speed
-if [ -d build ] && [ -f build/.ninja_log ]; then
+if [ -d build ] && [ -f build/.ninja_log ] && [ -f build/build.ninja ]; then
     BUILD_TYPE="INCREMENTAL"
-    echo "Detected existing build directory - using fast incremental build"
-    if ! fakeroot debian/rules binary; then
-        echo "=== INCREMENTAL BUILD FAILED ==="
-        echo "fakeroot debian/rules binary failed with exit code $?"
+    echo "🚀 INCREMENTAL BUILD: Using direct ninja + ccache"
+
+    # Skip all dependency checking for incremental builds - assume they're satisfied
+    echo "INCREMENTAL MODE: Skipping all dependency installation"
+    echo "If build fails due to missing deps, run: FORCE_CLEAN=1 ./build.sh"
+
+    # Collect metrics before build
+    echo "=== COLLECTING BUILD METRICS ==="
+    CCACHE_BEFORE=$(get_ccache_stats)
+    NINJA_BEFORE=$(get_ninja_stats)
+    echo "Pre-build - ccache: $CCACHE_BEFORE, ninja: $NINJA_BEFORE"
+
+    # Show ccache stats before build
+    echo "=== CCACHE STATS BEFORE BUILD ==="
+    CCACHE_DIR=/ccache ccache -s | head -10
+
+    # Configure ccache and build directly
+    export CCACHE_DIR=/ccache
+    export PATH="/usr/lib/ccache:$PATH"
+    export CC="gcc"
+    export CXX="g++"
+
+    # Run ninja directly for incremental compilation
+    cd build
+
+    # Fix CMake compiler cache issue for ccache
+    echo "Fixing CMake compiler paths for ccache..."
+    cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .
+
+    if ! ninja; then
+        echo "=== NINJA BUILD FAILED ==="
         exit 1
     fi
+    cd ..
+
+    # Copy binary to workspace with version suffix and create version file
+    if [ -f build/Hyprland ]; then
+        cp build/Hyprland "/workspace/Hyprland-${VERSION}"
+        echo "${VERSION}" > "/workspace/HYPRMOON_VERSION.txt"
+        echo "✓ Binary built and copied: Hyprland-${VERSION}"
+        echo "✓ Version file created: HYPRMOON_VERSION.txt"
+    else
+        echo "❌ ERROR: Hyprland binary not found after ninja build"
+        exit 1
+    fi
+
 else
     BUILD_TYPE="FULL"
-    echo "No existing build detected - using full dpkg-buildpackage"
+    echo "🔧 FULL BUILD: Using standard dpkg-buildpackage"
+
+    # Update package lists for full builds
+    echo "Updating package lists for full build..."
+    apt-get update -qq
+
+    # Install dependencies for full builds
+    echo "Checking build dependencies..."
+    if ! dpkg-checkbuilddeps debian/control >/dev/null 2>&1; then
+        echo "Missing dependencies detected - installing via mk-build-deps"
+        mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
+    else
+        echo "All build dependencies satisfied - skipping mk-build-deps"
+    fi
+
+    # Collect metrics before build
+    echo "=== COLLECTING BUILD METRICS ==="
+    CCACHE_BEFORE=$(get_ccache_stats)
+    NINJA_BEFORE=$(get_ninja_stats)
+    echo "Pre-build - ccache: $CCACHE_BEFORE, ninja: $NINJA_BEFORE"
+
+    # Build the deb package
+    echo "Building deb package..."
+
+    # Show ccache stats before build
+    echo "=== CCACHE STATS BEFORE BUILD ==="
+    CCACHE_DIR=/ccache ccache -s | head -10
+
     if ! dpkg-buildpackage -us -uc -b; then
         echo "=== FULL BUILD FAILED ==="
         echo "dpkg-buildpackage failed with exit code $?"
@@ -126,7 +172,15 @@ fi
 GIT_COMMIT=$(cd /workspace && git config --global --add safe.directory /workspace 2>/dev/null; git rev-parse --short HEAD 2>/dev/null | tr -d '\n' || echo -n "unknown")
 GIT_CHANGED_FILES=$(cd /workspace && git status --porcelain 2>/dev/null | wc -l | tr -d '\n' || echo -n "0")
 
-echo "Post-build - duration: ${DURATION}s, ccache: $CCACHE_AFTER, ninja: $NINJA_AFTER, objects: $NINJA_OBJECTS, binary_md5: $HYPRLAND_MD5, git: $GIT_COMMIT, changed: $GIT_CHANGED_FILES"
+# Get deployment info (written by build.sh during auto-deployment)
+DEPLOY_MODE="unknown"
+DEB_VERSION="unknown"
+BINARY_VERSION="unknown"
+if [ -f /workspace/deployment-info.env ]; then
+    source /workspace/deployment-info.env
+fi
+
+echo "Post-build - duration: ${DURATION}s, ccache: $CCACHE_AFTER, ninja: $NINJA_AFTER, objects: $NINJA_OBJECTS, binary_md5: $HYPRLAND_MD5, git: $GIT_COMMIT, changed: $GIT_CHANGED_FILES, deploy: $DEPLOY_MODE"
 
 # Write metrics to CSV (ensure single line, strip any newlines)
 {
@@ -134,7 +188,7 @@ echo "Post-build - duration: ${DURATION}s, ccache: $CCACHE_AFTER, ninja: $NINJA_
     echo -n "${CCACHE_BEFORE},"
     echo -n "${CCACHE_AFTER},"
     echo -n "${NINJA_BEFORE},"
-    echo -n "${NINJA_OBJECTS},${HYPRLAND_MD5},${GIT_COMMIT},${GIT_CHANGED_FILES}"
+    echo -n "${NINJA_OBJECTS},${HYPRLAND_MD5},${GIT_COMMIT},${GIT_CHANGED_FILES},${BUILD_TYPE},${DEB_VERSION},${BINARY_VERSION}"
     echo ""
 } >> "$METRICS_CSV"
 

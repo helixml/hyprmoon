@@ -1,1 +1,3 @@
-1758117015,0.41.2+ds-1.3+step8.9.13,484,70.20,0,0.1,70.37,0,0.1,0,0,229
+timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,ccache_size_before,ccache_hit_rate_after,ccache_files_after,ccache_size_after,ninja_targets_before,ninja_cache_files_before,ninja_targets_after,ninja_object_files_after,hyprland_binary_md5,git_commit_hash,git_changed_files
+1758120003,0.41.2+ds-1.3+step8.9.13,534,70.77,0,0.1,70.91,0,0.1,0,0,229,e9c80071971cdd18,08386bec,2
+1758120550,0.41.2+ds-1.3+step8.9.13,70,70.91,0,0.1,70.91,0,0.1,680,22,229,e9c80071971cdd18,08386bec,2

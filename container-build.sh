@@ -23,10 +23,10 @@ get_ccache_stats() {
     # Set ccache directory to the mounted location
     export CCACHE_DIR=/ccache
     local stats=$(ccache -s 2>/dev/null)
-    local hit_rate=$(echo "$stats" | grep "Hits:" | head -1 | sed 's/.*(\([0-9.]*\)%).*/\1/' || echo "0")
-    local files=$(echo "$stats" | grep "files in cache" | sed 's/.*: *\([0-9]*\).*/\1/' || echo "0")
-    local size=$(echo "$stats" | grep "Cache size" | sed 's/.*: *\([0-9.]*\).*/\1/' || echo "0")
-    echo "${hit_rate},${files},${size}"
+    local hit_rate=$(echo "$stats" | grep "Hits:" | head -1 | sed 's/.*(\([0-9.]*\)%).*/\1/' | tr -d '\n' || echo "0")
+    local files=$(echo "$stats" | grep "files in cache" | sed 's/.*: *\([0-9]*\).*/\1/' | tr -d '\n' || echo "0")
+    local size=$(echo "$stats" | grep "Cache size" | sed 's/.*: *\([0-9.]*\).*/\1/' | tr -d '\n' || echo "0")
+    echo -n "${hit_rate},${files},${size}"
 }
 
 # Function to get ninja stats
@@ -34,10 +34,10 @@ get_ninja_stats() {
     local targets=0
     local cache_files=0
     if [ -d build ]; then
-        targets=$(cd build && ninja -t targets all 2>/dev/null | wc -l || echo "0")
-        cache_files=$(cd build && find . -name "*.ninja*" 2>/dev/null | wc -l || echo "0")
+        targets=$(cd build && ninja -t targets all 2>/dev/null | wc -l | tr -d '\n' || echo "0")
+        cache_files=$(cd build && find . -name "*.ninja*" 2>/dev/null | wc -l | tr -d '\n' || echo "0")
     fi
-    echo "${targets},${cache_files}"
+    echo -n "${targets},${cache_files}"
 }
 
 # Redirect output to both console and log file, but handle SIGPIPE gracefully
@@ -56,9 +56,14 @@ cd /workspace/hyprland-0.41.2+ds
 echo "Updating package lists..."
 apt-get update -qq
 
-# Install build dependencies (keep dummy package to avoid reinstalls)
-echo "Installing build dependencies..."
-mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
+# Skip build dependencies if pre-installed in container, only install if missing
+echo "Checking build dependencies..."
+if ! dpkg-checkbuilddeps debian/control >/dev/null 2>&1; then
+    echo "Missing dependencies detected - installing via mk-build-deps"
+    mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes -qq' debian/control
+else
+    echo "All build dependencies satisfied - skipping mk-build-deps"
+fi
 
 # Get version from changelog
 VERSION=$(grep -m1 '^hyprmoon (' /workspace/hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/')
@@ -117,14 +122,21 @@ elif [ -f debian/tmp/usr/bin/Hyprland ]; then
     HYPRLAND_MD5=$(md5sum debian/tmp/usr/bin/Hyprland | cut -d' ' -f1 | cut -c1-16)
 fi
 
-# Get git info for build tracking
-GIT_COMMIT=$(cd /workspace && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-GIT_CHANGED_FILES=$(cd /workspace && git status --porcelain 2>/dev/null | wc -l || echo "0")
+# Get git info for build tracking (fix ownership issues)
+GIT_COMMIT=$(cd /workspace && git config --global --add safe.directory /workspace 2>/dev/null; git rev-parse --short HEAD 2>/dev/null | tr -d '\n' || echo -n "unknown")
+GIT_CHANGED_FILES=$(cd /workspace && git status --porcelain 2>/dev/null | wc -l | tr -d '\n' || echo -n "0")
 
 echo "Post-build - duration: ${DURATION}s, ccache: $CCACHE_AFTER, ninja: $NINJA_AFTER, objects: $NINJA_OBJECTS, binary_md5: $HYPRLAND_MD5, git: $GIT_COMMIT, changed: $GIT_CHANGED_FILES"
 
-# Write metrics to CSV (ensure single line)
-printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" "${BUILD_START}" "${VERSION}" "${DURATION}" "${CCACHE_BEFORE}" "${CCACHE_AFTER}" "${NINJA_BEFORE}" "${NINJA_OBJECTS}" "${HYPRLAND_MD5}" "${GIT_COMMIT}" "${GIT_CHANGED_FILES}" >> "$METRICS_CSV"
+# Write metrics to CSV (ensure single line, strip any newlines)
+{
+    echo -n "${BUILD_START},${VERSION},${DURATION},"
+    echo -n "${CCACHE_BEFORE},"
+    echo -n "${CCACHE_AFTER},"
+    echo -n "${NINJA_BEFORE},"
+    echo -n "${NINJA_OBJECTS},${HYPRLAND_MD5},${GIT_COMMIT},${GIT_CHANGED_FILES}"
+    echo ""
+} >> "$METRICS_CSV"
 
 # Show ccache stats after build
 echo "=== CCACHE STATS AFTER BUILD ==="

@@ -13,10 +13,17 @@ RUN apt-get update && apt-get install -y \
     libpixman-1-dev libcairo2-dev libpango1.0-dev \
     libgdk-pixbuf-2.0-dev libglib2.0-dev \
     # Ubuntu-specific dependencies from control file
-    libwlroots-dev libtomlplusplus-dev libzip-dev \
+    libwlroots-0.18-dev libtomlplusplus-dev libzip-dev \
     libfmt-dev libudis86-dev libhyprlang-dev \
     libhyprutils-dev libhyprcursor-dev \
-    libboost-system-dev libboost-filesystem-dev libboost-locale-dev \
+    # Complete boost library collection (replaces individual packages)
+    libboost-all-dev \
+    # Additional dependencies from debian/control
+    chrpath cpio hwdata hyprland-protocols hyprwayland-scanner \
+    libcairo-dev libdrm-dev libegl-dev libegl1-mesa-dev \
+    libgles-dev libinput-dev libpango1.0-dev libpixman-1-dev \
+    libseat-dev libxcb-errors-dev libxcb-util-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
     # New HyprMoon dependencies
     libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
     libgstreamer-plugins-bad1.0-dev libgstreamer-plugins-good1.0-dev \

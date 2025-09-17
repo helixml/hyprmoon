@@ -14,24 +14,52 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,-O2
 	dh $@
 
 override_dh_auto_build:
-	@echo "=== NINJA BUILD STATS BEFORE ==="
-	@if [ -d build ]; then \
-		cd build && ninja -t targets all | wc -l | xargs echo "Total targets:"; \
-		cd build && find . -name "*.ninja*" 2>/dev/null | wc -l | xargs echo "Ninja cache files:"; \
+	@echo "=== NINJA BUILD DEBUGGING ==="
+	@{ \
+		echo "🥷 Ninja Build Debug Report - $(date)"; \
+		if [ -d build ] && [ -f build/.ninja_log ]; then echo "🚀 Build Type: INCREMENTAL (skip configure)"; else echo "🚀 Build Type: FULL (with configure)"; fi; \
+		echo "════════════════════════════════════════"; \
+		if [ -d build ]; then \
+			cd build; \
+			echo "📊 BEFORE BUILD:"; \
+			ninja -t targets all | wc -l | xargs echo "  Total targets:"; \
+			find . -name "*.ninja*" 2>/dev/null | wc -l | xargs echo "  Ninja cache files:"; \
+			ls -la .ninja_deps .ninja_log 2>/dev/null | head -2 || echo "  No ninja dependency files"; \
+			echo ""; \
+			echo "🔍 WHY REBUILDING (ninja explain):"; \
+			ninja -n -d explain 2>&1 | head -15 | sed 's/^/  /' || echo "  No ninja explain available"; \
+		else \
+			echo "📁 No build directory - clean build"; \
+		fi; \
+		echo ""; \
+	} > /workspace/ninja-debug.log
+	@if [ -d build ] && [ -f build/.ninja_log ] && [ -f build/build.ninja ]; then \
+		echo "🚀 INCREMENTAL BUILD: Skipping configure, going straight to ninja"; \
+		cd build && ninja; \
 	else \
-		echo "No build directory - clean build"; \
+		echo "🔧 FULL BUILD: Running configure + build"; \
+		dh_auto_build -- PREFIX=/usr all; \
 	fi
-	dh_auto_build -- PREFIX=/usr all
-	@echo "=== NINJA BUILD STATS AFTER ==="
-	@if [ -d build ]; then \
-		cd build && ninja -t targets all | wc -l | xargs echo "Total targets:"; \
-		cd build && find . -name "*.o" 2>/dev/null | wc -l | xargs echo "Object files:"; \
-	fi
+	@{ \
+		echo "📊 AFTER BUILD:"; \
+		if [ -d build ]; then \
+			cd build; \
+			ninja -t targets all | wc -l | xargs echo "  Total targets:"; \
+			find . -name "*.o" 2>/dev/null | wc -l | xargs echo "  Object files generated:"; \
+			echo ""; \
+			echo "🔨 LAST 10 TARGETS BUILT:"; \
+			tail -10 .ninja_log 2>/dev/null | cut -f4 | sed 's/^/  /' || echo "  No ninja log available"; \
+		fi; \
+		echo ""; \
+		echo "✅ Debug report complete - $(date)"; \
+		echo "════════════════════════════════════════"; \
+	} >> /workspace/ninja-debug.log
 
 override_dh_auto_install:
 	# Fix permission on hyprland.pc (Hyprland sets 777 on everything in
 	# build/ directory)
-	chmod 644 build/hyprland.pc
+	# Fix permission on hyprland.pc if it exists (incremental builds may skip this)
+	[ -f build/hyprland.pc ] && chmod 644 build/hyprland.pc || true
 
 	# dh_auto_install auto detects the correct DESTDIR.
 	# Modify PREFIX so that this DESTDIR is actually taken into account.
@@ -53,7 +81,8 @@ override_dh_clean:
 		done ;
 
 	# Step 8.6: Allow incremental builds with ccache and ninja
-	dh_clean -X scripts/generateVersion.sh.bak -X build/
+	# Exclude build directory and CMake files to prevent reconfiguration
+	dh_clean -X scripts/generateVersion.sh.bak -X build/ -X build/CMakeFiles/ -X build/CMakeCache.txt -X build/cmake_install.cmake -X build/CMakeFiles/VerifyGlobs.cmake_force
 	@echo "Incremental build with ccache and ninja enabled"
 
 override_dh_dwz:

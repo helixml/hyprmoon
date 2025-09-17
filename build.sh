@@ -29,7 +29,7 @@ if [ "$FORCE_CLEAN" = "1" ]; then
     echo "FORCE_CLEAN=1 detected - removing build directory to ensure clean build"
     if [ -d "hyprland-0.41.2+ds/build" ]; then
         echo "Removing hyprland-0.41.2+ds/build directory..."
-        rm -rf hyprland-0.41.2+ds/build
+        sudo rm -rf hyprland-0.41.2+ds/build
         echo "Build directory cleaned successfully"
     else
         echo "Build directory doesn't exist, nothing to clean"

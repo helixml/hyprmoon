@@ -15,7 +15,7 @@ export PATH="/usr/lib/ccache:$PATH"
 
 # Initialize CSV header if it doesn't exist
 if [ ! -f "$METRICS_CSV" ]; then
-    echo "timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,ccache_size_before,ccache_hit_rate_after,ccache_files_after,ccache_size_after,ninja_targets_before,ninja_cache_files_before,ninja_targets_after,ninja_object_files_after" > "$METRICS_CSV"
+    echo "timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,ccache_size_before,ccache_hit_rate_after,ccache_files_after,ccache_size_after,ninja_targets_before,ninja_cache_files_before,ninja_targets_after,ninja_object_files_after,hyprland_binary_md5,git_commit_hash,git_changed_files" > "$METRICS_CSV"
 fi
 
 # Function to extract ccache stats
@@ -109,10 +109,22 @@ if [ -d build ]; then
     NINJA_OBJECTS=$(cd build && find . -name "*.o" 2>/dev/null | wc -l || echo "0")
 fi
 
-echo "Post-build - duration: ${DURATION}s, ccache: $CCACHE_AFTER, ninja: $NINJA_AFTER, objects: $NINJA_OBJECTS"
+# Get Hyprland binary MD5 for code change tracking
+HYPRLAND_MD5="unknown"
+if [ -f build/Hyprland ]; then
+    HYPRLAND_MD5=$(md5sum build/Hyprland | cut -d' ' -f1 | cut -c1-16)
+elif [ -f debian/tmp/usr/bin/Hyprland ]; then
+    HYPRLAND_MD5=$(md5sum debian/tmp/usr/bin/Hyprland | cut -d' ' -f1 | cut -c1-16)
+fi
+
+# Get git info for build tracking
+GIT_COMMIT=$(cd /workspace && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+GIT_CHANGED_FILES=$(cd /workspace && git status --porcelain 2>/dev/null | wc -l || echo "0")
+
+echo "Post-build - duration: ${DURATION}s, ccache: $CCACHE_AFTER, ninja: $NINJA_AFTER, objects: $NINJA_OBJECTS, binary_md5: $HYPRLAND_MD5, git: $GIT_COMMIT, changed: $GIT_CHANGED_FILES"
 
 # Write metrics to CSV (ensure single line)
-printf "%s,%s,%s,%s,%s,%s,%s\n" "${BUILD_START}" "${VERSION}" "${DURATION}" "${CCACHE_BEFORE}" "${CCACHE_AFTER}" "${NINJA_BEFORE}" "${NINJA_OBJECTS}" >> "$METRICS_CSV"
+printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" "${BUILD_START}" "${VERSION}" "${DURATION}" "${CCACHE_BEFORE}" "${CCACHE_AFTER}" "${NINJA_BEFORE}" "${NINJA_OBJECTS}" "${HYPRLAND_MD5}" "${GIT_COMMIT}" "${GIT_CHANGED_FILES}" >> "$METRICS_CSV"
 
 # Show ccache stats after build
 echo "=== CCACHE STATS AFTER BUILD ==="

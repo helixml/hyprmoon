@@ -507,20 +507,7 @@ static int open_render_node(int drm_fd) {
 		}
 		wlr_log(WLR_DEBUG, "DRM device '%s' has no render node, "
 			"falling back to primary node", render_name);
-
-		drmVersion *render_version = drmGetVersion(drm_fd);
-		if (render_version != NULL && render_version->name != NULL) {
-			wlr_log(WLR_DEBUG, "DRM device version.name '%s'", render_version->name);
-			if (strcmp(render_version->name, "evdi") == 0) {
-				free(render_name);
-				render_name = malloc(sizeof(char)*15);
-				strcpy(render_name, "/dev/dri/card0");
-			}
-			drmFreeVersion(render_version);
-		}
 	}
-
-	wlr_log(WLR_DEBUG, "open_render_node() DRM device '%s'", render_name);
 
 	int render_fd = open(render_name, O_RDWR | O_CLOEXEC);
 	if (render_fd < 0) {

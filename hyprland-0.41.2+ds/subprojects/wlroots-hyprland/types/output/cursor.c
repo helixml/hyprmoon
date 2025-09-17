@@ -171,7 +171,17 @@ static bool output_pick_cursor_format(struct wlr_output *output,
 		}
 	}
 
-	return output_pick_format(output, display_formats, format, DRM_FORMAT_ARGB8888);
+
+	// If this fails to find a shared modifier try to use a linear
+	// modifier. This avoids a scenario where the hardware cannot render to
+	// linear textures but only linear textures are supported for cursors,
+	// as is the case with Nvidia and VmWare GPUs
+	if (!output_pick_format(output, display_formats, format, DRM_FORMAT_ARGB8888)) {
+		// Clear the format as output_pick_format doesn't zero it
+		memset(format, 0, sizeof(*format));
+		return output_pick_format(output, NULL, format, DRM_FORMAT_ARGB8888);
+	}
+	return true;
 }
 
 static struct wlr_buffer *render_cursor_buffer(struct wlr_output_cursor *cursor) {

@@ -48,6 +48,7 @@ wlr_files += files(
 
 if libliftoff.found()
 	wlr_files += files('libliftoff.c')
+	internal_config.set10('HAVE_LIBLIFTOFF_0_5', libliftoff.version().version_compare('>=0.5.0'))
 endif
 
 features += { 'drm-backend': true }

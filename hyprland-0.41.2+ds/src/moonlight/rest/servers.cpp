@@ -105,7 +105,7 @@ void startServer(HttpServer *server, const immer::box<state::AppState> state, in
           auto secret = crypto::str_to_hex(crypto::random(8));
           // Make PIN URL VERY visible in logs
           logs::log(logs::warning, "=====================================");
-          logs::log(logs::warning, "MOONLIGHT PAIRING REQUESTED!");
+          logs::log(logs::warning, "MOONLIGHT PAIRING REQUESTED!!");
           logs::log(logs::warning, "Visit this URL to enter PIN:");
           logs::log(logs::warning, "http://{}:47989/pin/#{}", pair_sig->host_ip, secret);
           logs::log(logs::warning, "=====================================");

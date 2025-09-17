@@ -54,8 +54,9 @@ if ls hyprmoon_*.deb >/dev/null 2>&1; then
     TEMP_DIR=$(mktemp -d -t hyprmoon-stale-check-XXXXXX)
     trap "rm -rf $TEMP_DIR" EXIT
 
+    ORIGINAL_DIR="$(pwd)"
     cd "$TEMP_DIR"
-    dpkg-deb -x "/home/luke/pm/hyprmoon/$PREVIOUS_DEB_FILE" .
+    dpkg-deb -x "$ORIGINAL_DIR/$PREVIOUS_DEB_FILE" .
     if [ -f "usr/bin/Hyprland" ]; then
         PRE_BUILD_BINARY_MD5=$(md5sum usr/bin/Hyprland | cut -d' ' -f1)
         PRE_BUILD_BINARY_SIZE=$(stat -c%s usr/bin/Hyprland)
@@ -64,9 +65,8 @@ if ls hyprmoon_*.deb >/dev/null 2>&1; then
     else
         echo "Pre-build: Warning - could not extract Hyprland binary from $PREVIOUS_DEB_FILE"
     fi
-    cd - >/dev/null
+    cd "$ORIGINAL_DIR"
     rm -rf "$TEMP_DIR"
-    trap - EXIT
 else
     echo "Pre-build: No existing hyprmoon deb files found - this is a clean first build"
 fi
@@ -120,10 +120,10 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
         echo "Post-build: Extracting new Hyprland binary for stale build detection"
         # Extract new binary to /tmp for comparison
         TEMP_DIR=$(mktemp -d -t hyprmoon-stale-check-XXXXXX)
-        trap "rm -rf $TEMP_DIR" EXIT
+        ORIGINAL_DIR="$(pwd)"
 
         cd "$TEMP_DIR"
-        dpkg-deb -x "/home/luke/pm/hyprmoon/$EXPECTED_DEB" .
+        dpkg-deb -x "$ORIGINAL_DIR/$EXPECTED_DEB" .
         if [ -f "usr/bin/Hyprland" ]; then
             POST_BUILD_BINARY_MD5=$(md5sum usr/bin/Hyprland | cut -d' ' -f1)
             POST_BUILD_BINARY_SIZE=$(stat -c%s usr/bin/Hyprland)
@@ -145,7 +145,7 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
                 echo "   FORCE_CLEAN=1 ./build.sh"
                 echo ""
                 echo "This will remove the build directory and ensure your changes are compiled."
-                cd "$(dirname "$0")"  # Return to script directory
+                cd "$ORIGINAL_DIR"
                 rm -rf "$TEMP_DIR"
                 # STILL DEPLOY even with stale cache - user might want to test existing build
                 echo ""
@@ -161,7 +161,7 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
         else
             echo "Post-build: Warning - could not extract Hyprland binary from new deb"
         fi
-        cd "$(dirname "$0")"  # Return to script directory
+        cd "$ORIGINAL_DIR"
         rm -rf "$TEMP_DIR"
     elif [ -f "$EXPECTED_DEB" ]; then
         echo "✅ First build completed successfully - no previous version to compare against"
@@ -266,13 +266,16 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
     echo "4. Rebuilding zed-runner container with new HyprMoon packages..."
     docker compose -f docker-compose.dev.yaml build zed-runner
 
-    # Step 5: Restart if it was running
+    # Step 5: Recreate if it was running (down then up for clean state)
     if [ "$CONTAINER_WAS_RUNNING" = true ]; then
-        echo "5. Restarting zed-runner container..."
+        echo "5. Recreating zed-runner container for clean state..."
+        docker compose -f docker-compose.dev.yaml down zed-runner
         docker compose -f docker-compose.dev.yaml up -d zed-runner
-        echo "   ✓ Container restarted with new HyprMoon version $NEW_VERSION"
+        echo "   ✓ Container recreated with new HyprMoon version $NEW_VERSION"
     else
-        echo "5. Container was not running - build complete, ready to start"
+        echo "5. Container was not running - starting it now..."
+        docker compose -f docker-compose.dev.yaml up -d zed-runner
+        echo "   ✓ Container started with new HyprMoon version $NEW_VERSION"
     fi
 
     echo ""

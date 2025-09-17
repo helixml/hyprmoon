@@ -615,6 +615,16 @@ void cancel(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
     logs::log(logs::warning, "[CANCEL DEBUG] Sending XML response");
     try {
       send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
+      logs::log(logs::warning, "[CANCEL DEBUG] Cancel response sent, closing connection immediately");
+
+      // CRITICAL: Close connection immediately to prevent async SSL cleanup crashes
+      try {
+        response->close_connection_after_response = true;
+        logs::log(logs::warning, "[CANCEL DEBUG] Connection marked for immediate closure");
+      } catch (const std::exception& close_e) {
+        logs::log(logs::error, "[CANCEL DEBUG] Failed to mark connection for closure: {}", close_e.what());
+      }
+
       logs::log(logs::warning, "[CANCEL DEBUG] Cancel request completed successfully");
     } catch (const std::exception& e) {
       logs::log(logs::error, "[CANCEL DEBUG] CRITICAL: send_xml failed: {}", e.what());

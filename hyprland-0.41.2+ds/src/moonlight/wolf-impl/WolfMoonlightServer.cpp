@@ -1048,7 +1048,11 @@ void WolfMoonlightServer::initializeHttpsServer() {
     std::string gen_cert_cmd = "openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
                               " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost'";
 
-    if (system(gen_cert_cmd.c_str()) == 0) {
+    Debug::log(LOG, "WolfMoonlightServer: Executing certificate generation command: {}", gen_cert_cmd);
+    int cert_result = system(gen_cert_cmd.c_str());
+    Debug::log(LOG, "WolfMoonlightServer: Certificate generation result: {}", cert_result);
+
+    if (cert_result == 0) {
         Debug::log(LOG, "WolfMoonlightServer: Generated self-signed certificates");
 
         // CRITICAL: Load certificates into Wolf AppState for pairing endpoints

@@ -138,14 +138,14 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
                 echo "   Size:     $POST_BUILD_BINARY_SIZE bytes"
                 echo "   MD5:      ${POST_BUILD_BINARY_MD5:0:16}..."
                 echo ""
-                echo "This means your code changes are NOT being compiled into the binary."
+                echo "This means your code changes are NOT being compiled into the binary (or there were no changes since the last build)."
                 echo "The build cache is stale and needs to be cleared."
                 echo ""
                 echo "🔧 SOLUTION: Run a clean build to force recompilation:"
                 echo "   FORCE_CLEAN=1 ./build.sh"
                 echo ""
                 echo "This will remove the build directory and ensure your changes are compiled."
-                cd - >/dev/null
+                cd "$(dirname "$0")"  # Return to script directory
                 rm -rf "$TEMP_DIR"
                 # STILL DEPLOY even with stale cache - user might want to test existing build
                 echo ""
@@ -156,22 +156,21 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
                 echo "✅ Build successful - new Hyprland binary generated"
                 echo "   Previous binary (from $PREVIOUS_DEB_FILE): ${PRE_BUILD_BINARY_MD5:0:16}..."
                 echo "   New binary (from $EXPECTED_DEB): ${POST_BUILD_BINARY_MD5:0:16}..."
-                echo "   ✓ Binaries are different - code changes were compiled successfully"
+                echo "   ✓ Binaries are different - at least some (!) code changes were compiled successfully"
             fi
         else
             echo "Post-build: Warning - could not extract Hyprland binary from new deb"
         fi
-        cd - >/dev/null
+        cd "$(dirname "$0")"  # Return to script directory
         rm -rf "$TEMP_DIR"
-        trap - EXIT
     elif [ -f "$EXPECTED_DEB" ]; then
         echo "✅ First build completed successfully - no previous version to compare against"
         echo "   Generated: $EXPECTED_DEB"
     fi
 
     # Show version info
-    echo "Package details:"
     set +e
+    echo "Package details:"
     for deb in hyprmoon_*.deb; do
         if [ -f "$deb" ]; then
             # Extract version from filename since dpkg-deb --show can be unreliable

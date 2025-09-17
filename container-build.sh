@@ -4,12 +4,13 @@ set -euo pipefail
 # Container-side build script for HyprMoon
 # This script runs inside the hyprmoon-build-env container
 
-# Create timestamped log file inside container (bind mounted to host)
+# Container build with proper logging
 TIMESTAMP=$(date +%s)
 CONTAINER_LOG="/workspace/container-build-${TIMESTAMP}.log"
 
-# Simple logging with tee
+# Redirect output to both console and log file, but handle SIGPIPE gracefully
 exec > >(tee -a "$CONTAINER_LOG") 2>&1
+trap '' PIPE  # Ignore SIGPIPE to prevent exit code 141
 
 echo "=== HyprMoon Container Build Script ==="
 echo "Working directory: $(pwd)"
@@ -46,6 +47,8 @@ ls -la /workspace/*.deb 2>/dev/null || echo "No deb files found in /workspace"
 # Show package details
 if ls /workspace/hyprmoon_*.deb >/dev/null 2>&1; then
     echo "Package details:"
+    set +e
+    set +o pipefail
     for deb in /workspace/hyprmoon_*.deb; do
         if [ -f "$deb" ]; then
             echo "=== $(basename "$deb") ==="
@@ -53,6 +56,8 @@ if ls /workspace/hyprmoon_*.deb >/dev/null 2>&1; then
             echo ""
         fi
     done
+    set -e
+    set -o pipefail
 fi
 
 echo "Container build log saved to: $CONTAINER_LOG"

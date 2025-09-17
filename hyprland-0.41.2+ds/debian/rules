@@ -14,13 +14,25 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,-O2
 	dh $@
 
 override_dh_auto_build:
+	@echo "=== NINJA BUILD STATS BEFORE ==="
+	@if [ -d build ]; then \
+		cd build && ninja -t targets all | wc -l | xargs echo "Total targets:"; \
+		cd build && find . -name "*.ninja*" 2>/dev/null | wc -l | xargs echo "Ninja cache files:"; \
+	else \
+		echo "No build directory - clean build"; \
+	fi
 	dh_auto_build -- PREFIX=/usr all
+	@echo "=== NINJA BUILD STATS AFTER ==="
+	@if [ -d build ]; then \
+		cd build && ninja -t targets all | wc -l | xargs echo "Total targets:"; \
+		cd build && find . -name "*.o" 2>/dev/null | wc -l | xargs echo "Object files:"; \
+	fi
 
 override_dh_auto_install:
 	# Fix permission on hyprland.pc (Hyprland sets 777 on everything in
 	# build/ directory)
 	chmod 644 build/hyprland.pc
-	
+
 	# dh_auto_install auto detects the correct DESTDIR.
 	# Modify PREFIX so that this DESTDIR is actually taken into account.
 	# (Upstream Makefile supports PREFIX, but not DESTDIR)

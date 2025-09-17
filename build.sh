@@ -75,9 +75,9 @@ fi
 echo "Executing container build..."
 echo "Build logs will be saved to: container-build-*.log"
 echo "About to run docker container..."
-echo "Docker command: docker run --rm -v $(pwd):/workspace -v /home/luke/.ccache:/ccache hyprmoon-build-env /workspace/container-build.sh"
+echo "Docker command: docker run --rm --name hyprmoon-builder -v $(pwd):/workspace -v /home/luke/.ccache:/ccache hyprmoon-build-env /workspace/container-build.sh"
 
-docker run --rm \
+docker run --rm --name hyprmoon-builder \
     -v $(pwd):/workspace \
     -v /home/luke/.ccache:/ccache \
     hyprmoon-build-env \

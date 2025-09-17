@@ -31,6 +31,10 @@ mk-build-deps --install --remove --tool='apt-get -o Debug::pkgProblemResolver=ye
 # Build the deb package
 echo "Building deb package..."
 
+# Show ccache stats before build
+echo "=== CCACHE STATS BEFORE BUILD ==="
+ccache -s | head -10
+
 # Simple approach - run dpkg-buildpackage directly and check exit code
 if ! dpkg-buildpackage -us -uc -b; then
     echo "=== BUILD FAILED ==="
@@ -39,6 +43,10 @@ if ! dpkg-buildpackage -us -uc -b; then
 fi
 
 echo "dpkg-buildpackage completed successfully"
+
+# Show ccache stats after build
+echo "=== CCACHE STATS AFTER BUILD ==="
+ccache -s | head -15
 
 echo "=== Build completed successfully ==="
 echo "Generated files:"

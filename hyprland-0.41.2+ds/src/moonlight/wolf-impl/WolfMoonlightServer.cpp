@@ -5,10 +5,8 @@
 #include <random>
 #include <cstring>
 
-// Wolf REST server includes - now properly linked as separate compilation units
+// Wolf REST server includes - only declarations to avoid linker conflicts
 #include "../rest/rest.hpp"
-#include "../rest/endpoints.hpp"
-#include "../rest/helpers.hpp"
 
 namespace wolf {
 namespace core {

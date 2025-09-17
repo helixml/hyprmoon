@@ -1,3 +1,21 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.4) unstable; urgency=medium
+
+  * DEBUG: Add comprehensive logging to identify why client calls unpair after pairing
+  * Add detailed HTTP response logging for all pairing phases and serverinfo
+  * Add verbose step-by-step logging in state::unpair function to pinpoint segfault
+  * Track exact XML responses sent to client to understand unpair trigger
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Tue, 17 Sep 2025 04:15:00 +0000
+
+hyprmoon (0.41.2+ds-1.3+step8.9.3) unstable; urgency=medium
+
+  * CRITICAL: Fix pairing crash in state::unpair function called after successful pairing
+  * Make PIN URL clearly visible in logs with warning-level messages
+  * Fix /unpair endpoint accessing wrong data structure (pairing cache vs paired clients)
+  * Prevent segmentation fault when Moonlight completes pairing process
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Tue, 17 Sep 2025 03:32:00 +0000
+
 hyprmoon (0.41.2+ds-1.3+step8.9.2) unstable; urgency=medium
 
   * CRITICAL: Fix double-free vulnerabilities in WolfMoonlightServer

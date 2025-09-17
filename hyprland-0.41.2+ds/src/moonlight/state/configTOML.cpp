@@ -347,22 +347,48 @@ void pair(const Config &cfg, const PairedClient &client) {
 }
 
 void unpair(const Config &cfg, const PairedClient &client) {
-  // Update CFG
-  cfg.paired_clients->update([&client](const state::PairedClientList &paired_clients) {
-    return paired_clients                                               //
-           | ranges::views::filter([&client](auto paired_client) {      //
-               return paired_client->client_cert != client.client_cert; //
-             })                                                         //
-           | ranges::to<state::PairedClientList>();                     //
-  });
+  logs::log(logs::warning, "[UNPAIR DEBUG] unpair() called for client cert: {}...", client.client_cert.substr(0, 50));
+  logs::log(logs::warning, "[UNPAIR DEBUG] Config source: {}", cfg.config_source);
 
-  // Update TOML
-  auto tml = rfl::toml::load<WolfConfig, rfl::DefaultIfMissing>(cfg.config_source).value();
-  tml.paired_clients.erase(std::remove_if(tml.paired_clients.begin(),
-                                          tml.paired_clients.end(),
-                                          [&client](const auto &v) { return v.client_cert == client.client_cert; }),
-                           tml.paired_clients.end());
-  rfl::toml::save(cfg.config_source, tml);
+  try {
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 1: Updating in-memory paired_clients atom");
+    // Update CFG
+    cfg.paired_clients->update([&client](const state::PairedClientList &paired_clients) {
+      logs::log(logs::warning, "[UNPAIR DEBUG] In lambda: filtering paired_clients list");
+      auto result = paired_clients                                               //
+             | ranges::views::filter([&client](auto paired_client) {      //
+                 return paired_client->client_cert != client.client_cert; //
+               })                                                         //
+             | ranges::to<state::PairedClientList>();                     //
+      logs::log(logs::warning, "[UNPAIR DEBUG] Filtered list created successfully");
+      return result;
+    });
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 1 completed: in-memory update successful");
+
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 2: Loading TOML config from {}", cfg.config_source);
+    // Update TOML
+    auto tml = rfl::toml::load<WolfConfig, rfl::DefaultIfMissing>(cfg.config_source).value();
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 2 completed: TOML loaded, {} paired clients found", tml.paired_clients.size());
+
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 3: Erasing client from TOML paired_clients vector");
+    tml.paired_clients.erase(std::remove_if(tml.paired_clients.begin(),
+                                            tml.paired_clients.end(),
+                                            [&client](const auto &v) { return v.client_cert == client.client_cert; }),
+                             tml.paired_clients.end());
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 3 completed: client erased, {} paired clients remaining", tml.paired_clients.size());
+
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 4: Saving TOML config back to {}", cfg.config_source);
+    rfl::toml::save(cfg.config_source, tml);
+    logs::log(logs::warning, "[UNPAIR DEBUG] Step 4 completed: TOML saved successfully");
+
+    logs::log(logs::warning, "[UNPAIR DEBUG] unpair() completed successfully");
+  } catch (const std::exception& e) {
+    logs::log(logs::error, "[UNPAIR DEBUG] EXCEPTION in unpair(): {}", e.what());
+    throw;
+  } catch (...) {
+    logs::log(logs::error, "[UNPAIR DEBUG] UNKNOWN EXCEPTION in unpair()");
+    throw;
+  }
 }
 
 void update_client_settings(const Config &cfg, std::size_t client_id, const PairedClient &updated_client) {

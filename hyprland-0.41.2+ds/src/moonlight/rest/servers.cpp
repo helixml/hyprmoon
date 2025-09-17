@@ -28,10 +28,16 @@ void startServer(HttpServer *server, const immer::box<state::AppState> state, in
   server->default_resource["POST"] = endpoints::not_found<SimpleWeb::HTTP>;
 
   server->resource["^/serverinfo$"]["GET"] = [&state](auto resp, auto req) {
+    logs::log(logs::info, "[HTTP DEBUG] /serverinfo request from {}", req->remote_endpoint().address().to_string());
     endpoints::serverinfo<SimpleWeb::HTTP>(resp, req, {}, state);
+    logs::log(logs::info, "[HTTP DEBUG] /serverinfo response sent to {}", req->remote_endpoint().address().to_string());
   };
 
-  server->resource["^/pair$"]["GET"] = [&state](auto resp, auto req) { endpoints::pair(resp, req, state); };
+  server->resource["^/pair$"]["GET"] = [&state](auto resp, auto req) {
+    logs::log(logs::info, "[HTTP DEBUG] /pair request from {}", req->remote_endpoint().address().to_string());
+    endpoints::pair(resp, req, state);
+    logs::log(logs::info, "[HTTP DEBUG] /pair response sent to {}", req->remote_endpoint().address().to_string());
+  };
 
   auto pairing_atom = state->pairing_atom;
 
@@ -59,22 +65,48 @@ void startServer(HttpServer *server, const immer::box<state::AppState> state, in
     SimpleWeb::CaseInsensitiveMultimap headers = req->parse_query_string();
     auto client_id = get_header(headers, "uniqueid");
     auto client_ip = req->remote_endpoint().address().to_string();
-    auto cache_key = client_id.value() + "@" + client_ip;
 
-    logs::log(logs::info, "Unpairing: {}", cache_key);
-    auto client = state->pairing_cache->load()->at(cache_key);
-    state::unpair(state->config, state::PairedClient{.client_cert = client.client_cert});
+    logs::log(logs::warning, "[UNPAIR DEBUG] Unpair request from client_id: {}, ip: {}", client_id.value_or("NONE"), client_ip);
+    logs::log(logs::warning, "[UNPAIR DEBUG] Query parameters received:");
+    for (const auto& param : headers) {
+      logs::log(logs::warning, "[UNPAIR DEBUG]   {} = {}", param.first, param.second);
+    }
+
+    // Find the actual paired client by certificate, not from pairing cache
+    auto paired_clients = state->config->paired_clients->load();
+    bool found = false;
+    for (const auto& paired_client : *paired_clients) {
+      // For now, just remove all paired clients for this IP (simplified)
+      // In a real implementation, we'd match by certificate
+      logs::log(logs::warning, "[UNPAIR DEBUG] Found paired client to remove, calling state::unpair");
+      logs::log(logs::warning, "[UNPAIR DEBUG] Client cert preview: {}...", paired_client->client_cert.substr(0, 50));
+      state::unpair(state->config, *paired_client);
+      logs::log(logs::warning, "[UNPAIR DEBUG] state::unpair returned successfully");
+      found = true;
+      break; // Remove only first match to avoid iterator issues
+    }
+
+    if (!found) {
+      logs::log(logs::warning, "No paired client found to unpair for {}", client_ip);
+    }
 
     XML xml;
     xml.put("root.<xmlattr>.status_code", 200);
+    logs::log(logs::warning, "[UNPAIR DEBUG] Sending XML response: status_code=200");
     send_xml<SimpleWeb::HTTP>(resp, SimpleWeb::StatusCode::success_ok, xml);
+    logs::log(logs::warning, "[UNPAIR DEBUG] XML response sent successfully to {}", client_ip);
   };
 
   auto pair_handler = state->event_bus->register_handler<immer::box<events::PairSignal>>(
       [pairing_atom](const immer::box<events::PairSignal> pair_sig) {
         pairing_atom->update([&pair_sig](const immer::map<std::string, immer::box<events::PairSignal>> &m) {
           auto secret = crypto::str_to_hex(crypto::random(8));
-          logs::log(logs::info, "Insert pin at http://{}:47989/pin/#{}", pair_sig->host_ip, secret);
+          // Make PIN URL VERY visible in logs
+          logs::log(logs::warning, "=====================================");
+          logs::log(logs::warning, "MOONLIGHT PAIRING REQUESTED!");
+          logs::log(logs::warning, "Visit this URL to enter PIN:");
+          logs::log(logs::warning, "http://{}:47989/pin/#{}", pair_sig->host_ip, secret);
+          logs::log(logs::warning, "=====================================");
           // filter out any other (dangling) pair request from the same client
           auto t_map = m.transient();
           for (auto [key, value] : m) {

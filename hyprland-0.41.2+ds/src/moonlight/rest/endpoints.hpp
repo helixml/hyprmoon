@@ -78,6 +78,17 @@ void serverinfo(const std::shared_ptr<typename SimpleWeb::Server<T>::Response> &
                                    cfg->support_hevc,
                                    cfg->support_av1);
 
+  // Log serverinfo response details
+  logs::log(logs::warning, "[SERVERINFO DEBUG] Sending serverinfo to {} via {}: is_busy={}, app_id={}, uuid={}, hostname={}",
+            request->remote_endpoint().address().to_string(),
+            is_https ? "HTTPS" : "HTTP",
+            is_busy, app_id, cfg->uuid, cfg->hostname);
+
+  // Log the complete XML response for debugging
+  std::stringstream xml_debug;
+  boost::property_tree::write_xml(xml_debug, xml);
+  logs::log(logs::warning, "[SERVERINFO DEBUG] Complete XML: {}", xml_debug.str());
+
   send_xml<T>(response, SimpleWeb::StatusCode::success_ok, xml);
 }
 
@@ -261,14 +272,17 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
 
   // PHASE 1
   if (client_id && salt && client_cert_str) {
+    logs::log(logs::warning, "[PAIR DEBUG] Starting Phase 1 for {}", client_ip);
     auto future_result = pair_phase1(state,
                                      client_ip,
                                      get_host_ip<SimpleWeb::HTTP>(request, state),
                                      client_cert_str.value(),
                                      salt.value(),
                                      cache_key);
-    future_result->get_future().then([response](boost::future<XMLResult> result) {
+    future_result->get_future().then([response, client_ip](boost::future<XMLResult> result) {
       auto [status, xml] = result.get();
+      logs::log(logs::warning, "[PAIR DEBUG] Phase 1 response for {}: status={}, xml_paired={}",
+                client_ip, (int)status, xml.get<int>("root.paired", -1));
       send_xml<SimpleWeb::HTTP>(response, status, xml);
     });
     return;
@@ -288,6 +302,8 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
   auto client_challenge = get_header(headers, "clientchallenge");
   if (client_challenge) {
     auto [status, xml] = pair_phase2(state, client_cache, client_challenge.value(), cache_key);
+    logs::log(logs::warning, "[PAIR DEBUG] Phase 2 response: status={}, xml_paired={}",
+              (int)status, xml.get<int>("root.paired", -1));
     send_xml<SimpleWeb::HTTP>(response, status, xml);
     if (status != SimpleWeb::StatusCode::success_ok) {
       remove_pair_session(state, cache_key); // security measure, remove the session if the pairing failed
@@ -299,6 +315,8 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
   auto server_challenge = get_header(headers, "serverchallengeresp");
   if (server_challenge && client_cache.server_secret) {
     auto [status, xml] = pair_phase3(state, client_cache, server_challenge.value(), cache_key);
+    logs::log(logs::warning, "[PAIR DEBUG] Phase 3 response: status={}, xml_paired={}",
+              (int)status, xml.get<int>("root.paired", -1));
     send_xml<SimpleWeb::HTTP>(response, status, xml);
     if (status != SimpleWeb::StatusCode::success_ok) {
       remove_pair_session(state, cache_key); // security measure, remove the session if the pairing failed
@@ -310,6 +328,14 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
   auto client_secret = get_header(headers, "clientpairingsecret");
   if (client_secret && client_cache.server_challenge && client_cache.client_hash) {
     auto [status, xml] = pair_phase4(client_cache, client_secret.value());
+    logs::log(logs::warning, "[PAIR DEBUG] Phase 4 response: status={}, xml_paired={}",
+              (int)status, xml.get<int>("root.paired", -1));
+
+    // Log the complete XML response for debugging
+    std::stringstream xml_debug;
+    boost::property_tree::write_xml(xml_debug, xml);
+    logs::log(logs::warning, "[PAIR DEBUG] Phase 4 complete XML: {}", xml_debug.str());
+
     send_xml<SimpleWeb::HTTP>(response, status, xml);
 
     if (status == SimpleWeb::StatusCode::success_ok) {
@@ -317,9 +343,9 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
           state->config,
           state::PairedClient{.client_cert = client_cache.client_cert,
                               .app_state_folder = std::to_string(std::hash<std::string>{}(client_cache.client_cert))});
-      logs::log(logs::info, "Succesfully paired {}", client_ip);
+      logs::log(logs::warning, "[PAIR DEBUG] Successfully saved paired client for {}", client_ip);
     } else {
-      logs::log(logs::warning, "Failed pairing with {}", client_ip);
+      logs::log(logs::warning, "[PAIR DEBUG] Pairing FAILED for {} with status {}", client_ip, (int)status);
     }
 
     remove_pair_session(state, cache_key); // Either case, this session is done

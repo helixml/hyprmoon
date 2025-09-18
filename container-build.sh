@@ -95,6 +95,9 @@ if [ -d build ] && [ -f build/.ninja_log ] && [ -f build/build.ninja ]; then
         echo "=== NINJA BUILD FAILED ==="
         exit 1
     fi
+
+    # Live detection testing complete - sleep removed for production use
+
     cd ..
 
     # Copy binary to workspace with version suffix and create version file

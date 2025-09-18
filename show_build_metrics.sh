@@ -16,11 +16,33 @@ echo "File: $CSV_FILE"
 echo "Showing last $NUM_ROWS builds"
 echo ""
 
+# Check for running build container first
+RUNNING_BUILD_ROW=""
+if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "hyprmoon-builder"; then
+    # Get container creation timestamp and calculate elapsed time
+    CREATED_TIMESTAMP=$(docker inspect hyprmoon-builder --format='{{.Created}}' 2>/dev/null | sed 's/T/ /' | cut -d. -f1)
+    START_EPOCH=$(date -d "$CREATED_TIMESTAMP" +%s 2>/dev/null || echo "0")
+    CURRENT_EPOCH=$(date +%s)
+    ELAPSED_SECONDS=$((CURRENT_EPOCH - START_EPOCH))
+
+    # Format elapsed time nicely
+    if [ $ELAPSED_SECONDS -lt 60 ]; then
+        ELAPSED_TIME="${ELAPSED_SECONDS}s"
+    else
+        ELAPSED_MIN=$((ELAPSED_SECONDS / 60))
+        ELAPSED_SEC=$((ELAPSED_SECONDS % 60))
+        ELAPSED_TIME="${ELAPSED_MIN}m${ELAPSED_SEC}s"
+    fi
+
+    # Get current version being built
+    CURRENT_VERSION=$(grep -m1 '^hyprmoon (' hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/' | awk -F. '{print $NF}')
+
+    RUNNING_BUILD_ROW="🔄|BUILDING|.$CURRENT_VERSION|$ELAPSED_TIME|RUNNING|TBD|TBD|TBD|TBD|TBD|🔄 LIVE"
+fi
+
 # Nice formatted table with performance analysis
 tail -n +2 "$CSV_FILE" | tail -$NUM_ROWS | awk -F, '
 BEGIN {
-    print "Build | Type | Version | Duration | Improvement | ccache | Ninja | Binary MD5 | Git | Files | Status"
-    print "------|------|---------|----------|-------------|--------|-------|------------|-----|-------|-------"
     prev_duration = 0
 }
 {
@@ -42,11 +64,11 @@ BEGIN {
     # Format version (last part only)
     version = substr($2, length($2) - 4)
 
-    printf "%2d. %-11s | %-7s | %8s | %-11s | %5s%% | %5s | %-10s | %-7s | %5s | %s\n",
-        NR, type, version, $3 "s", improvement, $4, $12, $14, $15, $16, status
+    printf "%2d|%11s|%7s|%8s|%11s|%6s|%5s|%10s|%8s|%5s|%s\n",
+        NR, type, version, $3 "s", improvement, $4 "%", $12, $14, $15, $16, status
 
     prev_duration = $3
-}' | column -t -s'|'
+}' | (echo "Build|Type|Version|Duration|Improvement|ccache|Ninja|Binary MD5|Git|Files|Status"; echo "-----|----|----|--------|-----------|------|-----|----------|---|-----|------"; cat; if [ -n "$RUNNING_BUILD_ROW" ]; then echo "$RUNNING_BUILD_ROW"; fi) | column -t -s'|'
 
 echo ""
 echo "📊 Build Type Summary:"
@@ -54,12 +76,28 @@ echo "CLEAN: Full dpkg-buildpackage with all dependencies"
 echo "INCREMENTAL: Direct ninja compilation with binary clobbering"
 echo ""
 echo "⚡ LIGHTNING: <10s (no changes) | 🚀 FAST: <100s | 🏃 GOOD: <300s | 🐌 SLOW: >300s"
-# Check for running build container
+# Check for running build container and add live row
+RUNNING_BUILD=""
 if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "hyprmoon-builder"; then
-    CONTAINER_STATUS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep "hyprmoon-builder" | awk '{print $2, $3}')
-    echo "🔄 BUILD CURRENTLY RUNNING:"
-    echo "Container: hyprmoon-builder | Status: $CONTAINER_STATUS"
-    echo ""
+    # Get container creation timestamp and calculate elapsed time
+    CREATED_TIMESTAMP=$(docker inspect hyprmoon-builder --format='{{.Created}}' 2>/dev/null | sed 's/T/ /' | cut -d. -f1)
+    START_EPOCH=$(date -d "$CREATED_TIMESTAMP" +%s 2>/dev/null || echo "0")
+    CURRENT_EPOCH=$(date +%s)
+    ELAPSED_SECONDS=$((CURRENT_EPOCH - START_EPOCH))
+
+    # Format elapsed time nicely
+    if [ $ELAPSED_SECONDS -lt 60 ]; then
+        ELAPSED_TIME="${ELAPSED_SECONDS}s"
+    else
+        ELAPSED_MIN=$((ELAPSED_SECONDS / 60))
+        ELAPSED_SEC=$((ELAPSED_SECONDS % 60))
+        ELAPSED_TIME="${ELAPSED_MIN}m${ELAPSED_SEC}s"
+    fi
+
+    # Get current version being built
+    CURRENT_VERSION=$(grep -m1 '^hyprmoon (' hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/' | awk -F. '{print $NF}')
+
+    RUNNING_BUILD=$(printf "%2s|%11s|%7s|%8s|%11s|%6s|%5s|%10s|%8s|%5s|%s\n" "🔄" "BUILDING" ".$CURRENT_VERSION" "$ELAPSED_TIME" "RUNNING" "TBD" "TBD" "TBD" "TBD" "TBD" "🔄 LIVE")
 fi
 
 # Check deployed version in helix container

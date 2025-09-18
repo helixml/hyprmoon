@@ -336,14 +336,44 @@ Config load_or_default(const std::string &source,
 }
 
 void pair(const Config &cfg, const PairedClient &client) {
-  // Update CFG
-  cfg.paired_clients->update(
-      [&client](const state::PairedClientList &paired_clients) { return paired_clients.push_back(client); });
+  logs::log(logs::warning, "[PAIR CONFIG] Starting pair() for client with cert: {}...", client.client_cert.substr(0, 50));
+  logs::log(logs::warning, "[PAIR CONFIG] Config source: {}", cfg.config_source);
 
-  // Update TOML
-  auto tml = rfl::toml::load<WolfConfig, rfl::DefaultIfMissing>(cfg.config_source).value();
-  tml.paired_clients.push_back(client);
-  rfl::toml::save(cfg.config_source, tml);
+  try {
+    // Update CFG
+    logs::log(logs::warning, "[PAIR CONFIG] Step 1: Updating in-memory paired_clients");
+    if (!cfg.paired_clients) {
+      logs::log(logs::error, "[PAIR CONFIG] CRITICAL: cfg.paired_clients is NULL - cannot save paired client!");
+      logs::log(logs::error, "[PAIR CONFIG] This indicates Config initialization failed");
+      throw std::runtime_error("cfg.paired_clients is NULL - Config not properly initialized");
+    }
+
+    cfg.paired_clients->update(
+        [&client](const state::PairedClientList &paired_clients) {
+          logs::log(logs::warning, "[PAIR CONFIG] Adding client to in-memory list");
+          return paired_clients.push_back(client);
+        });
+    logs::log(logs::warning, "[PAIR CONFIG] Step 1 completed - in-memory update successful");
+
+    // Update TOML
+    logs::log(logs::warning, "[PAIR CONFIG] Step 2: Loading TOML config from {}", cfg.config_source);
+    auto tml = rfl::toml::load<WolfConfig, rfl::DefaultIfMissing>(cfg.config_source).value();
+    logs::log(logs::warning, "[PAIR CONFIG] Step 2 completed - TOML loaded successfully");
+
+    logs::log(logs::warning, "[PAIR CONFIG] Step 3: Adding client to TOML config");
+    tml.paired_clients.push_back(client);
+    logs::log(logs::warning, "[PAIR CONFIG] Step 3 completed - client added to TOML");
+
+    logs::log(logs::warning, "[PAIR CONFIG] Step 4: Saving TOML config to {}", cfg.config_source);
+    rfl::toml::save(cfg.config_source, tml);
+    logs::log(logs::warning, "[PAIR CONFIG] Step 4 completed - TOML saved successfully");
+
+    logs::log(logs::warning, "[PAIR CONFIG] pair() completed successfully for client");
+  } catch (const std::exception& e) {
+    logs::log(logs::error, "[PAIR CONFIG] CRITICAL: Exception in pair(): {}", e.what());
+  } catch (...) {
+    logs::log(logs::error, "[PAIR CONFIG] CRITICAL: Unknown exception in pair()");
+  }
 }
 
 void unpair(const Config &cfg, const PairedClient &client) {

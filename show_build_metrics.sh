@@ -14,6 +14,7 @@ echo "🚀 HyprMoon Build Performance Metrics"
 echo "====================================="
 echo "File: $CSV_FILE"
 echo "Showing last $NUM_ROWS builds"
+echo "Generated: $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 
 # Check for running build container first
@@ -37,7 +38,7 @@ if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "hyprmoon-builde
     # Get current version being built
     CURRENT_VERSION=$(grep -m1 '^hyprmoon (' hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/' | awk -F. '{print $NF}')
 
-    RUNNING_BUILD_ROW="🔄|BUILDING|.$CURRENT_VERSION|$ELAPSED_TIME|RUNNING|TBD|TBD|TBD|TBD|TBD|🔄 LIVE"
+    RUNNING_BUILD_ROW="🔄|$(date '+%H:%M:%S')|BUILDING|.$CURRENT_VERSION|$ELAPSED_TIME|RUNNING|TBD|TBD|TBD|TBD|TBD|🔄 LIVE"
 fi
 
 # Nice formatted table with performance analysis
@@ -64,11 +65,14 @@ BEGIN {
     # Format version (last part only)
     version = substr($2, length($2) - 4)
 
-    printf "%2d|%11s|%7s|%8s|%11s|%6s|%5s|%10s|%8s|%5s|%s\n",
-        NR, type, version, $3 "s", improvement, $4 "%", $12, $14, $15, $16, status
+    # Format timestamp
+    timestamp = strftime("%H:%M:%S", $1)
+
+    printf "%2d|%8s|%11s|%7s|%8s|%11s|%6s|%5s|%10s|%8s|%5s|%s\n",
+        NR, timestamp, type, version, $3 "s", improvement, $4 "%", $12, $14, $15, $16, status
 
     prev_duration = $3
-}' | (echo "Build|Type|Version|Duration|Improvement|ccache|Ninja|Binary MD5|Git|Files|Status"; echo "-----|----|----|--------|-----------|------|-----|----------|---|-----|------"; cat; if [ -n "$RUNNING_BUILD_ROW" ]; then echo "$RUNNING_BUILD_ROW"; fi) | column -t -s'|'
+}' | (echo "Build|Time|Type|Version|Duration|Improvement|ccache|Ninja|Binary MD5|Git|Files|Status"; echo "-----|----|----|----|----|-----------|------|-----|----------|---|-----|------"; cat; if [ -n "$RUNNING_BUILD_ROW" ]; then echo "$RUNNING_BUILD_ROW"; fi) | column -t -s'|'
 
 echo ""
 echo "📊 Build Type Summary:"

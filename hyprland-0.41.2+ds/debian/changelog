@@ -1,3 +1,201 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.73) unstable; urgency=medium
+
+  * Add commit message support to build system for better debugging tracking
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 19:43:27 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.72) unstable; urgency=medium
+
+  * Auto-build step8.9.72 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 17:22:37 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.71) unstable; urgency=medium
+
+  * Auto-build step8.9.71 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 17:20:55 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.70) unstable; urgency=medium
+
+  * Auto-build step8.9.70 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 17:14:18 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.69) unstable; urgency=medium
+
+  * Auto-build step8.9.69 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 16:59:14 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.68) unstable; urgency=medium
+
+  * Auto-build step8.9.68 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 16:25:02 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.67) unstable; urgency=medium
+
+  * Auto-build step8.9.67 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 16:17:44 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.66) unstable; urgency=medium
+
+  * Auto-build step8.9.66 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 16:01:45 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.65) unstable; urgency=medium
+
+  * Auto-build step8.9.65 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 15:48:44 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.64) unstable; urgency=medium
+
+  * Auto-build step8.9.64 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 15:21:16 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.63) unstable; urgency=medium
+
+  * Auto-build step8.9.63 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 15:18:39 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.62) unstable; urgency=medium
+
+  * Auto-build step8.9.62 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 14:55:33 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.61) unstable; urgency=medium
+
+  * Auto-build step8.9.61 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 14:10:57 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.60) unstable; urgency=medium
+
+  * Auto-build step8.9.60 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 13:34:11 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.59) unstable; urgency=medium
+
+  * Auto-build step8.9.59 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 12:14:12 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.58) unstable; urgency=medium
+
+  * Auto-build step8.9.58 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 12:08:39 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.57) unstable; urgency=medium
+
+  * Auto-build step8.9.57 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 12:05:21 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.56) unstable; urgency=medium
+
+  * Auto-build step8.9.56 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 12:03:10 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.55) unstable; urgency=medium
+
+  * Auto-build step8.9.55 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 10:20:20 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.54) unstable; urgency=medium
+
+  * Auto-build step8.9.54 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:51:52 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.53) unstable; urgency=medium
+
+  * Auto-build step8.9.53 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:50:04 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.52) unstable; urgency=medium
+
+  * Auto-build step8.9.52 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:41:35 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.51) unstable; urgency=medium
+
+  * Auto-build step8.9.51 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:37:46 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.50) unstable; urgency=medium
+
+  * Auto-build step8.9.50 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:36:09 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.49) unstable; urgency=medium
+
+  * Auto-build step8.9.49 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:34:26 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.48) unstable; urgency=medium
+
+  * Auto-build step8.9.48 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:33:17 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.47) unstable; urgency=medium
+
+  * Auto-build step8.9.47 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:32:38 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.46) unstable; urgency=medium
+
+  * Auto-build step8.9.46 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:31:48 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.45) unstable; urgency=medium
+
+  * Auto-build step8.9.45 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:30:58 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.44) unstable; urgency=medium
+
+  * Auto-build step8.9.44 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:28:21 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.43) unstable; urgency=medium
+
+  * Auto-build step8.9.43 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:23:29 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.42) unstable; urgency=medium
+
+  * Auto-build step8.9.42 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:08:56 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.41) unstable; urgency=medium
+
+  * Auto-build step8.9.41 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 09:03:02 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.40) unstable; urgency=medium
 
   * Auto-build step8.9.40 - ensures code changes are deployed

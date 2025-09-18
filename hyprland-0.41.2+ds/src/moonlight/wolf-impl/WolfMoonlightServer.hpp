@@ -272,6 +272,7 @@ private:
     bool initializeGStreamer();
     bool initializeENet();
     void initializeWolfAppState();
+    void generateAndLoadCertificates();
     void initializeHttpServer();
     void initializeHttpsServer();
     void loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file);

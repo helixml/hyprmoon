@@ -841,11 +841,14 @@ bool WolfMoonlightServer::initialize(const MoonlightConfig& config) {
     // Initialize Wolf AppState for real endpoints
     initializeWolfAppState();
 
-    // Start HTTP server (port 47989) using real Wolf implementation
+    // CRITICAL: Generate certificates FIRST, before starting any servers
+    generateAndLoadCertificates();
+
+    // Start HTTP server (port 47989) using real Wolf implementation - NOW with certificates
     http_server_ = new HttpServer();
     initializeHttpServer();
 
-    // Start HTTPS server (port 47984) using real Wolf implementation
+    // Start HTTPS server (port 47984) using real Wolf implementation - with certificates
     https_server_ = nullptr; // Will be created in initializeHttpsServer with proper certs
     initializeHttpsServer();
     
@@ -984,6 +987,13 @@ void WolfMoonlightServer::initializeWolfAppState() {
     config.uuid = state_->getConfig().uuid;
     config.support_hevc = true;
     config.support_av1 = false;
+
+    // CRITICAL: Initialize paired_clients to prevent NULL pointer crashes
+    config.config_source = "/tmp/hyprmoon-config.toml";
+    auto empty_paired_clients = state::PairedClientList{};
+    config.paired_clients = std::make_shared<immer::atom<state::PairedClientList>>(empty_paired_clients);
+    logs::log(logs::warning, "WolfMoonlightServer: Initialized Config with empty paired_clients (prevents NULL crashes)");
+
     app_state->config = immer::box<state::Config>(config);
 
     // Initialize host information with proper certificate paths
@@ -1023,24 +1033,22 @@ void WolfMoonlightServer::initializeWolfAppState() {
 void WolfMoonlightServer::initializeHttpServer() {
     Debug::log(LOG, "WolfMoonlightServer: Starting real Wolf HTTP server on port {}", state_->getConfig().http_port);
 
-    auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
     auto server = static_cast<HttpServer*>(http_server_);
 
     // Use the real Wolf HTTP server implementation from servers.cpp
-    http_thread_ = std::thread([server, app_state, port = state_->getConfig().http_port]() {
-        HTTPServers::startServer(server, immer::box<state::AppState>(*app_state), port);
+    http_thread_ = std::thread([this, server, port = state_->getConfig().http_port]() {
+        // Get fresh AppState inside thread (though HTTP doesn't need certificates for pairing)
+        auto fresh_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+        HTTPServers::startServer(server, immer::box<state::AppState>(*fresh_app_state), port);
     });
 
     Debug::log(LOG, "WolfMoonlightServer: HTTP server thread started");
 }
 
-void WolfMoonlightServer::initializeHttpsServer() {
-    logs::log(logs::warning, "WolfMoonlightServer: Initializing real Wolf HTTPS server with self-signed certificates");
+void WolfMoonlightServer::generateAndLoadCertificates() {
+    logs::log(logs::warning, "WolfMoonlightServer: Generating and loading certificates for both HTTP and HTTPS servers");
 
-    // Thread-safe server initialization
-    std::lock_guard<std::mutex> lock(shutdown_mutex_);
-
-    // Create self-signed certificate files for moonlight HTTPS
+    // Create self-signed certificate files for moonlight
     std::string cert_file = "/tmp/moonlight-cert.pem";
     std::string key_file = "/tmp/moonlight-key.pem";
 
@@ -1055,8 +1063,24 @@ void WolfMoonlightServer::initializeHttpsServer() {
     if (cert_result == 0) {
         logs::log(logs::warning, "WolfMoonlightServer: Generated self-signed certificates");
 
-        // CRITICAL: Load certificates into Wolf AppState for pairing endpoints
+        // CRITICAL: Load certificates into Wolf AppState for ALL servers
         loadCertificatesIntoAppState(cert_file, key_file);
+    } else {
+        logs::log(logs::error, "WolfMoonlightServer: CRITICAL - Certificate generation failed with exit code: {}", cert_result);
+        logs::log(logs::error, "WolfMoonlightServer: Command was: {}", gen_cert_cmd);
+        logs::log(logs::error, "WolfMoonlightServer: This means servers will not have valid certificates for pairing!");
+    }
+}
+
+void WolfMoonlightServer::initializeHttpsServer() {
+    logs::log(logs::warning, "WolfMoonlightServer: Initializing HTTPS server (certificates already loaded)");
+
+    // Thread-safe server initialization
+    std::lock_guard<std::mutex> lock(shutdown_mutex_);
+
+    // Use the certificates that were already generated
+    std::string cert_file = "/tmp/moonlight-cert.pem";
+    std::string key_file = "/tmp/moonlight-key.pem";
 
         try {
             // Create HTTPS server with certificates
@@ -1070,12 +1094,15 @@ void WolfMoonlightServer::initializeHttpsServer() {
 
             https_server_ = new_server.release();
 
-            // Start HTTPS server with real Wolf endpoints
-            auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+            // Start HTTPS server with updated AppState (AFTER certificate loading)
+            logs::log(logs::warning, "WolfMoonlightServer: Getting FRESH AppState for HTTPS server AFTER certificate loading");
             auto server = static_cast<HttpsServer*>(https_server_);
 
-            https_thread_ = std::thread([server, app_state, port = state_->getConfig().https_port]() {
-                HTTPServers::startServer(server, immer::box<state::AppState>(*app_state), port);
+            https_thread_ = std::thread([this, server, port = state_->getConfig().https_port]() {
+                // Get AppState INSIDE the thread to ensure we get the updated version
+                auto fresh_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+                logs::log(logs::warning, "HTTPServers: Using fresh AppState with certificates loaded");
+                HTTPServers::startServer(server, immer::box<state::AppState>(*fresh_app_state), port);
             });
 
             Debug::log(LOG, "WolfMoonlightServer: HTTPS server initialized and started with certificates");
@@ -1084,46 +1111,51 @@ void WolfMoonlightServer::initializeHttpsServer() {
             Debug::log(ERR, "WolfMoonlightServer: Failed to create HTTPS server: {}", e.what());
             https_server_ = nullptr;
         }
-    } else {
-        Debug::log(WARN, "WolfMoonlightServer: Failed to generate certificates, disabling HTTPS server");
-        https_server_ = nullptr;
-    }
 }
 
 void WolfMoonlightServer::loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file) {
-    Debug::log(LOG, "WolfMoonlightServer: Loading certificates into Wolf AppState from {} and {}", cert_file, key_file);
+    logs::log(logs::warning, "WolfMoonlightServer: Loading certificates into Wolf AppState from {} and {}", cert_file, key_file);
 
     auto app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
 
     try {
         // Load certificate using Wolf's x509 functions
+        logs::log(logs::warning, "WolfMoonlightServer: About to load certificate from {}", cert_file);
         auto server_cert = x509::cert_from_file(cert_file);
         if (!server_cert) {
-            Debug::log(ERR, "WolfMoonlightServer: Failed to load certificate from {}", cert_file);
+            logs::log(logs::error, "WolfMoonlightServer: Failed to load certificate from {}", cert_file);
             return;
         }
+        logs::log(logs::warning, "WolfMoonlightServer: Certificate loaded successfully from {}", cert_file);
 
         // Load private key using Wolf's x509 functions
+        logs::log(logs::warning, "WolfMoonlightServer: About to load private key from {}", key_file);
         auto server_pkey = x509::pkey_from_file(key_file);
         if (!server_pkey) {
-            Debug::log(ERR, "WolfMoonlightServer: Failed to load private key from {}", key_file);
+            logs::log(logs::error, "WolfMoonlightServer: Failed to load private key from {}", key_file);
             return;
         }
+        logs::log(logs::warning, "WolfMoonlightServer: Private key loaded successfully from {}", key_file);
 
-        Debug::log(LOG, "WolfMoonlightServer: Successfully loaded certificate and private key from files");
+        logs::log(logs::warning, "WolfMoonlightServer: Successfully loaded certificate and private key from files");
 
         // Update the host info in AppState with the loaded certificates
+        logs::log(logs::warning, "WolfMoonlightServer: About to update AppState with certificates");
         auto current_host = app_state->host.get();
+        logs::log(logs::warning, "WolfMoonlightServer: Retrieved current host from AppState");
         state::Host updated_host = current_host;
 
         // CRITICAL: Set the server certificate and private key that pairing endpoints expect
+        logs::log(logs::warning, "WolfMoonlightServer: Setting server_cert and server_pkey in updated_host");
         updated_host.server_cert = server_cert;
         updated_host.server_pkey = server_pkey;
 
         // Update AppState with new host info containing certificates
+        logs::log(logs::warning, "WolfMoonlightServer: Updating AppState host with new certificates");
         app_state->host = immer::box<state::Host>(updated_host);
+        logs::log(logs::warning, "WolfMoonlightServer: AppState host updated successfully - certificates should now be available for pairing");
 
-        Debug::log(LOG, "WolfMoonlightServer: CERTIFICATES LOADED INTO WOLF APPSTATE - pairing should now work!");
+        logs::log(logs::warning, "WolfMoonlightServer: CERTIFICATES LOADED INTO WOLF APPSTATE - pairing should now work!");
 
         // Verify the certificates are properly loaded by testing the pairing functions
         try {

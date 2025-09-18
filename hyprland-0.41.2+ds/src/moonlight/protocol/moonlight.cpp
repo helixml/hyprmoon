@@ -80,7 +80,7 @@ get_server_cert(const std::string &user_pin, const std::string &salt, const std:
   logs::log(logs::warning, "[PAIR DEBUG] cert_hex length: {}", cert_hex.length());
   logs::log(logs::warning, "[PAIR DEBUG] cert_hex first 100 chars: {}", cert_hex.substr(0, 100));
 
-  resp.put("root.paired", 0);  // Phase 1: pairing in progress, not complete
+  resp.put("root.paired", 1);  // Phase 1: successful certificate exchange (match Wolf protocol)
   resp.put("root.plaincert", cert_hex);
   resp.put("root.<xmlattr>.status_code", 200);
 
@@ -107,7 +107,7 @@ std::pair<XML, std::pair<std::string, std::string>> send_server_challenge(const 
   auto plain_text = hash + server_challenge;
   auto encrypted = crypto::aes_encrypt_ecb(plain_text, aes_key, crypto::random(AES_BLOCK_SIZE), false);
 
-  resp.put("root.paired", 0);  // Phase 2: pairing in progress, not complete
+  resp.put("root.paired", 1);  // Phase 2: successful client challenge (match Wolf protocol)
   resp.put("root.challengeresponse", crypto::str_to_hex(encrypted));
   resp.put("root.<xmlattr>.status_code", 200);
 
@@ -125,7 +125,7 @@ std::pair<XML, std::string> get_client_hash(const std::string &aes_key,
   auto signature = crypto::sign(server_secret, server_cert_private_key);
 
   resp.put("root.pairingsecret", crypto::str_to_hex(server_secret + signature));
-  resp.put("root.paired", 0);  // Phase 3: pairing in progress, not complete
+  resp.put("root.paired", 1);  // Phase 3: successful server challenge (match Wolf protocol)
   resp.put("root.<xmlattr>.status_code", 200);
 
   return std::make_pair(resp, decrypted_challenge);
@@ -142,7 +142,7 @@ XML client_pair(const std::string &aes_key,
 
   auto pairing_secret = crypto::hex_to_str(client_pairing_secret, true);
   if (pairing_secret.size() < digest_size) {
-    resp.put("root.paired", 0);
+    resp.put("root.paired", 1);
     resp.put("root.<xmlattr>.status_code", 400);
     resp.put("root.<xmlattr>.status_message", "Invalid pairing secret");
     return resp;
@@ -152,7 +152,7 @@ XML client_pair(const std::string &aes_key,
 
   auto hash = crypto::hex_to_str(crypto::sha256(server_challenge + client_public_cert_signature + client_secret), true);
   if (hash != client_hash) {
-    resp.put("root.paired", 0);
+    resp.put("root.paired", 1);
     resp.put("root.<xmlattr>.status_code", 400);
     resp.put("root.<xmlattr>.status_message", "Invalid client hash");
     return resp;
@@ -162,7 +162,7 @@ XML client_pair(const std::string &aes_key,
     resp.put("root.paired", 1);
     resp.put("root.<xmlattr>.status_code", 200);
   } else {
-    resp.put("root.paired", 0);
+    resp.put("root.paired", 1);
     resp.put("root.<xmlattr>.status_code", 400);
     resp.put("root.<xmlattr>.status_message", "Invalid client signature");
   }

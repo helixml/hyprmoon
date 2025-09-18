@@ -346,6 +346,7 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
     send_xml<SimpleWeb::HTTP>(response, status, xml);
 
     if (status == SimpleWeb::StatusCode::success_ok) {
+      logs::log(logs::warning, "[PAIR DEBUG] About to save paired client for {} with enhanced debugging", client_ip);
       state::pair(
           state->config,
           state::PairedClient{.client_cert = client_cache.client_cert,

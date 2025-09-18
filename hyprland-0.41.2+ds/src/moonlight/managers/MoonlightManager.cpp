@@ -43,7 +43,9 @@ void CMoonlightManager::init() {
         loadConfig();
         
         // Create Wolf moonlight server
+        Debug::log(WARN, "MoonlightManager: Creating WolfMoonlightServer instance");
         m_wolfServer = std::make_unique<wolf::core::WolfMoonlightServer>();
+        Debug::log(WARN, "MoonlightManager: WolfMoonlightServer instance created successfully");
         
         // Convert our config to Wolf config
         wolf::core::MoonlightConfig wolfConfig;
@@ -64,9 +66,12 @@ void CMoonlightManager::init() {
         wolfConfig.audio.sample_rate = 48000;
         
         // Initialize Wolf server
+        Debug::log(WARN, "MoonlightManager: About to initialize WolfMoonlightServer with config");
         if (!m_wolfServer->initialize(wolfConfig)) {
+            Debug::log(ERR, "MoonlightManager: WolfMoonlightServer initialization FAILED!");
             throw std::runtime_error("Failed to initialize Wolf moonlight server");
         }
+        Debug::log(WARN, "MoonlightManager: WolfMoonlightServer initialization completed successfully");
         
         // Initialize WebRTC if enabled
         if (m_config.webrtcEnabled) {

@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# Parse commit message argument
+COMMIT_MESSAGE=""
+if [ $# -gt 0 ]; then
+    COMMIT_MESSAGE="$*"
+fi
+
 # Function to log exit with reason (for explicit use only)
 exit_with_reason() {
     local exit_code=$1
@@ -52,7 +58,7 @@ if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
     cat > "$TEMP_CHANGELOG" << EOF
 hyprmoon ($NEW_VERSION) unstable; urgency=medium
 
-  * Auto-build step8.9.${NEXT_STEP} - ensures code changes are deployed
+  * $([ -n "$COMMIT_MESSAGE" ] && echo "$COMMIT_MESSAGE" || echo "Auto-build step8.9.${NEXT_STEP} - ensures code changes are deployed")
 
  -- HyprMoon Builder <builder@hyprmoon.local>  $(date -R)
 
@@ -398,6 +404,26 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
     echo "Ready to test Moonlight pairing with certificate fixes!"
 
     cd - >/dev/null  # Return to hyprmoon directory
+
+    # Auto-commit changes if we have a commit message
+    if [ -n "$COMMIT_MESSAGE" ]; then
+        echo ""
+        echo "📝 Auto-committing changes..."
+        cd /home/luke/pm/hyprmoon
+        git add -A
+        git commit -m "$(cat <<EOF
+$COMMIT_MESSAGE
+
+Built: $NEW_VERSION
+Strategy: $DEPLOY_MODE
+Timestamp: $(date +%H:%M:%S)
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)" && echo "✓ Changes committed with message: $COMMIT_MESSAGE" || echo "⚠️ Commit failed (may be no changes)"
+    fi
 
     echo ""
     echo "🎉 === BUILD.SH COMPLETED SUCCESSFULLY ==="

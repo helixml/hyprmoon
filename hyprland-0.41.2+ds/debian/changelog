@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.76) unstable; urgency=medium
+
+  * Implement synchronous PIN handling without complex promises - focus on getting streaming working
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Thu, 18 Sep 2025 20:44:52 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.75) unstable; urgency=medium
 
   * Fix PIN promise by implementing Wolf pairing_atom storage pattern instead of static variable

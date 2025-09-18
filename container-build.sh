@@ -65,9 +65,8 @@ if [ -d build ] && [ -f build/.ninja_log ] && [ -f build/build.ninja ]; then
     BUILD_TYPE="INCREMENTAL"
     echo "🚀 INCREMENTAL BUILD: Using direct ninja + ccache"
 
-    # Skip all dependency checking for incremental builds - assume they're satisfied
-    echo "INCREMENTAL MODE: Skipping all dependency installation"
-    echo "If build fails due to missing deps, run: FORCE_CLEAN=1 ./build.sh"
+    # All dependencies pre-installed in enhanced container - skip installation
+    echo "INCREMENTAL MODE: Using pre-installed dependencies from enhanced container"
 
     # Collect metrics before build
     echo "=== COLLECTING BUILD METRICS ==="

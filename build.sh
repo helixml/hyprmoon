@@ -245,23 +245,23 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
 
     echo "1. Copying build artifacts to $HELIX_DIR/"
 
-    # Copy latest .deb file (for full builds)
+    # Copy latest .deb file (preserve timestamps for strategy detection)
     if ls hyprmoon_*.deb >/dev/null 2>&1; then
         LATEST_DEB=$(ls -t hyprmoon_*.deb | head -1)
-        cp "$LATEST_DEB" "$HELIX_DIR/"
-        echo "   Copied .deb: $LATEST_DEB"
+        cp -p "$LATEST_DEB" "$HELIX_DIR/"
+        echo "   Copied .deb: $LATEST_DEB (timestamp preserved)"
     fi
 
-    # Copy versioned binary and version file (for incremental builds)
+    # Copy versioned binary and version file (preserve timestamps)
     if ls Hyprland-* >/dev/null 2>&1; then
         LATEST_BINARY=$(ls -t Hyprland-* | head -1)
-        cp "$LATEST_BINARY" "$HELIX_DIR/"
-        echo "   Copied binary: $LATEST_BINARY"
+        cp -p "$LATEST_BINARY" "$HELIX_DIR/"
+        echo "   Copied binary: $LATEST_BINARY (timestamp preserved)"
     fi
 
     # Copy version file if it exists
     if [ -f HYPRMOON_VERSION.txt ]; then
-        cp HYPRMOON_VERSION.txt "$HELIX_DIR/"
+        cp -p HYPRMOON_VERSION.txt "$HELIX_DIR/"
         echo "   Copied version file: HYPRMOON_VERSION.txt"
     fi
 
@@ -304,6 +304,11 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
     fi
 
     # Decide deployment strategy based on what's newer
+    echo "   📊 STRATEGY DEBUG: LATEST_BINARY='$LATEST_BINARY' BINARY_TIME=$BINARY_TIME"
+    echo "   📊 STRATEGY DEBUG: LATEST_DEB='$LATEST_DEB' DEB_TIME=$DEB_TIME"
+    echo "   📊 STRATEGY DEBUG: Binary exists: $([ -n "$LATEST_BINARY" ] && echo YES || echo NO)"
+    echo "   📊 STRATEGY DEBUG: Binary newer: $([ "$BINARY_TIME" -gt "$DEB_TIME" ] && echo YES || echo NO)"
+
     if [ -n "$LATEST_BINARY" ] && [ "$BINARY_TIME" -gt "$DEB_TIME" ]; then
         # Incremental build - need .deb for base installation
         if [ -z "$LATEST_DEB" ]; then
@@ -339,16 +344,16 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
     # Enable/disable incremental binary clobbering based on deployment mode
     if [ "$DEPLOY_MODE" = "INCREMENTAL" ]; then
         echo "   Enabling binary clobbering in Dockerfile..."
-        # Uncomment the incremental binary section and update the version
-        sed -i 's/^# COPY Hyprland-VERSION/COPY '"$LATEST_BINARY"'/g' Dockerfile.zed-agent-vnc
-        sed -i '/^# COPY HYPRMOON_VERSION.txt/s/^# //' Dockerfile.zed-agent-vnc
+        # Uncomment and update the incremental binary section with correct filename using line markers
+        sed -i '/^# COPY_BINARY_MARKER$/{ n; s/^COPY .*/COPY '"$LATEST_BINARY"' \/tmp\/Hyprland-incremental/; }' Dockerfile.zed-agent-vnc
+        sed -i '/^# COPY_VERSION_MARKER$/{ n; s/^# COPY/COPY/; }' Dockerfile.zed-agent-vnc
         sed -i '/^# RUN echo.*INCREMENTAL DEPLOY/,/^# INCREMENTAL_BINARY_COPY_END/s/^# //' Dockerfile.zed-agent-vnc
     else
         echo "   Ensuring binary clobbering is disabled in Dockerfile..."
-        # Ensure incremental binary section is commented out
-        sed -i '/^COPY Hyprland-/s/^/# /' Dockerfile.zed-agent-vnc
-        sed -i '/^COPY HYPRMOON_VERSION.txt/s/^/# /' Dockerfile.zed-agent-vnc
-        sed -i '/^RUN echo.*INCREMENTAL DEPLOY/,/^# INCREMENTAL_BINARY_COPY_END/s/^/# /' Dockerfile.zed-agent-vnc
+        # Ensure incremental binary section is commented out using line markers
+        sed -i '/^# COPY_BINARY_MARKER$/{ n; s/^COPY .*/# COPY Hyprland-VERSION \/tmp\/Hyprland-incremental/; }' Dockerfile.zed-agent-vnc
+        sed -i '/^# COPY_VERSION_MARKER$/{ n; s/^COPY/# COPY/; }' Dockerfile.zed-agent-vnc
+        sed -i '/^RUN echo.*INCREMENTAL DEPLOY/,/^INCREMENTAL_BINARY_COPY_END/s/^/# /' Dockerfile.zed-agent-vnc
     fi
 
     echo "   ✓ Dockerfile updated for $DEPLOY_MODE deployment with version $NEW_VERSION"

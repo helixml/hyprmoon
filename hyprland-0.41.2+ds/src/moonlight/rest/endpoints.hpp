@@ -286,6 +286,13 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Res
                                      client_cert_str.value(),
                                      salt.value(),
                                      cache_key);
+
+    // CRITICAL: Keep promise alive by storing it globally (temporary fix)
+    // TODO: Store in proper data structure instead of global variable
+    static std::shared_ptr<boost::promise<XMLResult>> persistent_promise;
+    persistent_promise = future_result;
+    logs::log(logs::warning, "[PAIR DEBUG] Promise stored in persistent variable to prevent destruction");
+
     future_result->get_future().then([response, client_ip](boost::future<XMLResult> result) {
       auto [status, xml] = result.get();
       logs::log(logs::warning, "[PAIR DEBUG] Phase 1 response for {}: status={}, xml_paired={}",

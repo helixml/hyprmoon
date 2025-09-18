@@ -50,11 +50,26 @@ void startServer(HttpServer *server, const immer::box<state::AppState> state, in
 
       auto pin = pt.get<std::string>("pin");
       auto secret = pt.get<std::string>("secret");
-      logs::log(logs::debug, "Received POST /pin/ pin:{} secret:{}", pin, secret);
+      logs::log(logs::warning, "[PIN DEBUG] Received POST /pin/ pin:{} secret:{}", pin, secret);
 
-      auto pair_request = pairing_atom->load()->at(secret);
+      // Debug pairing_atom contents
+      auto current_atom = pairing_atom->load();
+      logs::log(logs::warning, "[PIN DEBUG] Current pairing_atom size: {}", current_atom->size());
+      for (const auto& [key, value] : *current_atom) {
+        logs::log(logs::warning, "[PIN DEBUG] Available secret: {}", key);
+      }
+
+      auto pair_request_ptr = current_atom->find(secret);
+      if (!pair_request_ptr) {
+        logs::log(logs::error, "[PIN DEBUG] Secret {} not found in pairing_atom!", secret);
+        throw std::runtime_error("Invalid pair secret - not found in pairing_atom");
+      }
+
+      auto pair_request = *pair_request_ptr;
+      logs::log(logs::warning, "[PIN DEBUG] Found pair request for secret {}, setting PIN value", secret);
       pair_request->user_pin->set_value(pin);
       resp->write("OK");
+      logs::log(logs::warning, "[PIN DEBUG] PIN {} successfully processed for secret {}", pin, secret);
       pairing_atom->update([&secret](auto m) { return m.erase(secret); });
     } catch (const std::exception &e) {
       *resp << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();

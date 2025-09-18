@@ -345,8 +345,8 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
     if [ "$DEPLOY_MODE" = "INCREMENTAL" ]; then
         echo "   Enabling binary clobbering in Dockerfile..."
         # Uncomment and update the incremental binary section with correct filename using line markers
-        sed -i '/^# COPY_BINARY_MARKER$/{ n; s/^COPY .*/COPY '"$LATEST_BINARY"' \/tmp\/Hyprland-incremental/; }' Dockerfile.zed-agent-vnc
-        sed -i '/^# COPY_VERSION_MARKER$/{ n; s/^# COPY/COPY/; }' Dockerfile.zed-agent-vnc
+        sed -i '/^# COPY_BINARY_MARKER$/{ n; s/^# *COPY .*/COPY '"$LATEST_BINARY"' \/tmp\/Hyprland-incremental/; s/^COPY .*/COPY '"$LATEST_BINARY"' \/tmp\/Hyprland-incremental/; }' Dockerfile.zed-agent-vnc
+        sed -i '/^# COPY_VERSION_MARKER$/{ n; s/^# *COPY/COPY/; }' Dockerfile.zed-agent-vnc
         sed -i '/^# RUN echo.*INCREMENTAL DEPLOY/,/^# INCREMENTAL_BINARY_COPY_END/s/^# //' Dockerfile.zed-agent-vnc
     else
         echo "   Ensuring binary clobbering is disabled in Dockerfile..."

@@ -2703,6 +2703,15 @@ void CHyprRenderer::endRender() {
         wlr_buffer_unlock(m_pCurrentWlrBuffer);
     }
 
+    // CRITICAL: Force continuous rendering when streaming is active
+    if (g_pMoonlightManager && g_pMoonlightManager->isStreaming()) {
+        if (render_count % 120 == 0) { // Log every 120 renders (once every 2 seconds at 60fps)
+            Debug::log(ERR, "[STREAMING DEBUG] Forcing continuous render for moonlight streaming (frame #{})", render_count);
+        }
+        // Schedule next frame immediately to maintain continuous streaming
+        wlr_output_schedule_frame(PMONITOR->output);
+    }
+
     m_pCurrentRenderbuffer->unbind();
 
     m_pCurrentRenderbuffer = nullptr;

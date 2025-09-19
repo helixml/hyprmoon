@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.148) unstable; urgency=medium
+
+  * Force continuous rendering when streaming active to capture frames
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 22:40:45 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.147) unstable; urgency=medium
 
   * Add debugging to onFrameReady to verify frame capture is being called

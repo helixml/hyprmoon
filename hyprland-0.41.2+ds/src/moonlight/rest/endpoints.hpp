@@ -65,6 +65,12 @@ void serverinfo(const std::shared_ptr<typename SimpleWeb::Server<T>::Response> &
 
   auto local_ip = get_host_ip<T>(request, state);
 
+  // Calculate actual pair status - check if there are any paired clients
+  int pair_status = 0;
+  if (cfg->paired_clients && !cfg->paired_clients->load()->empty()) {
+    pair_status = 1; // Has paired clients
+  }
+
   auto xml = moonlight::serverinfo(is_busy,
                                    app_id,
                                    get_port(state::HTTPS_PORT),
@@ -74,7 +80,7 @@ void serverinfo(const std::shared_ptr<typename SimpleWeb::Server<T>::Response> &
                                    utils::lazy_value_or(host->mac_address, [&]() { return get_mac_address(local_ip); }),
                                    local_ip,
                                    host->display_modes,
-                                   is_https,
+                                   pair_status,
                                    cfg->support_hevc,
                                    cfg->support_av1);
 

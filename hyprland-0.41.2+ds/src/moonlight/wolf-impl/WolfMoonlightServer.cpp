@@ -985,6 +985,12 @@ bool WolfMoonlightServer::initializeENet() {
 void WolfMoonlightServer::initializeWolfAppState() {
     Debug::log(LOG, "WolfMoonlightServer: Initializing Wolf AppState for real endpoints");
 
+    // CRITICAL: Initialize Wolf subsystems first (like Wolf's main function)
+    streaming::init(); // Initialize GStreamer
+    // TODO: Enable control::init() after fixing ENet crash
+    // control::init();   // Initialize ENet
+    logs::log(logs::warning, "WolfMoonlightServer: Wolf streaming subsystem initialized");
+
     // Set HOST_APPS_STATE_FOLDER to writable location for session state
     setenv("HOST_APPS_STATE_FOLDER", "/tmp/wolf", 1);
     logs::log(logs::warning, "WolfMoonlightServer: Set HOST_APPS_STATE_FOLDER to /tmp/wolf");
@@ -1081,8 +1087,8 @@ void WolfMoonlightServer::initializeWolfAppState() {
     // CRITICAL: Start RTP ping servers for streaming (was missing!)
     startRTPPingServers(app_state);
 
-    // CRITICAL: Start Control server for input handling (was missing!)
-    startControlServer(app_state);
+    // TODO: Enable Control server after fixing ENet crash
+    // startControlServer(app_state);
 
     wolf_app_state_ = app_state;
     Debug::log(LOG, "WolfMoonlightServer: Wolf AppState initialized successfully");

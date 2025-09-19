@@ -1085,8 +1085,8 @@ void WolfMoonlightServer::initializeWolfAppState() {
     // CRITICAL: Register Wolf streaming event handlers (this was missing!)
     registerStreamingEventHandlers(app_state);
 
-    // CRITICAL: Start RTP ping servers for streaming (was missing!)
-    startRTPPingServers(app_state);
+    // TODO: RTP ping servers will be started by Wolf streaming when needed
+    // startRTPPingServers(app_state);
 
     // CRITICAL: Start RTSP server for stream setup (was missing!)
     startSimpleRTSPServer(app_state);

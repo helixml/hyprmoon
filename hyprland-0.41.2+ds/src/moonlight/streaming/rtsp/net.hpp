@@ -54,14 +54,14 @@ public:
     socket_.close();
   }
 
-  static std::optional<events::StreamSession> get_session(const immer::vector<events::StreamSession> &sessions,
+  static std::optional<wolf::core::events::StreamSession> get_session(const immer::vector<wolf::core::events::StreamSession> &sessions,
                                                           const RTSP_PACKET &packet,
                                                           std::string_view user_ip) {
     std::string host_option = "";
     if (auto host = packet.options.find("Host"); host != packet.options.end()) {
       host_option = host->second;
     }
-    for (const events::StreamSession &session : sessions) {
+    for (const wolf::core::events::StreamSession &session : sessions) {
       if (session.rtsp_fake_ip == packet.request.uri.ip || host_option == session.rtsp_fake_ip) {
         logs::log(logs::debug, "[RTSP] found session by matching payload: {}", session.rtsp_fake_ip);
         return session;

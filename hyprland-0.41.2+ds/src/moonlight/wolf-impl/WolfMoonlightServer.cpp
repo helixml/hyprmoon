@@ -15,6 +15,8 @@
 
 // Wolf streaming includes for event handler implementation
 #include "../streaming/streaming.hpp"
+#include "../streaming/rtp/udp-ping.hpp"
+#include "../control/control.hpp"
 
 namespace wolf {
 namespace core {
@@ -987,6 +989,10 @@ void WolfMoonlightServer::initializeWolfAppState() {
     setenv("HOST_APPS_STATE_FOLDER", "/tmp/wolf", 1);
     logs::log(logs::warning, "WolfMoonlightServer: Set HOST_APPS_STATE_FOLDER to /tmp/wolf");
 
+    // CRITICAL: Use real local IP instead of fake IP for localhost connections
+    setenv("WOLF_USE_RTSP_FAKE_IP", "FALSE", 1);
+    logs::log(logs::warning, "WolfMoonlightServer: Disabled fake IP - using real localhost IP for RTSP");
+
     // Create minimal Wolf AppState for endpoints to work
     // Note: This is a simplified version - real Wolf has more complex state management
     auto app_state = std::make_shared<state::AppState>();
@@ -1071,6 +1077,12 @@ void WolfMoonlightServer::initializeWolfAppState() {
 
     // CRITICAL: Register Wolf streaming event handlers (this was missing!)
     registerStreamingEventHandlers(app_state);
+
+    // CRITICAL: Start RTP ping servers for streaming (was missing!)
+    startRTPPingServers(app_state);
+
+    // CRITICAL: Start Control server for input handling (was missing!)
+    startControlServer(app_state);
 
     wolf_app_state_ = app_state;
     Debug::log(LOG, "WolfMoonlightServer: Wolf AppState initialized successfully");
@@ -1201,6 +1213,43 @@ void WolfMoonlightServer::registerStreamingEventHandlers(std::shared_ptr<state::
         });
 
     logs::log(logs::warning, "WolfMoonlightServer: StreamSession event handler registered (using native Hyprland frame capture)");
+}
+
+void WolfMoonlightServer::startRTPPingServers(std::shared_ptr<state::AppState> app_state) {
+    Debug::log(LOG, "WolfMoonlightServer: Starting RTP ping servers on ports {} (video) and {} (audio)",
+              state::get_port(state::VIDEO_PING_PORT), state::get_port(state::AUDIO_PING_PORT));
+
+    // Start RTP ping servers (critical for streaming - handles UDP discovery)
+    std::thread([app_state]() {
+        logs::log(logs::warning, "[RTP] Starting RTP ping servers on ports {} and {}",
+                  state::get_port(state::VIDEO_PING_PORT), state::get_port(state::AUDIO_PING_PORT));
+
+        rtp::start_rtp_ping(state::get_port(state::VIDEO_PING_PORT),
+                           state::get_port(state::AUDIO_PING_PORT),
+                           app_state->event_bus);
+
+        logs::log(logs::warning, "[RTP] RTP ping servers ended");
+    }).detach();
+
+    Debug::log(LOG, "WolfMoonlightServer: RTP ping servers started on ports {} and {}",
+              state::get_port(state::VIDEO_PING_PORT), state::get_port(state::AUDIO_PING_PORT));
+}
+
+void WolfMoonlightServer::startControlServer(std::shared_ptr<state::AppState> app_state) {
+    Debug::log(LOG, "WolfMoonlightServer: Starting Control (ENet) server on port {}", state::get_port(state::CONTROL_PORT));
+
+    // Start Control server (ENet-based input handling - keyboard, mouse, gamepad)
+    std::thread([app_state]() {
+        logs::log(logs::warning, "[CONTROL] Starting ENet control server on port {}", state::get_port(state::CONTROL_PORT));
+
+        control::run_control(state::get_port(state::CONTROL_PORT),
+                           app_state->running_sessions,
+                           app_state->event_bus);
+
+        logs::log(logs::warning, "[CONTROL] Control server ended");
+    }).detach();
+
+    Debug::log(LOG, "WolfMoonlightServer: Control server started on port {}", state::get_port(state::CONTROL_PORT));
 }
 
 void WolfMoonlightServer::loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file) {

@@ -1,3 +1,27 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.101) unstable; urgency=medium
+
+  * Add RTP ping servers (UDP video/audio) and Control server (ENet input) - critical missing servers
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 09:58:35 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.100) unstable; urgency=medium
+
+  * Fix RTSP include paths and start implementing missing Wolf servers
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 09:55:03 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.99) unstable; urgency=medium
+
+  * Fix RTSP commands.hpp include path
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 09:51:19 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.98) unstable; urgency=medium
+
+  * Add RTSP server startup and fix IP address: use localhost instead of fake external IP
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 09:49:45 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.97) unstable; urgency=medium
 
   * Fix session_id type conversion for StreamingEngine::startStreaming

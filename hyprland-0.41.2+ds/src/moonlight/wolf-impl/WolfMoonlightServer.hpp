@@ -283,6 +283,8 @@ private:
     void initializeHttpsServer();
     void loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file);
     void registerStreamingEventHandlers(std::shared_ptr<state::AppState> app_state);
+    void startRTPPingServers(std::shared_ptr<state::AppState> app_state);
+    void startControlServer(std::shared_ptr<state::AppState> app_state);
 };
 
 } // namespace core

@@ -135,8 +135,9 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
             std::thread([video_session, client_ip, state]() {
                 try {
                     auto io_context = std::make_shared<boost::asio::io_context>();
+                    // Use port 0 to let system assign available port (avoid conflict with RTP ping servers)
                     auto video_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
-                        boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_PING_PORT)));
+                        boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
 
                     streaming::start_streaming_video(
                         immer::box<events::VideoSession>(video_session),

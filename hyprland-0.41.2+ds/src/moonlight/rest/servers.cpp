@@ -95,6 +95,11 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
         auto app_id = get_header(headers, "appid").value_or("1");
         auto client_ip = req->remote_endpoint().address().to_string();
 
+        // Add required parameters that Wolf functions expect
+        if (headers.find("mode") == headers.end()) headers.emplace("mode", "1920x1080x60");
+        if (headers.find("rikey") == headers.end()) headers.emplace("rikey", "dGVzdA");
+        if (headers.find("rikeyid") == headers.end()) headers.emplace("rikeyid", "1");
+
         logs::log(logs::warning, "[HTTP DEBUG] TEMP: Creating streaming session for app_id {} from IP {}", app_id, client_ip);
 
         // Get app by ID

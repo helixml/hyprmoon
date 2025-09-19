@@ -1130,11 +1130,12 @@ void WolfMoonlightServer::generateAndLoadCertificates() {
     std::string cert_file = "/tmp/moonlight-cert.pem";
     std::string key_file = "/tmp/moonlight-key.pem";
 
-    // Generate self-signed certificate command
-    std::string gen_cert_cmd = "openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
-                              " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost'";
+    // Simplified certificate generation directly to target location
+    std::string gen_cert_cmd = "mkdir -p /tmp && openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
+                              " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost' 2>/dev/null && " +
+                              "chmod 644 " + cert_file + " && chmod 600 " + key_file;
 
-    logs::log(logs::warning, "WolfMoonlightServer: Executing certificate generation command: {}", gen_cert_cmd);
+    logs::log(logs::warning, "WolfMoonlightServer: Executing certificate generation command");
     int cert_result = system(gen_cert_cmd.c_str());
     logs::log(logs::warning, "WolfMoonlightServer: Certificate generation result: {}", cert_result);
 

@@ -1194,6 +1194,9 @@ void WolfMoonlightServer::initializeHttpsServer() {
 void WolfMoonlightServer::registerStreamingEventHandlers(std::shared_ptr<state::AppState> app_state) {
     Debug::log(LOG, "WolfMoonlightServer: Registering Wolf streaming event handlers");
 
+    logs::log(logs::warning, "[EVENT BUS DEBUG] Registering handler on event_bus: {}, app_state: {}",
+              static_cast<void*>(app_state->event_bus.get()), static_cast<void*>(app_state.get()));
+
     // StreamSession event handler - use Hyprland's native zero-copy GPU frame capture instead of waylanddisplaysrc
     app_state->event_bus->register_handler<immer::box<events::StreamSession>>(
         [this, app_state](const immer::box<events::StreamSession> &session) {

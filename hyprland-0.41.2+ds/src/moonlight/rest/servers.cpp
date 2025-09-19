@@ -114,8 +114,46 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
             auto rtsp_ip = endpoints::https::get_rtsp_ip_string(endpoints::get_host_ip<SimpleWeb::HTTP>(req, state), *new_session);
             auto xml = moonlight::launch_success(rtsp_ip, std::to_string(get_port(state::RTSP_SETUP_PORT)));
 
+            // CRITICAL: Fire direct Wolf streaming (copy from endpoints.hpp)
+            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Starting direct Wolf streaming for session {}", new_session->session_id);
+
+            // Create Video Session and start video streaming directly
+            events::VideoSession video_session = {
+                .display_mode = {
+                    .width = new_session->display_mode.width,
+                    .height = new_session->display_mode.height,
+                    .refreshRate = new_session->display_mode.refreshRate
+                },
+                .gst_pipeline = "nvh264enc",
+                .session_id = new_session->session_id,
+                .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT)),
+                .timeout_ms = 2000,
+                .wait_for_ping = true
+            };
+
+            // Start video streaming thread directly
+            std::thread([video_session, client_ip, state]() {
+                try {
+                    auto io_context = std::make_shared<boost::asio::io_context>();
+                    auto video_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
+                        boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_PING_PORT)));
+
+                    streaming::start_streaming_video(
+                        immer::box<events::VideoSession>(video_session),
+                        state->event_bus,
+                        client_ip,
+                        state::get_port(state::VIDEO_PING_PORT),
+                        video_socket
+                    );
+
+                    logs::log(logs::warning, "[HTTP DEBUG] TEMP: Wolf video streaming started successfully");
+                } catch (const std::exception& e) {
+                    logs::log(logs::error, "[HTTP DEBUG] TEMP: Wolf video streaming failed: {}", e.what());
+                }
+            }).detach();
+
             send_xml<SimpleWeb::HTTP>(resp, SimpleWeb::StatusCode::success_ok, xml);
-            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Real launch response sent successfully");
+            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Real launch response sent + Wolf streaming started");
         } else {
             logs::log(logs::error, "[HTTP DEBUG] TEMP: App not found for ID: {}", app_id);
             throw std::runtime_error("App not found");

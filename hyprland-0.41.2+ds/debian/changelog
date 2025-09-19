@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.114) unstable; urgency=medium
+
+  * FINAL INTEGRATION: HTTP launch triggers complete Wolf streaming pipeline
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 12:34:34 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.113) unstable; urgency=medium
 
   * Fix namespace prefixes in HTTP launch endpoint

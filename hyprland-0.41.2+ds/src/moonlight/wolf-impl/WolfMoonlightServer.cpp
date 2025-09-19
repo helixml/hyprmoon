@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <random>
 #include <cstring>
+#include <filesystem>
+#include <rfl/toml.hpp>
 #include <gst/allocators/gstdmabuf.h>
 #include <gst/video/video.h>
 
@@ -990,6 +992,25 @@ void WolfMoonlightServer::initializeWolfAppState() {
 
     // CRITICAL: Initialize paired_clients to prevent NULL pointer crashes
     config.config_source = "/tmp/hyprmoon-config.toml";
+
+    // Create minimal TOML config file if it doesn't exist (required for state::pair() to work)
+    if (!std::filesystem::exists(config.config_source)) {
+        logs::log(logs::warning, "WolfMoonlightServer: Creating minimal TOML config file at {}", config.config_source);
+        wolf::config::WolfConfig minimal_config;
+        minimal_config.hostname = state_->getConfig().hostname;
+        minimal_config.uuid = state_->getConfig().uuid;
+        minimal_config.config_version = 4;
+        minimal_config.paired_clients = {}; // Empty initially
+        minimal_config.apps = {}; // Empty initially
+
+        try {
+            rfl::toml::save(config.config_source, minimal_config);
+            logs::log(logs::warning, "WolfMoonlightServer: Created minimal TOML config successfully");
+        } catch (const std::exception& e) {
+            logs::log(logs::error, "WolfMoonlightServer: Failed to create TOML config: {}", e.what());
+        }
+    }
+
     auto empty_paired_clients = state::PairedClientList{};
     config.paired_clients = std::make_shared<immer::atom<state::PairedClientList>>(empty_paired_clients);
     logs::log(logs::warning, "WolfMoonlightServer: Initialized Config with empty paired_clients (prevents NULL crashes)");

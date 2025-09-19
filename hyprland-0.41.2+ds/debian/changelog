@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.91) unstable; urgency=medium
+
+  * Add rfl/toml.hpp include for config file creation
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 08:08:19 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.90) unstable; urgency=medium
+
+  * Create minimal TOML config file to fix state::pair() persistence failure
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 08:07:20 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.89) unstable; urgency=medium
 
   * Fix critical PairStatus bug: use actual paired clients count instead of is_https flag

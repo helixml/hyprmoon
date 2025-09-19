@@ -979,6 +979,10 @@ bool WolfMoonlightServer::initializeENet() {
 void WolfMoonlightServer::initializeWolfAppState() {
     Debug::log(LOG, "WolfMoonlightServer: Initializing Wolf AppState for real endpoints");
 
+    // Set HOST_APPS_STATE_FOLDER to writable location for session state
+    setenv("HOST_APPS_STATE_FOLDER", "/tmp/wolf", 1);
+    logs::log(logs::warning, "WolfMoonlightServer: Set HOST_APPS_STATE_FOLDER to /tmp/wolf");
+
     // Create minimal Wolf AppState for endpoints to work
     // Note: This is a simplified version - real Wolf has more complex state management
     auto app_state = std::make_shared<state::AppState>();

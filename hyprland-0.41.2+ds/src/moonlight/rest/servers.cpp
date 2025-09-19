@@ -153,8 +153,16 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
                 }
             }).detach();
 
+            // CRITICAL: Enable MoonlightManager streaming to start frame capture
+            // g_pMoonlightManager is defined globally in MoonlightManager.cpp
+            if (g_pMoonlightManager) {
+                logs::log(logs::warning, "[HTTP DEBUG] TEMP: Starting MoonlightManager streaming for frame capture");
+                g_pMoonlightManager->startStreaming(); // This enables onFrameReady() processing
+                logs::log(logs::warning, "[HTTP DEBUG] TEMP: MoonlightManager streaming started - frames will now be captured");
+            }
+
             send_xml<SimpleWeb::HTTP>(resp, SimpleWeb::StatusCode::success_ok, xml);
-            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Real launch response sent + Wolf streaming started");
+            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Real launch response sent + Wolf streaming + frame capture started");
         } else {
             logs::log(logs::error, "[HTTP DEBUG] TEMP: App not found for ID: {}", app_id);
             throw std::runtime_error("App not found");

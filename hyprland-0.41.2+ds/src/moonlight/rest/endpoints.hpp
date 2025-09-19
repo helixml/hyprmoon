@@ -571,24 +571,69 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
             const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
             const state::PairedClient &current_client,
             std::shared_ptr<state::AppState> state) {
-  log_req<SimpleWeb::HTTPS>(request);
+  try {
+    logs::log(logs::warning, "[LAUNCH DEBUG] Starting launch endpoint");
+    log_req<SimpleWeb::HTTPS>(request);
 
-  SimpleWeb::CaseInsensitiveMultimap headers = request->parse_query_string();
-  auto app = state::get_app_by_id(state->config, get_header(headers, "appid").value());
-  if (!app) {
-    logs::log(logs::warning, "[HTTP] Requested wrong app_id: not found");
-    server_error<SimpleWeb::HTTPS>(response);
-    return;
+    logs::log(logs::warning, "[LAUNCH DEBUG] Parsing query parameters");
+    SimpleWeb::CaseInsensitiveMultimap headers = request->parse_query_string();
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Getting app_id from headers");
+    auto app_id_str = get_header(headers, "appid").value();
+    logs::log(logs::warning, "[LAUNCH DEBUG] Requested app_id: {}", app_id_str);
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Looking up app by ID");
+    auto app = state::get_app_by_id(state->config, app_id_str);
+    if (!app) {
+      logs::log(logs::error, "[LAUNCH DEBUG] App not found for ID: {}", app_id_str);
+      server_error<SimpleWeb::HTTPS>(response);
+      return;
+    }
+    logs::log(logs::warning, "[LAUNCH DEBUG] App found: {}", app.value()->base.title);
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Getting client IP");
+    auto client_ip = get_client_ip<SimpleWeb::HTTPS>(request);
+    logs::log(logs::warning, "[LAUNCH DEBUG] Client IP: {}", client_ip);
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Creating run session");
+    auto new_session = create_run_session(request->parse_query_string(), client_ip, current_client, state, app.value());
+    logs::log(logs::warning, "[LAUNCH DEBUG] Session created with ID: {}", new_session->session_id);
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Firing stream session event");
+    state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
+    logs::log(logs::warning, "[LAUNCH DEBUG] Event fired successfully");
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Updating running sessions");
+    state->running_sessions->update(
+        [&new_session](const immer::vector<events::StreamSession> &ses_v) { return ses_v.push_back(*new_session); });
+    logs::log(logs::warning, "[LAUNCH DEBUG] Running sessions updated");
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Getting RTSP IP");
+    auto rtsp_ip = get_rtsp_ip_string(get_host_ip<SimpleWeb::HTTPS>(request, state), *new_session);
+    logs::log(logs::warning, "[LAUNCH DEBUG] RTSP IP: {}", rtsp_ip);
+
+    logs::log(logs::warning, "[LAUNCH DEBUG] Generating launch success XML");
+    auto xml = moonlight::launch_success(rtsp_ip, std::to_string(get_port(state::RTSP_SETUP_PORT)));
+    logs::log(logs::warning, "[LAUNCH DEBUG] XML generated, sending response");
+
+    send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
+    logs::log(logs::warning, "[LAUNCH DEBUG] Launch response sent successfully");
+
+  } catch (const std::exception& e) {
+    logs::log(logs::error, "[LAUNCH DEBUG] Exception in launch: {}", e.what());
+    try {
+      server_error<SimpleWeb::HTTPS>(response);
+    } catch (...) {
+      logs::log(logs::error, "[LAUNCH DEBUG] Failed to send error response");
+    }
+  } catch (...) {
+    logs::log(logs::error, "[LAUNCH DEBUG] Unknown exception in launch");
+    try {
+      server_error<SimpleWeb::HTTPS>(response);
+    } catch (...) {
+      logs::log(logs::error, "[LAUNCH DEBUG] Failed to send error response");
+    }
   }
-  auto client_ip = get_client_ip<SimpleWeb::HTTPS>(request);
-  auto new_session = create_run_session(request->parse_query_string(), client_ip, current_client, state, app.value());
-  state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
-  state->running_sessions->update(
-      [&new_session](const immer::vector<events::StreamSession> &ses_v) { return ses_v.push_back(*new_session); });
-
-  auto rtsp_ip = get_rtsp_ip_string(get_host_ip<SimpleWeb::HTTPS>(request, state), *new_session);
-  auto xml = moonlight::launch_success(rtsp_ip, std::to_string(get_port(state::RTSP_SETUP_PORT)));
-  send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
 }
 
 void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Response> &response,

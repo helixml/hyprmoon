@@ -80,16 +80,61 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
   server->resource["^/launch"]["GET"] = [&state](auto resp, auto req) {
     logs::log(logs::warning, "[HTTP DEBUG] TEMP: /launch request on HTTP server from {}", req->remote_endpoint().address().to_string());
 
-    // For now, just return a basic launch response to test RTSP
-    std::string launch_response =
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-        "<root status_code=\"200\">\n"
-        "<sessionUrl0>rtsp://127.0.0.1:48010</sessionUrl0>\n"
-        "<gamesession>1</gamesession>\n"
-        "</root>";
+    try {
+        // Call the REAL launch function to trigger Wolf streaming
+        logs::log(logs::warning, "[HTTP DEBUG] TEMP: Calling real launch function to trigger streaming");
 
-    resp->write(SimpleWeb::StatusCode::success_ok, launch_response);
-    logs::log(logs::warning, "[HTTP DEBUG] TEMP: Launch response sent with RTSP URL");
+        // Create a dummy paired client for the call
+        state::PairedClient dummy_client{
+            .client_cert = "dummy",
+            .app_state_folder = "dummy"
+        };
+
+        // Create session and trigger Wolf streaming directly (bypass HTTPS type issues)
+        SimpleWeb::CaseInsensitiveMultimap headers = req->parse_query_string();
+        auto app_id = get_header(headers, "appid").value_or("1");
+        auto client_ip = req->remote_endpoint().address().to_string();
+
+        logs::log(logs::warning, "[HTTP DEBUG] TEMP: Creating streaming session for app_id {} from IP {}", app_id, client_ip);
+
+        // Get app by ID
+        auto app = state::get_app_by_id(state->config, app_id);
+        if (app) {
+            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Found app: {}", app.value()->base.title);
+
+            // Create session using Wolf functions
+            auto new_session = endpoints::https::create_run_session(headers, client_ip, dummy_client, state, app.value());
+            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Session created with ID: {}", new_session->session_id);
+
+            // Add to running sessions
+            state->running_sessions->update(
+                [&new_session](const immer::vector<events::StreamSession> &ses_v) { return ses_v.push_back(*new_session); });
+
+            // Generate proper launch response
+            auto rtsp_ip = endpoints::https::get_rtsp_ip_string(endpoints::get_host_ip<SimpleWeb::HTTP>(req, state), *new_session);
+            auto xml = moonlight::launch_success(rtsp_ip, std::to_string(get_port(state::RTSP_SETUP_PORT)));
+
+            send_xml<SimpleWeb::HTTP>(resp, SimpleWeb::StatusCode::success_ok, xml);
+            logs::log(logs::warning, "[HTTP DEBUG] TEMP: Real launch response sent successfully");
+        } else {
+            logs::log(logs::error, "[HTTP DEBUG] TEMP: App not found for ID: {}", app_id);
+            throw std::runtime_error("App not found");
+        }
+        logs::log(logs::warning, "[HTTP DEBUG] TEMP: Real launch function completed successfully");
+
+    } catch (const std::exception& e) {
+        logs::log(logs::error, "[HTTP DEBUG] TEMP: Real launch function failed: {}", e.what());
+
+        // Fallback to basic response
+        std::string launch_response =
+            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+            "<root status_code=\"200\">\n"
+            "<sessionUrl0>rtsp://127.0.0.1:48010</sessionUrl0>\n"
+            "<gamesession>1</gamesession>\n"
+            "</root>";
+
+        resp->write(SimpleWeb::StatusCode::success_ok, launch_response);
+    }
   };
 
   server->resource["^/unpair$"]["GET"] = [&state](auto resp, auto req) {

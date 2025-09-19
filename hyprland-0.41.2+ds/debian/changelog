@@ -1,3 +1,21 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.113) unstable; urgency=medium
+
+  * Fix namespace prefixes in HTTP launch endpoint
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 12:28:20 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.112) unstable; urgency=medium
+
+  * Fix HTTP launch to call real Wolf session creation and streaming pipeline
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 12:25:50 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.111) unstable; urgency=medium
+
+  * CRITICAL: Make HTTP launch call real launch function to trigger Wolf streaming pipeline
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 12:22:47 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.110) unstable; urgency=medium
 
   * CRITICAL WORKAROUND: Add launch endpoint to HTTP server to bypass HTTPS issues and test RTSP streaming

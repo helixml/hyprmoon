@@ -137,7 +137,7 @@ public:
           }
           self->deadline_.cancel(); // stop the deadline
           std::string raw_msg = {std::istreambuf_iterator<char>(&self->streambuf_), {}};
-          logs::log(logs::trace, "[RTSP] received message {} bytes \n{}", bytes_transferred, raw_msg);
+          logs::log(logs::warning, "[RTSP DEBUG] received message {} bytes: {}", bytes_transferred, raw_msg);
 
           auto full_raw_msg = self->prev_read_ + raw_msg;
           auto total_bytes_transferred = self->prev_read_bytes_ + bytes_transferred;
@@ -173,7 +173,7 @@ public:
   void send_message(const rtsp::RTSP_PACKET &response,
                     const std::function<void(int /* bytes_transferred */)> &on_sent) {
     auto raw_response = rtsp::to_string(response);
-    logs::log(logs::trace, "[RTSP] sending reply: \n{}", raw_response);
+    logs::log(logs::warning, "[RTSP DEBUG] sending reply: {}", raw_response);
     boost::asio::async_write(socket(),
                              boost::asio::buffer(raw_response),
                              [on_sent](auto error_code, auto bytes_transferred) {

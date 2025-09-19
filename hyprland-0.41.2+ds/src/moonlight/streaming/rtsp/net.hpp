@@ -61,7 +61,15 @@ public:
     if (auto host = packet.options.find("Host"); host != packet.options.end()) {
       host_option = host->second;
     }
-    for (const wolf::core::events::StreamSession &session : sessions) {
+
+    logs::log(logs::warning, "[RTSP DEBUG] get_session: Looking for user_ip='{}', host_option='{}'", user_ip, host_option);
+    logs::log(logs::warning, "[RTSP DEBUG] get_session: packet.request.uri.ip='{}'", packet.request.uri.ip);
+    logs::log(logs::warning, "[RTSP DEBUG] get_session: Total sessions count: {}", sessions.size());
+
+    for (size_t i = 0; i < sessions.size(); i++) {
+      const wolf::core::events::StreamSession &session = sessions[i];
+      logs::log(logs::warning, "[RTSP DEBUG] Session {}: session.ip='{}', session.rtsp_fake_ip='{}'", i, session.ip, session.rtsp_fake_ip);
+
       if (session.rtsp_fake_ip == packet.request.uri.ip || host_option == session.rtsp_fake_ip) {
         logs::log(logs::debug, "[RTSP] found session by matching payload: {}", session.rtsp_fake_ip);
         return session;
@@ -70,6 +78,8 @@ public:
         return session;
       }
     }
+
+    logs::log(logs::warning, "[RTSP DEBUG] get_session: NO SESSION FOUND for user_ip='{}', host_option='{}'", user_ip, host_option);
     return std::nullopt;
   }
 

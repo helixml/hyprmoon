@@ -2684,8 +2684,18 @@ void CHyprRenderer::endRender() {
 
     // Step 5: Frame capture hook - notify moonlight manager about completed frame
     bool moonlight_took_buffer = false;
+    static int render_count = 0;
+    render_count++;
+    if (render_count % 120 == 0) { // Log every 120 renders (once every 2 seconds at 60fps)
+        Debug::log(WARN, "[RENDER DEBUG] Render #{}: g_pMoonlightManager={}, m_pCurrentWlrBuffer={}",
+                   render_count, (void*)g_pMoonlightManager.get(), (void*)m_pCurrentWlrBuffer);
+    }
+
     if (g_pMoonlightManager && m_pCurrentWlrBuffer) {
         moonlight_took_buffer = g_pMoonlightManager->onFrameReady(PMONITOR, m_pCurrentWlrBuffer);
+        if (render_count % 120 == 0) {
+            Debug::log(WARN, "[RENDER DEBUG] onFrameReady() called, took_buffer={}", moonlight_took_buffer);
+        }
     }
 
     // Only unlock if Moonlight didn't take ownership of the buffer

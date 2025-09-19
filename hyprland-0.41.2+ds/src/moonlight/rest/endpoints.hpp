@@ -20,6 +20,9 @@
 #include <state/sessions.hpp>
 #include <utility>
 
+// Temporary include for direct streaming test
+#include <managers/MoonlightManager.hpp>
+
 namespace endpoints {
 
 using namespace control;
@@ -608,6 +611,22 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
     logs::log(logs::warning, "[LAUNCH DEBUG] Firing stream session event");
     state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
     logs::log(logs::warning, "[LAUNCH DEBUG] Event fired successfully");
+
+    // TEMPORARY: Direct streaming test bypassing event bus to isolate issue
+    logs::log(logs::warning, "[LAUNCH DEBUG] TEMP: Testing direct streaming call to verify pipeline works");
+    try {
+      // This simulates what the StreamSession event handler should do
+      auto g_moonlight_manager = g_pMoonlightManager.get();
+      if (g_moonlight_manager) {
+        logs::log(logs::warning, "[LAUNCH DEBUG] TEMP: Found MoonlightManager, starting streaming directly");
+        g_moonlight_manager->startStreaming();
+        logs::log(logs::warning, "[LAUNCH DEBUG] TEMP: Direct streaming started successfully");
+      } else {
+        logs::log(logs::error, "[LAUNCH DEBUG] TEMP: MoonlightManager not found - cannot start streaming");
+      }
+    } catch (const std::exception& e) {
+      logs::log(logs::error, "[LAUNCH DEBUG] TEMP: Direct streaming failed: {}", e.what());
+    }
 
     logs::log(logs::warning, "[LAUNCH DEBUG] Updating running sessions");
     state->running_sessions->update(

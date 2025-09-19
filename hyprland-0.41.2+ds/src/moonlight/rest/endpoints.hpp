@@ -395,12 +395,56 @@ void applist(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>:
              std::shared_ptr<state::AppState> state) {
   log_req<SimpleWeb::HTTPS>(request);
 
-  auto base_apps = state->config->apps->load().get()                                     //
-                   | ranges::views::transform([](const auto &app) { return app->base; }) //
-                   | ranges::to<immer::vector<moonlight::App>>();
-  auto xml = moonlight::applist(base_apps);
+  try {
+    logs::log(logs::warning, "[APPLIST DEBUG] Starting applist - checking AppState validity");
 
-  send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
+    if (!state) {
+      logs::log(logs::error, "[APPLIST DEBUG] CRITICAL: AppState shared_ptr is null!");
+      server_error<SimpleWeb::HTTPS>(response);
+      return;
+    }
+
+    logs::log(logs::warning, "[APPLIST DEBUG] AppState ptr valid, checking config box");
+
+    // The crash is likely here - accessing state->config (immer::box<Config>)
+    logs::log(logs::warning, "[APPLIST DEBUG] About to access state->config...");
+    auto config_ptr = &(state->config);
+    logs::log(logs::warning, "[APPLIST DEBUG] state->config address: {}", (void*)config_ptr);
+
+    logs::log(logs::warning, "[APPLIST DEBUG] About to dereference config...");
+    auto& config = *(state->config);
+    logs::log(logs::warning, "[APPLIST DEBUG] Config dereferenced successfully");
+
+    logs::log(logs::warning, "[APPLIST DEBUG] About to access config.apps...");
+    auto apps_atom = config.apps;
+    if (!apps_atom) {
+      logs::log(logs::error, "[APPLIST DEBUG] CRITICAL: config.apps shared_ptr is null!");
+      server_error<SimpleWeb::HTTPS>(response);
+      return;
+    }
+
+    logs::log(logs::warning, "[APPLIST DEBUG] config.apps valid, calling load()...");
+    auto apps_loaded = apps_atom->load();
+    logs::log(logs::warning, "[APPLIST DEBUG] apps loaded successfully, calling get()...");
+
+    auto base_apps = apps_loaded.get()                                                     //
+                     | ranges::views::transform([](const auto &app) { return app->base; }) //
+                     | ranges::to<immer::vector<moonlight::App>>();
+
+    logs::log(logs::warning, "[APPLIST DEBUG] Apps transformed successfully, count: {}", base_apps.size());
+    auto xml = moonlight::applist(base_apps);
+
+    logs::log(logs::warning, "[APPLIST DEBUG] XML generated, sending response");
+    send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);
+    logs::log(logs::warning, "[APPLIST DEBUG] Response sent successfully");
+
+  } catch (const std::exception& e) {
+    logs::log(logs::error, "[APPLIST DEBUG] Exception in applist: {}", e.what());
+    server_error<SimpleWeb::HTTPS>(response);
+  } catch (...) {
+    logs::log(logs::error, "[APPLIST DEBUG] Unknown exception in applist");
+    server_error<SimpleWeb::HTTPS>(response);
+  }
 }
 
 std::optional<std::ifstream> get_file_content(const std::filesystem::path &path) {

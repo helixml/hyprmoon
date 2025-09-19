@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.84) unstable; urgency=medium
+
+  * Add comprehensive debugging to identify exact crash point in applist
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 07:04:35 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.83) unstable; urgency=medium
 
   * Fix compilation errors in AppState shared_ptr conversion

@@ -257,8 +257,8 @@ private:
     std::unique_ptr<StreamingEngine> streaming_engine_;
     std::unique_ptr<ControlServer> control_server_;
 
-    // Wolf AppState (proper typing for event bus consistency)
-    std::shared_ptr<state::AppState> wolf_app_state_;
+    // Wolf AppState - keep as void* for compatibility, cast when needed
+    std::shared_ptr<void> wolf_app_state_;
     void* http_server_;
     void* https_server_;
     std::thread http_thread_;

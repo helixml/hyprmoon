@@ -36,7 +36,7 @@ inline std::optional<events::StreamSession> get_session_by_client(const immer::v
   return get_session_by_id(sessions, client_id);
 }
 
-inline std::shared_ptr<events::StreamSession> create_stream_session(immer::box<state::AppState> state,
+inline std::shared_ptr<events::StreamSession> create_stream_session(std::shared_ptr<state::AppState> state,
                                                                     const events::App &run_app,
                                                                     const wolf::config::PairedClient &current_client,
                                                                     const moonlight::DisplayMode &display_mode,

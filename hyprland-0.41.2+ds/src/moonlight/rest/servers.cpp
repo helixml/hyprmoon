@@ -21,7 +21,7 @@ using namespace wolf::core;
  * @brief Start the generic server on the specified port
  * @return std::thread: the thread where this server will run
  */
-void startServer(HttpServer *server, const immer::box<state::AppState>& state, int port) {
+void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int port) {
   server->config.port = port;
   server->config.address = "0.0.0.0";
   server->default_resource["GET"] = endpoints::not_found<SimpleWeb::HTTP>;
@@ -152,7 +152,7 @@ void startServer(HttpServer *server, const immer::box<state::AppState>& state, i
 }
 
 std::optional<state::PairedClient>
-get_client_if_paired(const immer::box<state::AppState> state,
+get_client_if_paired(std::shared_ptr<state::AppState> state,
                      const std::shared_ptr<typename SimpleWeb::ServerBase<SimpleWeb::HTTPS>::Request> &request) {
   auto client_cert = SimpleWeb::Server<SimpleWeb::HTTPS>::get_client_cert(request);
   return state::get_client_via_ssl(state->config, std::move(client_cert));
@@ -171,7 +171,7 @@ void reply_unauthorized(const std::shared_ptr<typename SimpleWeb::ServerBase<Sim
   send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::client_error_unauthorized, xml);
 }
 
-void startServer(HttpsServer *server, const immer::box<state::AppState>& state, int port) {
+void startServer(HttpsServer *server, std::shared_ptr<state::AppState> state, int port) {
   server->config.port = port;
   server->config.address = "0.0.0.0";
   server->default_resource["GET"] = endpoints::not_found<SimpleWeb::HTTPS>;

@@ -43,7 +43,7 @@ void not_found(const std::shared_ptr<typename SimpleWeb::Server<T>::Response> &r
 
 template <class T>
 std::string get_host_ip(const std::shared_ptr<typename SimpleWeb::Server<T>::Request> &request,
-                        const immer::box<state::AppState> &state) {
+                        std::shared_ptr<state::AppState> state) {
   return state->host->internal_ip.value_or(request->local_endpoint().address().to_string());
 }
 
@@ -51,7 +51,7 @@ template <class T>
 void serverinfo(const std::shared_ptr<typename SimpleWeb::Server<T>::Response> &response,
                 const std::shared_ptr<typename SimpleWeb::Server<T>::Request> &request,
                 std::optional<events::StreamSession> stream_session,
-                const immer::box<state::AppState> &state) {
+                std::shared_ptr<state::AppState> state) {
   log_req<T>(request);
 
   SimpleWeb::CaseInsensitiveMultimap headers = request->parse_query_string();
@@ -92,7 +92,7 @@ void serverinfo(const std::shared_ptr<typename SimpleWeb::Server<T>::Response> &
   send_xml<T>(response, SimpleWeb::StatusCode::success_ok, xml);
 }
 
-void remove_pair_session(const immer::box<state::AppState> &state, const std::string &cache_key) {
+void remove_pair_session(std::shared_ptr<state::AppState> state, const std::string &cache_key) {
   state->pairing_cache->update([&cache_key](const immer::map<std::string, state::PairCache> &pairing_cache) {
     return pairing_cache.erase(cache_key);
   });
@@ -114,7 +114,7 @@ struct XMLResult {
   XML xml;
 };
 
-std::shared_ptr<boost::promise<XMLResult>> pair_phase1(const immer::box<state::AppState> &state,
+std::shared_ptr<boost::promise<XMLResult>> pair_phase1(std::shared_ptr<state::AppState> state,
                                                        const std::string &client_ip,
                                                        const std::string &host_ip,
                                                        const std::string &client_cert_str,
@@ -182,7 +182,7 @@ std::shared_ptr<boost::promise<XMLResult>> pair_phase1(const immer::box<state::A
   return future_result;
 }
 
-XMLResult pair_phase2(const immer::box<state::AppState> &state,
+XMLResult pair_phase2(std::shared_ptr<state::AppState> state,
                       state::PairCache &client_cache,
                       const std::string &client_challenge,
                       const std::string &cache_key) {
@@ -205,7 +205,7 @@ XMLResult pair_phase2(const immer::box<state::AppState> &state,
   return {SimpleWeb::StatusCode::success_ok, xml};
 }
 
-XMLResult pair_phase3(const immer::box<state::AppState> &state,
+XMLResult pair_phase3(std::shared_ptr<state::AppState> state,
                       state::PairCache &client_cache,
                       const std::string &server_challenge,
                       const std::string &cache_key) {
@@ -252,7 +252,7 @@ XMLResult pair_phase4(state::PairCache &client_cache, const std::string &client_
 
 void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Response> &response,
           const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTP>::Request> &request,
-          const immer::box<state::AppState> &state) {
+          std::shared_ptr<state::AppState> state) {
   log_req<SimpleWeb::HTTP>(request);
 
   SimpleWeb::CaseInsensitiveMultimap headers = request->parse_query_string();
@@ -392,7 +392,7 @@ void pair(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Re
 
 void applist(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Response> &response,
              const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
-             const immer::box<state::AppState> &state) {
+             std::shared_ptr<state::AppState> state) {
   log_req<SimpleWeb::HTTPS>(request);
 
   auto base_apps = state->config->apps->load().get()                                     //
@@ -443,7 +443,7 @@ std::optional<std::string> curl_download(const std::string &url) {
 
 void appasset(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Response> &response,
               const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
-              const immer::box<state::AppState> &state) {
+              std::shared_ptr<state::AppState> state) {
   log_req<SimpleWeb::HTTPS>(request);
 
   SimpleWeb::CaseInsensitiveMultimap headers = request->parse_query_string();
@@ -494,7 +494,7 @@ void appasset(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>
 auto create_run_session(const SimpleWeb::CaseInsensitiveMultimap &headers,
                         const std::string &client_ip,
                         const state::PairedClient &current_client,
-                        immer::box<state::AppState> state,
+                        std::shared_ptr<state::AppState> state,
                         const events::App &run_app) {
   auto display_mode_str = utils::split(get_header(headers, "mode").value_or("2360x1640x120"), 'x');
   moonlight::DisplayMode display_mode = {std::stoi(display_mode_str[0].data()),
@@ -526,7 +526,7 @@ std::string get_rtsp_ip_string(const std::string &local_ip, const events::Stream
 void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Response> &response,
             const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
             const state::PairedClient &current_client,
-            const immer::box<state::AppState> &state) {
+            std::shared_ptr<state::AppState> state) {
   log_req<SimpleWeb::HTTPS>(request);
 
   SimpleWeb::CaseInsensitiveMultimap headers = request->parse_query_string();
@@ -540,7 +540,7 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
   auto new_session = create_run_session(request->parse_query_string(), client_ip, current_client, state, app.value());
   state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
   state->running_sessions->update(
-      [new_session](const immer::vector<events::StreamSession> &ses_v) { return ses_v.push_back(*new_session); });
+      [&new_session](const immer::vector<events::StreamSession> &ses_v) { return ses_v.push_back(*new_session); });
 
   auto rtsp_ip = get_rtsp_ip_string(get_host_ip<SimpleWeb::HTTPS>(request, state), *new_session);
   auto xml = moonlight::launch_success(rtsp_ip, std::to_string(get_port(state::RTSP_SETUP_PORT)));
@@ -550,7 +550,7 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
 void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Response> &response,
             const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
             const state::PairedClient &current_client,
-            const immer::box<state::AppState> &state) {
+            std::shared_ptr<state::AppState> state) {
   log_req<SimpleWeb::HTTPS>(request);
 
   auto client_ip = get_client_ip<SimpleWeb::HTTPS>(request);
@@ -567,7 +567,7 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
     new_session->pen_tablet = std::move(old_session->pen_tablet);
     new_session->touch_screen = std::move(old_session->touch_screen);
 
-    state->running_sessions->update([&old_session, new_session](const immer::vector<events::StreamSession> ses_v) {
+    state->running_sessions->update([&old_session, &new_session](const immer::vector<events::StreamSession> ses_v) {
       return state::remove_session(ses_v, old_session.value()).push_back(*new_session);
     });
 
@@ -584,7 +584,7 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
 void cancel(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Response> &response,
             const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::Request> &request,
             const state::PairedClient &current_client,
-            const immer::box<state::AppState> &state) {
+            std::shared_ptr<state::AppState> state) {
   logs::log(logs::warning, "[CANCEL DEBUG] Cancel request received");
 
   try {

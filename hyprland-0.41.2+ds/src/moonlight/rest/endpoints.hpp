@@ -568,7 +568,16 @@ auto create_run_session(const SimpleWeb::CaseInsensitiveMultimap &headers,
                                             get_header(headers, "rikey").value(),
                                             get_header(headers, "rikeyid").value());
 
-  base_session->ip = client_ip;
+  // CRITICAL FIX: Docker bridge IP mismatch
+  // When running in Docker, HTTP requests come from localhost (127.0.0.1)
+  // but RTSP connections arrive from Docker bridge IP (172.18.0.1)
+  // We need to use the Docker bridge IP for session lookups to work
+  std::string session_ip = client_ip;
+  if (client_ip == "127.0.0.1" || client_ip == "::1") {
+    session_ip = "172.18.0.1"; // Docker bridge IP that RTSP connections will use
+    logs::log(logs::warning, "[LAUNCH DEBUG] Docker fix: Mapping localhost client_ip {} to Docker bridge IP {}", client_ip, session_ip);
+  }
+  base_session->ip = session_ip;
   return std::move(base_session);
 }
 
@@ -760,8 +769,10 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
 
     try {
         // Fire StreamSession event to trigger native Hyprland frame capture
+        logs::log(logs::warning, "[RESUME DEBUG] About to fire StreamSession event with session_id {}", new_session->session_id);
+        logs::log(logs::warning, "[RESUME DEBUG] event_bus pointer: {}", static_cast<void*>(state->event_bus.get()));
         state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
-        logs::log(logs::warning, "[RESUME DEBUG] StreamSession event fired for native frame capture");
+        logs::log(logs::warning, "[RESUME DEBUG] StreamSession event fired successfully for native frame capture");
 
         // Create Video Session and start video streaming using Wolf's functions
         events::VideoSession video_session = {

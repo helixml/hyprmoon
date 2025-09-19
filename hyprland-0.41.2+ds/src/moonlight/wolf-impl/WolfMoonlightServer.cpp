@@ -1070,8 +1070,8 @@ void WolfMoonlightServer::initializeWolfAppState() {
 
     // CRITICAL: Initialize certificate paths for pairing
     // These will be loaded when HTTPS server initializes certificates
-    cert_file_path_ = "/tmp/moonlight-cert.pem";
-    key_file_path_ = "/tmp/moonlight-key.pem";
+    cert_file_path_ = "/tmp/certs/moonlight-cert.pem";
+    key_file_path_ = "/tmp/certs/moonlight-key.pem";
 
     Debug::log(LOG, "WolfMoonlightServer: Will load certificates from {} and {}", cert_file_path_, key_file_path_);
 

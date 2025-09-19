@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.136) unstable; urgency=medium
+
+  * Fix RTSP session IP matching for Docker bridge connections
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 21:17:49 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.135) unstable; urgency=medium
 
   * Add enhanced RTSP session lookup debugging for Docker bridge IP issue

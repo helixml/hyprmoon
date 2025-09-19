@@ -73,8 +73,8 @@ public:
       if (session.rtsp_fake_ip == packet.request.uri.ip || host_option == session.rtsp_fake_ip) {
         logs::log(logs::debug, "[RTSP] found session by matching payload: {}", session.rtsp_fake_ip);
         return session;
-      } else if ((host_option == "0.0.0.0" || host_option.empty()) && session.ip == user_ip) {
-        logs::log(logs::debug, "[RTSP] found session by matching IP: {}", session.ip);
+      } else if (session.ip == user_ip) {
+        logs::log(logs::debug, "[RTSP] found session by matching IP: {} (host_option was '{}')", session.ip, host_option);
         return session;
       }
     }

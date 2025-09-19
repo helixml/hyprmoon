@@ -257,8 +257,8 @@ private:
     std::unique_ptr<StreamingEngine> streaming_engine_;
     std::unique_ptr<ControlServer> control_server_;
 
-    // Stub placeholders - not used in step 8.6 crash test
-    std::shared_ptr<void> wolf_app_state_;
+    // Wolf AppState (proper typing for event bus consistency)
+    std::shared_ptr<state::AppState> wolf_app_state_;
     void* http_server_;
     void* https_server_;
     std::thread http_thread_;
@@ -274,6 +274,9 @@ private:
     // Active streaming session tracking for frame routing
     std::string current_session_id_;
 
+    // Event handler registrations (must be stored to keep them alive)
+    std::vector<void*> event_handlers_;
+
     // Initialization
     bool initializeGStreamer();
     bool initializeENet();
@@ -285,6 +288,7 @@ private:
     void registerStreamingEventHandlers(std::shared_ptr<state::AppState> app_state);
     void startRTPPingServers(std::shared_ptr<state::AppState> app_state);
     void startControlServer(std::shared_ptr<state::AppState> app_state);
+    void startMDNSService(std::shared_ptr<state::AppState> app_state);
 };
 
 } // namespace core

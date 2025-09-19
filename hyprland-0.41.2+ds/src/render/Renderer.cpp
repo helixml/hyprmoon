@@ -2686,15 +2686,15 @@ void CHyprRenderer::endRender() {
     bool moonlight_took_buffer = false;
     static int render_count = 0;
     render_count++;
-    if (render_count % 120 == 0) { // Log every 120 renders (once every 2 seconds at 60fps)
-        Debug::log(WARN, "[RENDER DEBUG] Render #{}: g_pMoonlightManager={}, m_pCurrentWlrBuffer={}",
+    if (render_count % 60 == 0) { // Log every 60 renders (once per second at 60fps)
+        Debug::log(ERR, "[RENDER DEBUG] Render #{}: g_pMoonlightManager={}, m_pCurrentWlrBuffer={}",
                    render_count, (void*)g_pMoonlightManager.get(), (void*)m_pCurrentWlrBuffer);
     }
 
     if (g_pMoonlightManager && m_pCurrentWlrBuffer) {
         moonlight_took_buffer = g_pMoonlightManager->onFrameReady(PMONITOR, m_pCurrentWlrBuffer);
-        if (render_count % 120 == 0) {
-            Debug::log(WARN, "[RENDER DEBUG] onFrameReady() called, took_buffer={}", moonlight_took_buffer);
+        if (render_count % 60 == 0) {
+            Debug::log(ERR, "[RENDER DEBUG] onFrameReady() called, took_buffer={}", moonlight_took_buffer);
         }
     }
 

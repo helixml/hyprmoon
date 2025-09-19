@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.124) unstable; urgency=medium
+
+  * Increase render debugging frequency and use ERROR level for visibility
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 15:24:41 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.123) unstable; urgency=medium
 
   * Add renderer debugging to verify onFrameReady() integration point

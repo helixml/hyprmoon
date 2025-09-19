@@ -20,8 +20,9 @@
 #include <state/sessions.hpp>
 #include <utility>
 
-// Temporary include for direct streaming test
+// Direct Wolf streaming integration includes
 #include <managers/MoonlightManager.hpp>
+#include <streaming/streaming.hpp>
 
 namespace endpoints {
 
@@ -608,24 +609,90 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
     auto new_session = create_run_session(request->parse_query_string(), client_ip, current_client, state, app.value());
     logs::log(logs::warning, "[LAUNCH DEBUG] Session created with ID: {}", new_session->session_id);
 
-    logs::log(logs::warning, "[LAUNCH DEBUG] Firing stream session event");
-    state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
-    logs::log(logs::warning, "[LAUNCH DEBUG] Event fired successfully");
+    // DIRECT APPROACH: Skip complex event coordination, use Wolf's streaming functions directly
+    logs::log(logs::warning, "[LAUNCH DEBUG] Starting direct Wolf streaming for session {}", new_session->session_id);
 
-    // TEMPORARY: Direct streaming test bypassing event bus to isolate issue
-    logs::log(logs::warning, "[LAUNCH DEBUG] TEMP: Testing direct streaming call to verify pipeline works");
     try {
-      // This simulates what the StreamSession event handler should do
-      auto g_moonlight_manager = g_pMoonlightManager.get();
-      if (g_moonlight_manager) {
-        logs::log(logs::warning, "[LAUNCH DEBUG] TEMP: Found MoonlightManager, starting streaming directly");
-        g_moonlight_manager->startStreaming();
-        logs::log(logs::warning, "[LAUNCH DEBUG] TEMP: Direct streaming started successfully");
-      } else {
-        logs::log(logs::error, "[LAUNCH DEBUG] TEMP: MoonlightManager not found - cannot start streaming");
-      }
+        // Create Video Session and start video streaming using Wolf's functions
+        events::VideoSession video_session = {
+            .display_mode = {
+                .width = new_session->display_mode.width,
+                .height = new_session->display_mode.height,
+                .refreshRate = new_session->display_mode.refreshRate
+            },
+            .gst_pipeline = "nvh264enc", // Default H264 pipeline
+            .session_id = new_session->session_id,
+            .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT)),
+            .timeout_ms = 2000,
+            .wait_for_ping = true
+        };
+
+        logs::log(logs::warning, "[LAUNCH DEBUG] Starting Wolf video streaming directly");
+
+        // Start video streaming thread using Wolf's battle-tested functions
+        std::thread([video_session, client_ip, state]() {
+            try {
+                // Create video socket for RTP streaming
+                auto io_context = std::make_shared<boost::asio::io_context>();
+                auto video_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_PING_PORT)));
+
+                // Start Wolf's video streaming pipeline directly
+                streaming::start_streaming_video(
+                    immer::box<events::VideoSession>(video_session),
+                    state->event_bus,
+                    client_ip,
+                    state::get_port(state::VIDEO_PING_PORT),
+                    video_socket
+                );
+
+                logs::log(logs::warning, "[LAUNCH DEBUG] Wolf video streaming started successfully");
+            } catch (const std::exception& e) {
+                logs::log(logs::error, "[LAUNCH DEBUG] Wolf video streaming failed: {}", e.what());
+            }
+        }).detach();
+
+        // Create Audio Session and start audio streaming
+        events::AudioSession audio_session = {
+            .gst_pipeline = "opusenc", // Default Opus pipeline
+            .session_id = new_session->session_id,
+            .encrypt_audio = true,
+            .aes_key = new_session->aes_key,
+            .aes_iv = new_session->aes_iv,
+            .port = static_cast<std::uint16_t>(state::get_port(state::AUDIO_PING_PORT))
+        };
+
+        logs::log(logs::warning, "[LAUNCH DEBUG] Starting Wolf audio streaming directly");
+
+        // Start audio streaming thread using Wolf's functions
+        std::thread([audio_session, client_ip, state]() {
+            try {
+                // Create audio socket for RTP streaming
+                auto io_context = std::make_shared<boost::asio::io_context>();
+                auto audio_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::AUDIO_PING_PORT)));
+
+                // Start Wolf's audio streaming pipeline directly
+                streaming::start_streaming_audio(
+                    immer::box<events::AudioSession>(audio_session),
+                    state->event_bus,
+                    client_ip,
+                    state::get_port(state::AUDIO_PING_PORT),
+                    audio_socket,
+                    "default", // sink name
+                    "unix:path=/tmp/pulse-socket" // server name
+                );
+
+                logs::log(logs::warning, "[LAUNCH DEBUG] Wolf audio streaming started successfully");
+            } catch (const std::exception& e) {
+                logs::log(logs::error, "[LAUNCH DEBUG] Wolf audio streaming failed: {}", e.what());
+            }
+        }).detach();
+
+        logs::log(logs::warning, "[LAUNCH DEBUG] Direct Wolf streaming initiated for session {}", new_session->session_id);
+
     } catch (const std::exception& e) {
-      logs::log(logs::error, "[LAUNCH DEBUG] TEMP: Direct streaming failed: {}", e.what());
+        logs::log(logs::error, "[LAUNCH DEBUG] Failed to start direct Wolf streaming: {}", e.what());
     }
 
     logs::log(logs::warning, "[LAUNCH DEBUG] Updating running sessions");

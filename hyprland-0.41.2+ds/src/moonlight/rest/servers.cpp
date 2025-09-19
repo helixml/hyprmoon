@@ -76,6 +76,22 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
     }
   };
 
+  // TEMPORARY: Add launch endpoint to HTTP server to bypass HTTPS issues
+  server->resource["^/launch"]["GET"] = [&state](auto resp, auto req) {
+    logs::log(logs::warning, "[HTTP DEBUG] TEMP: /launch request on HTTP server from {}", req->remote_endpoint().address().to_string());
+
+    // For now, just return a basic launch response to test RTSP
+    std::string launch_response =
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        "<root status_code=\"200\">\n"
+        "<sessionUrl0>rtsp://127.0.0.1:48010</sessionUrl0>\n"
+        "<gamesession>1</gamesession>\n"
+        "</root>";
+
+    resp->write(SimpleWeb::StatusCode::success_ok, launch_response);
+    logs::log(logs::warning, "[HTTP DEBUG] TEMP: Launch response sent with RTSP URL");
+  };
+
   server->resource["^/unpair$"]["GET"] = [&state](auto resp, auto req) {
     SimpleWeb::CaseInsensitiveMultimap headers = req->parse_query_string();
     auto client_id = get_header(headers, "uniqueid");

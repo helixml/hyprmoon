@@ -1039,7 +1039,9 @@ void WolfMoonlightServer::initializeHttpServer() {
     http_thread_ = std::thread([this, server, port = state_->getConfig().http_port]() {
         // Get fresh AppState inside thread (though HTTP doesn't need certificates for pairing)
         auto fresh_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
-        HTTPServers::startServer(server, immer::box<state::AppState>(*fresh_app_state), port);
+        // Create immer::box once and pass by reference to avoid copies
+        auto app_state_box = immer::box<state::AppState>(*fresh_app_state);
+        HTTPServers::startServer(server, app_state_box, port);
     });
 
     Debug::log(LOG, "WolfMoonlightServer: HTTP server thread started");
@@ -1102,7 +1104,9 @@ void WolfMoonlightServer::initializeHttpsServer() {
                 // Get AppState INSIDE the thread to ensure we get the updated version
                 auto fresh_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
                 logs::log(logs::warning, "HTTPServers: Using fresh AppState with certificates loaded");
-                HTTPServers::startServer(server, immer::box<state::AppState>(*fresh_app_state), port);
+                // Create immer::box once and pass by reference to avoid copies
+                auto app_state_box = immer::box<state::AppState>(*fresh_app_state);
+                HTTPServers::startServer(server, app_state_box, port);
             });
 
             Debug::log(LOG, "WolfMoonlightServer: HTTPS server initialized and started with certificates");

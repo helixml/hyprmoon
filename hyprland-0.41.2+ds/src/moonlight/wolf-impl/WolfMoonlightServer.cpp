@@ -924,6 +924,13 @@ void WolfMoonlightServer::shutdown() {
 }
 
 void WolfMoonlightServer::onFrameReady(const void* frame_data, size_t size, int width, int height, uint32_t format) {
+    // Log frame activity for debugging
+    static int frame_count = 0;
+    frame_count++;
+    if (frame_count % 60 == 0) { // Log every 60 frames (once per second at 60fps)
+        logs::log(logs::warning, "[FRAME] Received frame #{}: {}x{} format:{} size:{}", frame_count, width, height, format, size);
+    }
+
     if (streaming_engine_) {
         streaming_engine_->pushFrame(frame_data, size, width, height, format);
     }

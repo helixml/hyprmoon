@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.120) unstable; urgency=medium
+
+  * Add frame debugging to verify Hyprland onFrameReady() is working
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 15:04:06 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.119) unstable; urgency=medium
 
   * Fix video streaming: disable separate RTP ping servers to avoid port conflicts with Wolf streaming

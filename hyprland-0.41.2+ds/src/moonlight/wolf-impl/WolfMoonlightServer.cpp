@@ -1,5 +1,9 @@
 #include "WolfMoonlightServer.hpp"
 #include "../../debug/Log.hpp"
+
+// Disable immer false positive warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 #include <sstream>
 #include <iomanip>
 #include <random>
@@ -924,13 +928,6 @@ void WolfMoonlightServer::shutdown() {
 }
 
 void WolfMoonlightServer::onFrameReady(const void* frame_data, size_t size, int width, int height, uint32_t format) {
-    // Log frame activity for debugging
-    static int frame_count = 0;
-    frame_count++;
-    if (frame_count % 60 == 0) { // Log every 60 frames (once per second at 60fps)
-        logs::log(logs::warning, "[FRAME] Received frame #{}: {}x{} format:{} size:{}", frame_count, width, height, format, size);
-    }
-
     if (streaming_engine_) {
         streaming_engine_->pushFrame(frame_data, size, width, height, format);
     }
@@ -1070,8 +1067,8 @@ void WolfMoonlightServer::initializeWolfAppState() {
 
     // CRITICAL: Initialize certificate paths for pairing
     // These will be loaded when HTTPS server initializes certificates
-    cert_file_path_ = "/tmp/certs/moonlight-cert.pem";
-    key_file_path_ = "/tmp/certs/moonlight-key.pem";
+    cert_file_path_ = "/tmp/moonlight-cert.pem";
+    key_file_path_ = "/tmp/moonlight-key.pem";
 
     Debug::log(LOG, "WolfMoonlightServer: Will load certificates from {} and {}", cert_file_path_, key_file_path_);
 
@@ -1126,16 +1123,15 @@ void WolfMoonlightServer::initializeHttpServer() {
 void WolfMoonlightServer::generateAndLoadCertificates() {
     logs::log(logs::warning, "WolfMoonlightServer: Generating and loading certificates for both HTTP and HTTPS servers");
 
-    // Create self-signed certificate files for moonlight in shared directory
-    std::string cert_file = "/tmp/certs/moonlight-cert.pem";
-    std::string key_file = "/tmp/certs/moonlight-key.pem";
+    // Create self-signed certificate files for moonlight
+    std::string cert_file = "/tmp/moonlight-cert.pem";
+    std::string key_file = "/tmp/moonlight-key.pem";
 
-    // Generate certificates in shared directory with proper permissions
-    std::string gen_cert_cmd = "mkdir -p /tmp/certs && openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
-                              " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost' && " +
-                              "chmod 644 " + cert_file + " && chmod 644 " + key_file;
+    // Generate self-signed certificate command
+    std::string gen_cert_cmd = "openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
+                              " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost'";
 
-    logs::log(logs::warning, "WolfMoonlightServer: Executing certificate generation command");
+    logs::log(logs::warning, "WolfMoonlightServer: Executing certificate generation command: {}", gen_cert_cmd);
     int cert_result = system(gen_cert_cmd.c_str());
     logs::log(logs::warning, "WolfMoonlightServer: Certificate generation result: {}", cert_result);
 
@@ -1191,6 +1187,8 @@ void WolfMoonlightServer::initializeHttpsServer() {
             https_server_ = nullptr;
         }
 }
+
+#pragma GCC diagnostic pop
 
 void WolfMoonlightServer::registerStreamingEventHandlers(std::shared_ptr<state::AppState> app_state) {
     Debug::log(LOG, "WolfMoonlightServer: Registering Wolf streaming event handlers");

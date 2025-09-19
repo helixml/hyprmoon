@@ -613,6 +613,9 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
     logs::log(logs::warning, "[LAUNCH DEBUG] Starting direct Wolf streaming for session {}", new_session->session_id);
 
     try {
+        // Fire StreamSession event to trigger native Hyprland frame capture
+        state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
+        logs::log(logs::warning, "[LAUNCH DEBUG] StreamSession event fired for native frame capture");
         // Create Video Session and start video streaming using Wolf's functions
         events::VideoSession video_session = {
             .display_mode = {

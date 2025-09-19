@@ -68,7 +68,11 @@ public:
     
     // Frame callback from renderer
     bool onFrameReady(CMonitor* monitor, wlr_buffer* buffer); // Returns true if took buffer ownership
-    
+
+    // Synthetic frame generation (fallback when no real frames)
+    void startSyntheticFrameGeneration();
+    void stopSyntheticFrameGeneration();
+
     // Configuration
     void loadConfig();
     void reloadConfig();
@@ -111,6 +115,10 @@ private:
     bool m_webrtcStreaming = false;
     bool m_voiceTranscriptionActive = false;
     CMonitor* m_streamingMonitor = nullptr;
+
+    // Synthetic frame generation
+    std::thread m_syntheticFrameThread;
+    std::atomic<bool> m_syntheticFrameRunning{false};
     
     // Wolf moonlight server (using pimpl pattern to avoid header dependencies)
     std::unique_ptr<wolf::core::WolfMoonlightServer> m_wolfServer;

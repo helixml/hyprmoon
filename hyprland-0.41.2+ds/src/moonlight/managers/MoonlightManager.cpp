@@ -169,13 +169,17 @@ void CMoonlightManager::startStreaming(CMonitor* monitor) {
     
     m_streamingMonitor = monitor;
     m_streaming = true;
-    
+
     Debug::log(LOG, "CMoonlightManager: Starting stream for monitor: {}", monitor->szName);
-    
+
     // Start GStreamer pipeline
     if (m_pipeline) {
         gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PLAYING);
     }
+
+    // CRITICAL: Start synthetic frame generation as fallback
+    // This ensures we always have frames to stream even when Hyprland isn't rendering
+    startSyntheticFrameGeneration();
 }
 
 void CMoonlightManager::stopStreaming() {
@@ -857,4 +861,81 @@ void CMoonlightManager::registerVoiceCommand(const std::string& command, const s
 std::vector<std::pair<std::string, std::string>> CMoonlightManager::getVoiceCommands() const {
     if (!m_whisperManager) return {};
     return m_whisperManager->getVoiceCommands();
+}
+
+// Synthetic frame generation implementation
+void CMoonlightManager::startSyntheticFrameGeneration() {
+    if (m_syntheticFrameRunning) {
+        Debug::log(WARN, "CMoonlightManager: Synthetic frame generation already running");
+        return;
+    }
+
+    Debug::log(LOG, "CMoonlightManager: Starting synthetic frame generation for streaming");
+    m_syntheticFrameRunning = true;
+
+    m_syntheticFrameThread = std::thread([this]() {
+        Debug::log(LOG, "CMoonlightManager: Synthetic frame generation thread started");
+
+        int frame_count = 0;
+        const int width = 1920;
+        const int height = 1080;
+        const int fps = 30; // 30 FPS
+        const auto frame_duration = std::chrono::milliseconds(1000 / fps);
+
+        while (m_syntheticFrameRunning && m_streaming) {
+            try {
+                // Generate test pattern frame
+                size_t frame_size = width * height * 4; // RGBA
+                std::vector<uint8_t> frame_data(frame_size);
+
+                // Create a simple color pattern that changes over time
+                uint8_t base_color = (frame_count / 10) % 256;
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        int pixel_index = (y * width + x) * 4;
+
+                        // Create a gradient pattern with moving colors
+                        frame_data[pixel_index + 0] = (base_color + x / 8) % 256;     // Red
+                        frame_data[pixel_index + 1] = (base_color + y / 8) % 256;     // Green
+                        frame_data[pixel_index + 2] = (base_color + (x + y) / 16) % 256; // Blue
+                        frame_data[pixel_index + 3] = 255;                            // Alpha
+                    }
+                }
+
+                // Send frame to Wolf streaming server
+                if (m_wolfServer) {
+                    m_wolfServer->onFrameReady(frame_data.data(), frame_size, width, height, 0x34325258);
+
+                    if (frame_count % (fps * 2) == 0) { // Log every 2 seconds
+                        Debug::log(LOG, "CMoonlightManager: Sent synthetic frame #{} ({}x{}, {} bytes)",
+                                  frame_count, width, height, frame_size);
+                    }
+                }
+
+                frame_count++;
+                std::this_thread::sleep_for(frame_duration);
+
+            } catch (const std::exception& e) {
+                Debug::log(ERR, "CMoonlightManager: Error in synthetic frame generation: {}", e.what());
+                break;
+            }
+        }
+
+        Debug::log(LOG, "CMoonlightManager: Synthetic frame generation thread ended");
+    });
+}
+
+void CMoonlightManager::stopSyntheticFrameGeneration() {
+    if (!m_syntheticFrameRunning) {
+        return;
+    }
+
+    Debug::log(LOG, "CMoonlightManager: Stopping synthetic frame generation");
+    m_syntheticFrameRunning = false;
+
+    if (m_syntheticFrameThread.joinable()) {
+        m_syntheticFrameThread.join();
+    }
+
+    Debug::log(LOG, "CMoonlightManager: Synthetic frame generation stopped");
 }

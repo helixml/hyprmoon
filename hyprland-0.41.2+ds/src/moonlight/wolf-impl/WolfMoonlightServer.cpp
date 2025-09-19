@@ -1087,6 +1087,9 @@ void WolfMoonlightServer::initializeWolfAppState() {
     // CRITICAL: Start RTP ping servers for streaming (was missing!)
     startRTPPingServers(app_state);
 
+    // CRITICAL: Start RTSP server for stream setup (was missing!)
+    startSimpleRTSPServer(app_state);
+
     // TODO: Enable Control server after fixing ENet crash
     // startControlServer(app_state);
 
@@ -1280,6 +1283,64 @@ void WolfMoonlightServer::startMDNSService(std::shared_ptr<state::AppState> app_
     }).detach();
 
     Debug::log(LOG, "WolfMoonlightServer: mDNS service started");
+}
+
+void WolfMoonlightServer::startSimpleRTSPServer(std::shared_ptr<state::AppState> app_state) {
+    Debug::log(LOG, "WolfMoonlightServer: Starting simple RTSP server on port {}", state::get_port(state::RTSP_SETUP_PORT));
+
+    // Simple RTSP server implementation for streaming protocol
+    std::thread([app_state]() {
+        logs::log(logs::warning, "[RTSP] Starting simple RTSP server on port {}", state::get_port(state::RTSP_SETUP_PORT));
+
+        try {
+            boost::asio::io_context io_context;
+            boost::asio::ip::tcp::acceptor acceptor(io_context,
+                boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), state::get_port(state::RTSP_SETUP_PORT)));
+
+            logs::log(logs::warning, "[RTSP] RTSP server listening on port {}", state::get_port(state::RTSP_SETUP_PORT));
+
+            // Simple accept loop for RTSP connections
+            while (true) {
+                auto socket = std::make_shared<boost::asio::ip::tcp::socket>(io_context);
+
+                boost::system::error_code error;
+                acceptor.accept(*socket, error);
+
+                if (!error) {
+                    logs::log(logs::warning, "[RTSP] Accepted RTSP connection from {}",
+                              socket->remote_endpoint().address().to_string());
+
+                    // Handle RTSP connection in separate thread
+                    std::thread([socket, app_state]() {
+                        try {
+                            // Simple RTSP response - just acknowledge the connection
+                            std::string rtsp_response =
+                                "RTSP/1.0 200 OK\r\n"
+                                "Content-Type: application/sdp\r\n"
+                                "Content-Length: 0\r\n"
+                                "\r\n";
+
+                            boost::asio::write(*socket, boost::asio::buffer(rtsp_response));
+                            logs::log(logs::warning, "[RTSP] Sent RTSP response to client");
+
+                        } catch (const std::exception& e) {
+                            logs::log(logs::error, "[RTSP] Error handling RTSP connection: {}", e.what());
+                        }
+                    }).detach();
+                } else {
+                    logs::log(logs::error, "[RTSP] Accept error: {}", error.message());
+                    break;
+                }
+            }
+
+        } catch (const std::exception& e) {
+            logs::log(logs::error, "[RTSP] RTSP server error: {}", e.what());
+        }
+
+        logs::log(logs::warning, "[RTSP] RTSP server ended");
+    }).detach();
+
+    Debug::log(LOG, "WolfMoonlightServer: Simple RTSP server started on port {}", state::get_port(state::RTSP_SETUP_PORT));
 }
 
 void WolfMoonlightServer::loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file) {

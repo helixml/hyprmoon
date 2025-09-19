@@ -1126,13 +1126,13 @@ void WolfMoonlightServer::initializeHttpServer() {
 void WolfMoonlightServer::generateAndLoadCertificates() {
     logs::log(logs::warning, "WolfMoonlightServer: Generating and loading certificates for both HTTP and HTTPS servers");
 
-    // Create self-signed certificate files for moonlight
-    std::string cert_file = "/tmp/moonlight-cert.pem";
-    std::string key_file = "/tmp/moonlight-key.pem";
+    // Create self-signed certificate files for moonlight in writable directory
+    std::string cert_file = "/home/ubuntu/moonlight-cert.pem";
+    std::string key_file = "/home/ubuntu/moonlight-key.pem";
 
-    // Simplified certificate generation directly to target location
-    std::string gen_cert_cmd = "mkdir -p /tmp && openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
-                              " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost' 2>/dev/null && " +
+    // Generate certificates in ubuntu home directory (writable)
+    std::string gen_cert_cmd = "openssl req -x509 -newkey rsa:2048 -keyout " + key_file +
+                              " -out " + cert_file + " -days 365 -nodes -subj '/CN=localhost' && " +
                               "chmod 644 " + cert_file + " && chmod 600 " + key_file;
 
     logs::log(logs::warning, "WolfMoonlightServer: Executing certificate generation command");

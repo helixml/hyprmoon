@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.109) unstable; urgency=medium
+
+  * Revert HTTPS server to original working approach + add RTSP server
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 11:05:34 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.108) unstable; urgency=medium
 
   * Add simple RTSP server on port 48010 to handle streaming protocol - should fix error 104

@@ -1107,9 +1107,9 @@ void WolfMoonlightServer::initializeHttpServer() {
 
     // Use the real Wolf HTTP server implementation from servers.cpp
     http_thread_ = std::thread([this, server, port = state_->getConfig().http_port]() {
-        // Use the SAME AppState instance that has the event handlers (critical for event bus consistency)
-        auto shared_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
-        HTTPServers::startServer(server, shared_app_state, port);
+        // Get fresh AppState inside thread (though HTTP doesn't need certificates for pairing)
+        auto fresh_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+        HTTPServers::startServer(server, fresh_app_state, port);
     });
 
     Debug::log(LOG, "WolfMoonlightServer: HTTP server thread started");
@@ -1169,10 +1169,10 @@ void WolfMoonlightServer::initializeHttpsServer() {
             auto server = static_cast<HttpsServer*>(https_server_);
 
             https_thread_ = std::thread([this, server, port = state_->getConfig().https_port]() {
-                // Use the SAME AppState instance that has the event handlers (critical for event bus consistency)
-                auto shared_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
-                logs::log(logs::warning, "HTTPServers: Using shared AppState with certificates loaded");
-                HTTPServers::startServer(server, shared_app_state, port);
+                // Get AppState INSIDE the thread to ensure we get the updated version
+                auto fresh_app_state = std::static_pointer_cast<state::AppState>(wolf_app_state_);
+                logs::log(logs::warning, "HTTPServers: Using fresh AppState with certificates loaded");
+                HTTPServers::startServer(server, fresh_app_state, port);
             });
 
             Debug::log(LOG, "WolfMoonlightServer: HTTPS server initialized and started with certificates");

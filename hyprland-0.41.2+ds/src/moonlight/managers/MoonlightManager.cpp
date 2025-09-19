@@ -193,11 +193,24 @@ void CMoonlightManager::stopStreaming() {
 }
 
 bool CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {
-    if (!m_streaming || !buffer) return false;
+    Debug::log(TRACE, "MoonlightManager: onFrameReady called - streaming={}, buffer={}, monitor={}",
+              m_streaming, static_cast<void*>(buffer), static_cast<void*>(monitor));
+
+    if (!m_streaming || !buffer) {
+        Debug::log(TRACE, "MoonlightManager: onFrameReady early return - streaming={}, buffer={}",
+                  m_streaming, static_cast<void*>(buffer));
+        return false;
+    }
 
     // Only process frames for the monitor we're streaming
-    if (monitor != m_streamingMonitor) return false;
+    if (monitor != m_streamingMonitor) {
+        Debug::log(TRACE, "MoonlightManager: onFrameReady monitor mismatch - current={}, streaming={}",
+                  static_cast<void*>(monitor), static_cast<void*>(m_streamingMonitor));
+        return false;
+    }
 
+    Debug::log(LOG, "MoonlightManager: Processing frame from monitor {} ({}x{})",
+              monitor ? monitor->szName : "null", monitor ? monitor->vecSize.x : 0, monitor ? monitor->vecSize.y : 0);
     return processFrame(buffer);
 }
 

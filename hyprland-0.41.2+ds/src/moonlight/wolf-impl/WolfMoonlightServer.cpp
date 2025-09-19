@@ -1,5 +1,6 @@
 #include "WolfMoonlightServer.hpp"
 #include "../../debug/Log.hpp"
+#include "../managers/MoonlightManager.hpp"
 
 // Disable immer false positive warnings
 #pragma GCC diagnostic push
@@ -1223,7 +1224,16 @@ void WolfMoonlightServer::registerStreamingEventHandlers(std::shared_ptr<state::
                 }
                 logs::log(logs::warning, "[STREAM EVENT] Native Hyprland zero-copy streaming started for session {}", session->session_id);
 
-                // Note: Frame capture happens automatically via Hyprland's onFrameReady() -> WolfMoonlightServer::onFrameReady() -> StreamingEngine::pushFrame()
+                // CRITICAL: Activate MoonlightManager frame capture (sets m_streaming = true)
+                if (g_pMoonlightManager) {
+                    logs::log(logs::warning, "[STREAM EVENT] Activating MoonlightManager frame capture for session {}", session->session_id);
+                    g_pMoonlightManager->startStreaming();
+                    logs::log(logs::warning, "[STREAM EVENT] MoonlightManager frame capture activated - onFrameReady() will now process frames");
+                } else {
+                    logs::log(logs::error, "[STREAM EVENT] CRITICAL: g_pMoonlightManager is null - cannot activate frame capture");
+                }
+
+                // Note: Frame capture happens automatically via Hyprland's onFrameReady() -> CMoonlightManager::onFrameReady() -> WolfMoonlightServer::onFrameReady() -> StreamingEngine::pushFrame()
                 // This is zero-copy GPU buffer integration, much better than waylanddisplaysrc
 
             } catch (const std::exception& e) {

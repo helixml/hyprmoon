@@ -1313,9 +1313,20 @@ void WolfMoonlightServer::startSimpleRTSPServer(std::shared_ptr<state::AppState>
                     // Handle RTSP connection in separate thread
                     std::thread([socket, app_state]() {
                         try {
-                            // Simple RTSP response - just acknowledge the connection
+                            // Read RTSP request
+                            boost::asio::streambuf request;
+                            boost::asio::read_until(*socket, request, "\r\n\r\n");
+
+                            std::istream request_stream(&request);
+                            std::string request_line;
+                            std::getline(request_stream, request_line);
+
+                            logs::log(logs::warning, "[RTSP] Received request: {}", request_line);
+
+                            // Basic RTSP response for any request
                             std::string rtsp_response =
                                 "RTSP/1.0 200 OK\r\n"
+                                "CSeq: 1\r\n"
                                 "Content-Type: application/sdp\r\n"
                                 "Content-Length: 0\r\n"
                                 "\r\n";

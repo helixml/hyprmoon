@@ -752,6 +752,94 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
       return state::remove_session(ses_v, old_session.value()).push_back(*new_session);
     });
 
+    // DIRECT APPROACH: Use same streaming setup as launch endpoint
+    logs::log(logs::warning, "[RESUME DEBUG] Starting Wolf streaming for resumed session {}", new_session->session_id);
+
+    try {
+        // Fire StreamSession event to trigger native Hyprland frame capture
+        state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
+        logs::log(logs::warning, "[RESUME DEBUG] StreamSession event fired for native frame capture");
+
+        // Create Video Session and start video streaming using Wolf's functions
+        events::VideoSession video_session = {
+            .display_mode = {
+                .width = new_session->display_mode.width,
+                .height = new_session->display_mode.height,
+                .refreshRate = new_session->display_mode.refreshRate
+            },
+            .gst_pipeline = new_session->display_mode.hevc_supported ? "hyprhevcenc" : "hyprh264enc",
+            .session_id = new_session->session_id,
+            .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT))
+        };
+
+        logs::log(logs::warning, "[RESUME DEBUG] Starting Wolf video streaming directly");
+
+        // Start video streaming thread using Wolf's functions
+        std::thread([video_session, client_ip, state]() {
+            try {
+                // Create video socket for RTP streaming
+                auto io_context = std::make_shared<boost::asio::io_context>();
+                auto video_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_PING_PORT)));
+
+                // Start Wolf's video streaming pipeline directly
+                streaming::start_streaming_video(
+                    immer::box<events::VideoSession>(video_session),
+                    state->event_bus,
+                    client_ip,
+                    state::get_port(state::VIDEO_PING_PORT),
+                    video_socket
+                );
+
+                logs::log(logs::warning, "[RESUME DEBUG] Wolf video streaming started successfully");
+            } catch (const std::exception& e) {
+                logs::log(logs::error, "[RESUME DEBUG] Wolf video streaming failed: {}", e.what());
+            }
+        }).detach();
+
+        // Create Audio Session and start audio streaming
+        events::AudioSession audio_session = {
+            .gst_pipeline = "opusenc", // Default Opus pipeline
+            .session_id = new_session->session_id,
+            .encrypt_audio = true,
+            .aes_key = new_session->aes_key,
+            .aes_iv = new_session->aes_iv,
+            .port = static_cast<std::uint16_t>(state::get_port(state::AUDIO_PING_PORT))
+        };
+
+        logs::log(logs::warning, "[RESUME DEBUG] Starting Wolf audio streaming directly");
+
+        // Start audio streaming thread using Wolf's functions
+        std::thread([audio_session, client_ip, state]() {
+            try {
+                // Create audio socket for RTP streaming
+                auto io_context = std::make_shared<boost::asio::io_context>();
+                auto audio_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::AUDIO_PING_PORT)));
+
+                // Start Wolf's audio streaming pipeline directly
+                streaming::start_streaming_audio(
+                    immer::box<events::AudioSession>(audio_session),
+                    state->event_bus,
+                    client_ip,
+                    state::get_port(state::AUDIO_PING_PORT),
+                    audio_socket,
+                    "default", // sink name
+                    "unix:path=/tmp/pulse-socket" // server name
+                );
+
+                logs::log(logs::warning, "[RESUME DEBUG] Wolf audio streaming started successfully");
+            } catch (const std::exception& e) {
+                logs::log(logs::error, "[RESUME DEBUG] Wolf audio streaming failed: {}", e.what());
+            }
+        }).detach();
+
+        logs::log(logs::warning, "[RESUME DEBUG] Wolf streaming initiated for resumed session {}", new_session->session_id);
+
+    } catch (const std::exception& e) {
+        logs::log(logs::error, "[RESUME DEBUG] Failed to start Wolf streaming: {}", e.what());
+    }
+
     auto rtsp_ip = get_rtsp_ip_string(get_host_ip<SimpleWeb::HTTPS>(request, state), *new_session);
     auto xml = moonlight::launch_resume(rtsp_ip, std::to_string(get_port(state::RTSP_SETUP_PORT)));
     send_xml<SimpleWeb::HTTPS>(response, SimpleWeb::StatusCode::success_ok, xml);

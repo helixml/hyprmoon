@@ -24,6 +24,9 @@
 #include <managers/MoonlightManager.hpp>
 #include <streaming/streaming.hpp>
 
+// Include the global MoonlightManager instance
+extern UP<CMoonlightManager> g_pMoonlightManager;
+
 namespace endpoints {
 
 using namespace control;
@@ -622,13 +625,15 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
     logs::log(logs::warning, "[LAUNCH DEBUG] Starting direct Wolf streaming for session {}", new_session->session_id);
 
     try {
-        // Fire StreamSession event to trigger native Hyprland frame capture
-        logs::log(logs::warning, "[EVENT BUS DEBUG] Firing event on event_bus: {}, app_state: {}",
-                  static_cast<void*>(state->event_bus.get()), static_cast<void*>(state.get()));
-        logs::log(logs::warning, "[EVENT BUS DEBUG] About to fire StreamSession event for session {}", new_session->session_id);
-        state->event_bus->fire_event(immer::box<events::StreamSession>(*new_session));
-        logs::log(logs::warning, "[EVENT BUS DEBUG] StreamSession event fired successfully");
-        logs::log(logs::warning, "[LAUNCH DEBUG] StreamSession event fired for native frame capture");
+        // DIRECT APPROACH: Activate native Hyprland frame capture immediately
+        logs::log(logs::warning, "[LAUNCH DEBUG] Directly activating native Hyprland frame capture for session {}", new_session->session_id);
+        if (g_pMoonlightManager) {
+            logs::log(logs::warning, "[LAUNCH DEBUG] Starting MoonlightManager streaming for session {}", new_session->session_id);
+            g_pMoonlightManager->startStreaming();
+            logs::log(logs::warning, "[LAUNCH DEBUG] MoonlightManager streaming activated - onFrameReady() will now process frames");
+        } else {
+            logs::log(logs::error, "[LAUNCH DEBUG] CRITICAL: g_pMoonlightManager is null - cannot activate frame capture");
+        }
         // Create Video Session and start video streaming using Wolf's functions
         events::VideoSession video_session = {
             .display_mode = {

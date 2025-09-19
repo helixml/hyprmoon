@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.87) unstable; urgency=medium
+
+  * Fix App struct initialization with proper constructor syntax
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 07:40:16 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.86) unstable; urgency=medium
+
+  * Add Hyprland Desktop as single streamable app in Config.apps
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Fri, 19 Sep 2025 07:39:30 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.85) unstable; urgency=medium
 
   * Fix missing config.apps initialization causing applist null pointer crashes

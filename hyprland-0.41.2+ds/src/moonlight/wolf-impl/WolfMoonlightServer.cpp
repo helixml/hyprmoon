@@ -994,10 +994,19 @@ void WolfMoonlightServer::initializeWolfAppState() {
     config.paired_clients = std::make_shared<immer::atom<state::PairedClientList>>(empty_paired_clients);
     logs::log(logs::warning, "WolfMoonlightServer: Initialized Config with empty paired_clients (prevents NULL crashes)");
 
-    // CRITICAL: Initialize apps to prevent NULL pointer crashes in applist endpoint
-    auto empty_apps = immer::vector<immer::box<events::App>>{};
-    config.apps = std::make_shared<immer::atom<immer::vector<immer::box<events::App>>>>(empty_apps);
-    logs::log(logs::warning, "WolfMoonlightServer: Initialized Config with empty apps (prevents applist crashes)");
+    // CRITICAL: Initialize apps with Hyprland desktop as the single streamable app
+    events::App hyprland_app{
+        .base = moonlight::App{
+            .title = "Hyprland Desktop",
+            .id = "1",
+            .support_hdr = false,
+            .icon_png_path = std::nullopt
+        }
+    };
+
+    auto apps = immer::vector<immer::box<events::App>>{immer::box<events::App>(hyprland_app)};
+    config.apps = std::make_shared<immer::atom<immer::vector<immer::box<events::App>>>>(apps);
+    logs::log(logs::warning, "WolfMoonlightServer: Initialized Config with Hyprland desktop app");
 
     app_state->config = immer::box<state::Config>(config);
 

@@ -6,11 +6,15 @@
 #include <cstring>
 #include <filesystem>
 #include <rfl/toml.hpp>
+#include <fmt/format.h>
 #include <gst/allocators/gstdmabuf.h>
 #include <gst/video/video.h>
 
 // Wolf REST server includes - only declarations to avoid linker conflicts
 #include "../rest/rest.hpp"
+
+// Wolf streaming includes for event handler implementation
+#include "../streaming/streaming.hpp"
 
 namespace wolf {
 namespace core {
@@ -1065,6 +1069,9 @@ void WolfMoonlightServer::initializeWolfAppState() {
     // Initialize running sessions
     app_state->running_sessions = std::make_shared<immer::atom<immer::vector<events::StreamSession>>>();
 
+    // CRITICAL: Register Wolf streaming event handlers (this was missing!)
+    registerStreamingEventHandlers(app_state);
+
     wolf_app_state_ = app_state;
     Debug::log(LOG, "WolfMoonlightServer: Wolf AppState initialized successfully");
 }
@@ -1150,6 +1157,50 @@ void WolfMoonlightServer::initializeHttpsServer() {
             Debug::log(ERR, "WolfMoonlightServer: Failed to create HTTPS server: {}", e.what());
             https_server_ = nullptr;
         }
+}
+
+void WolfMoonlightServer::registerStreamingEventHandlers(std::shared_ptr<state::AppState> app_state) {
+    Debug::log(LOG, "WolfMoonlightServer: Registering Wolf streaming event handlers");
+
+    // StreamSession event handler - use Hyprland's native zero-copy GPU frame capture instead of waylanddisplaysrc
+    app_state->event_bus->register_handler<immer::box<events::StreamSession>>(
+        [this, app_state](const immer::box<events::StreamSession> &session) {
+            logs::log(logs::warning, "[STREAM EVENT] StreamSession event received for session {}", session->session_id);
+
+            try {
+                // Store active session for native Hyprland frame routing
+                current_session_id_ = std::to_string(session->session_id);
+                logs::log(logs::warning, "[STREAM EVENT] Session {} stored for native Hyprland frame capture", session->session_id);
+
+                // Enable native Hyprland streaming engine (zero-copy GPU frame capture)
+                logs::log(logs::warning, "[STREAM EVENT] Starting native Hyprland streaming engine for session {}", session->session_id);
+
+                if (!streaming_engine_) {
+                    streaming_engine_ = std::make_unique<StreamingEngine>(state_);
+                    if (!streaming_engine_->initialize()) {
+                        logs::log(logs::error, "[STREAM EVENT] Failed to initialize streaming engine for session {}", session->session_id);
+                        return;
+                    }
+                    logs::log(logs::warning, "[STREAM EVENT] Streaming engine initialized successfully");
+                }
+
+                // Start the native streaming (this will enable onFrameReady callbacks)
+                std::string session_id_str = std::to_string(session->session_id);
+                if (!streaming_engine_->startStreaming(session_id_str)) {
+                    logs::log(logs::error, "[STREAM EVENT] Failed to start streaming engine for session {}", session->session_id);
+                    return;
+                }
+                logs::log(logs::warning, "[STREAM EVENT] Native Hyprland zero-copy streaming started for session {}", session->session_id);
+
+                // Note: Frame capture happens automatically via Hyprland's onFrameReady() -> WolfMoonlightServer::onFrameReady() -> StreamingEngine::pushFrame()
+                // This is zero-copy GPU buffer integration, much better than waylanddisplaysrc
+
+            } catch (const std::exception& e) {
+                logs::log(logs::error, "[STREAM EVENT] Failed to start native streaming for session {}: {}", session->session_id, e.what());
+            }
+        });
+
+    logs::log(logs::warning, "WolfMoonlightServer: StreamSession event handler registered (using native Hyprland frame capture)");
 }
 
 void WolfMoonlightServer::loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file) {

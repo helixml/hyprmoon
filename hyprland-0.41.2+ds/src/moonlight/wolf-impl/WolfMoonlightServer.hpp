@@ -17,6 +17,9 @@
 #include <boost/asio.hpp>
 #include <enet/enet.h>
 
+// Forward declarations for Wolf AppState
+#include "../state/data-structures.hpp"
+
 namespace wolf {
 namespace core {
 
@@ -268,6 +271,9 @@ private:
     std::string cert_file_path_;
     std::string key_file_path_;
 
+    // Active streaming session tracking for frame routing
+    std::string current_session_id_;
+
     // Initialization
     bool initializeGStreamer();
     bool initializeENet();
@@ -276,6 +282,7 @@ private:
     void initializeHttpServer();
     void initializeHttpsServer();
     void loadCertificatesIntoAppState(const std::string& cert_file, const std::string& key_file);
+    void registerStreamingEventHandlers(std::shared_ptr<state::AppState> app_state);
 };
 
 } // namespace core

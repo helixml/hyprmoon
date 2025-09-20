@@ -920,6 +920,19 @@ void CMoonlightManager::startSyntheticFrameGeneration() {
 
                 // Send frame to Wolf streaming server
                 if (m_wolfServer) {
+                    // CRITICAL: Ensure streaming engine is started for synthetic frames
+                    if (frame_count == 0) {
+                        printf("[SYNTHETIC THREAD] First frame - checking Wolf streaming engine status\n");
+                        fflush(stdout);
+                        if (!m_wolfServer->isStreaming()) {
+                            printf("[SYNTHETIC THREAD] Wolf not streaming - this may cause frames to be dropped\n");
+                            fflush(stdout);
+                        } else {
+                            printf("[SYNTHETIC THREAD] Wolf is streaming - frames should be processed\n");
+                            fflush(stdout);
+                        }
+                    }
+
                     m_wolfServer->onFrameReady(frame_data.data(), frame_size, width, height, 0x34325258);
 
                     if (frame_count % (fps * 2) == 0) { // Log every 2 seconds

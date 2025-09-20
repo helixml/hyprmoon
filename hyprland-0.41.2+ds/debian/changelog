@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.157) unstable; urgency=medium
+
+  * Add Wolf streaming engine status debugging
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:35:15 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.156) unstable; urgency=medium
 
   * Remove m_streaming dependency from synthetic frame generation thread

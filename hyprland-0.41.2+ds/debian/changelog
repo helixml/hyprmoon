@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.169) unstable; urgency=medium
+
+  * Fix ALL nvh264enc references in REST endpoints - streaming should now work
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 05:33:29 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.168) unstable; urgency=medium
 
   * Force rebuild: Ensure x264enc encoder fix deployment

@@ -129,7 +129,7 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
                     .height = new_session->display_mode.height,
                     .refreshRate = new_session->display_mode.refreshRate
                 },
-                .gst_pipeline = "nvh264enc",
+                .gst_pipeline = "x264enc", // Software encoding
                 .session_id = new_session->session_id,
                 .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT)),
                 .timeout_ms = 2000,

@@ -656,7 +656,7 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 .height = new_session->display_mode.height,
                 .refreshRate = new_session->display_mode.refreshRate
             },
-            .gst_pipeline = "nvh264enc", // Default H264 pipeline
+            .gst_pipeline = "x264enc", // Default H264 pipeline (software encoding)
             .session_id = new_session->session_id,
             .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT)),
             .timeout_ms = 2000,
@@ -805,7 +805,7 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 .height = new_session->display_mode.height,
                 .refreshRate = new_session->display_mode.refreshRate
             },
-            .gst_pipeline = new_session->display_mode.hevc_supported ? "hyprhevcenc" : "hyprh264enc",
+            .gst_pipeline = "x264enc", // Software encoding (hardware encoders not available in container)
             .session_id = new_session->session_id,
             .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT))
         };

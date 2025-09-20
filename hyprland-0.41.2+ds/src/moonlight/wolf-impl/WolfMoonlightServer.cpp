@@ -367,9 +367,9 @@ std::string StreamingEngine::buildPipelineDescription() const {
     ss << "appsrc name=hyprland_src ! ";
     ss << "videoconvert ! ";
     
-    // Use software encoding (hardware encoders not available in container)
-    // x264enc provides reliable encoding for streaming
-    ss << "x264enc bitrate=" << config.video.bitrate << " tune=zerolatency ! ";
+    // Use NVIDIA hardware encoding for better performance
+    // nvh264enc provides GPU-accelerated encoding for streaming
+    ss << "nvh264enc bitrate=" << config.video.bitrate << " preset=low-latency ! ";
     
     ss << "h264parse ! ";
     ss << "rtph264pay ! ";

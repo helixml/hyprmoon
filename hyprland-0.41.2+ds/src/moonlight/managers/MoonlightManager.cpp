@@ -877,8 +877,8 @@ void CMoonlightManager::startSyntheticFrameGeneration() {
         Debug::log(LOG, "CMoonlightManager: Synthetic frame generation thread started");
 
         int frame_count = 0;
-        const int width = 1920;
-        const int height = 1080;
+        const int width = 2360;  // Match server advertised resolution
+        const int height = 1640; // Match server advertised resolution
         const int fps = 30; // 30 FPS
         const auto frame_duration = std::chrono::milliseconds(1000 / fps);
 

@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.176) unstable; urgency=medium
+
+  * Fix get_port switch statement - remove VIDEO_STREAM_PORT/AUDIO_STREAM_PORT cases
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 08:18:20 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.175) unstable; urgency=medium
+
+  * Revert to original working port configuration - remove VIDEO_STREAM_PORT/AUDIO_STREAM_PORT
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 08:17:27 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.174) unstable; urgency=medium
 
   * Fix x264enc parameters - remove invalid tune=zerolatency

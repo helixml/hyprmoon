@@ -131,7 +131,7 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
                 },
                 .gst_pipeline = "x264enc", // Software H264 encoding (nvh264enc causes hanging)
                 .session_id = new_session->session_id,
-                .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_STREAM_PORT)),
+                .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT)),
                 .timeout_ms = 2000,
                 .wait_for_ping = true
             };
@@ -148,7 +148,7 @@ void startServer(HttpServer *server, std::shared_ptr<state::AppState> state, int
                         immer::box<events::VideoSession>(video_session),
                         state->event_bus,
                         client_ip,
-                        state::get_port(state::VIDEO_STREAM_PORT),
+                        state::get_port(state::VIDEO_PING_PORT),
                         video_socket
                     );
 

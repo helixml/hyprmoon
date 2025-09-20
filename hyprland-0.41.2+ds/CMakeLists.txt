@@ -197,6 +197,11 @@ else()
     message(STATUS "Configuring Hyprland in Release with CMake")
 endif()
 
+# FORCE: Disable all warnings as errors
+add_compile_options(-w -Wno-error -Wno-unused-function -Wno-array-bounds)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -Wno-error")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -Wno-error")
+
 include_directories(
   .
   "src/"

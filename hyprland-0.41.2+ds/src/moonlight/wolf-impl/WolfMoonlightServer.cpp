@@ -1384,5 +1384,66 @@ void WolfMoonlightServer::loadCertificatesIntoAppState(const std::string& cert_f
     }
 }
 
+std::string WolfMoonlightServer::createSession(const std::string& client_cert, const std::string& client_ip) {
+    Debug::log(WARN, "WolfMoonlightServer: Creating session for client cert: {}, IP: {}", client_cert, client_ip);
+
+    if (!state_) {
+        Debug::log(ERR, "WolfMoonlightServer: No MoonlightState available");
+        return "";
+    }
+
+    // Create paired client for the session
+    wolf::core::HyprlandPairedClient wolf_client;
+    wolf_client.client_id = client_cert;
+    wolf_client.client_name = "Moonlight Client";
+    wolf_client.client_cert = client_cert;
+    wolf_client.paired_time = std::chrono::system_clock::now();
+
+    // Create session in Wolf's MoonlightState (where StreamingEngine expects it)
+    auto session = state_->createSession(wolf_client, client_ip);
+    if (!session) {
+        Debug::log(ERR, "WolfMoonlightServer: Failed to create session in MoonlightState");
+        return "";
+    }
+
+    Debug::log(WARN, "WolfMoonlightServer: Created session {} in MoonlightState for StreamingEngine", session->session_id);
+    return session->session_id;
+}
+
+void WolfMoonlightServer::startStreamingForSession(const std::string& session_id) {
+    Debug::log(WARN, "WolfMoonlightServer: Starting streaming for session: {}", session_id);
+
+    if (!streaming_engine_) {
+        Debug::log(ERR, "WolfMoonlightServer: No streaming engine available for session {}", session_id);
+        return;
+    }
+
+    // CRITICAL: This call tells Wolf's StreamingEngine about the active session
+    // This sets running_ = true and initializes app_src_ so pushFrame() won't drop frames
+    if (streaming_engine_->startStreaming(session_id)) {
+        Debug::log(WARN, "WolfMoonlightServer: StreamingEngine activated for session {} - frames will now be processed", session_id);
+        current_session_id_ = session_id;
+    } else {
+        Debug::log(ERR, "WolfMoonlightServer: Failed to start StreamingEngine for session {}", session_id);
+    }
+}
+
+void WolfMoonlightServer::stopStreamingForSession(const std::string& session_id) {
+    Debug::log(WARN, "WolfMoonlightServer: Stopping streaming for session: {}", session_id);
+
+    if (!streaming_engine_) {
+        return;
+    }
+
+    // Tell Wolf's StreamingEngine to stop streaming for this session
+    streaming_engine_->stopStreaming(session_id);
+
+    if (current_session_id_ == session_id) {
+        current_session_id_.clear();
+    }
+
+    Debug::log(WARN, "WolfMoonlightServer: StreamingEngine deactivated for session {}", session_id);
+}
+
 } // namespace core
 } // namespace wolf

@@ -36,6 +36,11 @@ public:
     void startStreaming(CMonitor* monitor = nullptr);
     void stopStreaming();
     bool isStreaming() const { return m_streaming; }
+
+    // Session management for Wolf integration
+    std::string createWolfSession(const std::string& client_cert, const std::string& client_ip);
+    void startStreamingSession(const std::string& session_id);
+    void stopStreamingSession(const std::string& session_id);
     
     // WebRTC streaming control
     void startWebRTCStreaming();
@@ -115,6 +120,9 @@ private:
     bool m_webrtcStreaming = false;
     bool m_voiceTranscriptionActive = false;
     CMonitor* m_streamingMonitor = nullptr;
+
+    // Session-based frame generation tracking
+    std::atomic<int> m_activeSessionCount{0};
 
     // Synthetic frame generation
     std::thread m_syntheticFrameThread;

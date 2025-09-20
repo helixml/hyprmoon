@@ -186,24 +186,103 @@ void CMoonlightManager::startStreaming(CMonitor* monitor) {
         gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PLAYING);
     }
 
-    // CRITICAL: Start synthetic frame generation as fallback
-    // This ensures we always have frames to stream even when Hyprland isn't rendering
-    Debug::log(WARN, "CMoonlightManager: About to call startSyntheticFrameGeneration() - m_streaming={}", m_streaming);
-    startSyntheticFrameGeneration();
+    // Note: Synthetic frame generation will be started per-session by startStreamingSession()
+    // This aligns with Wolf's session-based architecture instead of always-on generation
+    Debug::log(WARN, "CMoonlightManager: Streaming activated - frames will be generated per active session");
 }
 
 void CMoonlightManager::stopStreaming() {
     if (!m_streaming) return;
-    
+
     Debug::log(LOG, "CMoonlightManager: Stopping stream");
-    
+
     // Stop GStreamer pipeline
     if (m_pipeline) {
         gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_NULL);
     }
-    
+
     m_streaming = false;
     m_streamingMonitor = nullptr;
+}
+
+std::string CMoonlightManager::createWolfSession(const std::string& client_cert, const std::string& client_ip) {
+    Debug::log(WARN, "CMoonlightManager: Creating Wolf session for client cert: {}, IP: {}", client_cert, client_ip);
+
+    if (!m_wolfServer || !m_initialized) {
+        Debug::log(ERR, "CMoonlightManager: Cannot create session - Wolf server not initialized");
+        return "";
+    }
+
+    // Create session in Wolf's MoonlightState (where StreamingEngine expects it)
+    return m_wolfServer->createSession(client_cert, client_ip);
+}
+
+void CMoonlightManager::startStreamingSession(const std::string& session_id) {
+    Debug::log(WARN, "CMoonlightManager: Starting streaming session: {}", session_id);
+
+    if (!m_wolfServer || !m_initialized) {
+        Debug::log(ERR, "CMoonlightManager: Cannot start session - Wolf server not initialized");
+        return;
+    }
+
+    // PROPER WOLF ARCHITECTURE: Session-based frame generation
+    int previousCount = m_activeSessionCount.fetch_add(1);
+    Debug::log(WARN, "CMoonlightManager: Active session count: {} -> {}", previousCount, previousCount + 1);
+
+    // Start frame generation only when the first session starts
+    if (previousCount == 0) {
+        Debug::log(WARN, "CMoonlightManager: First session starting - beginning frame generation");
+        startSyntheticFrameGeneration();
+    }
+
+    // Tell Wolf's StreamingEngine about this active session
+    // This will set running_ = true and initialize app_src_ so frames aren't dropped
+    if (m_wolfServer->isInitialized()) {
+        Debug::log(WARN, "CMoonlightManager: Calling Wolf StreamingEngine to start session {}", session_id);
+
+        // CRITICAL: This call sets up Wolf's GStreamer pipeline for the session
+        // After this, StreamingEngine::pushFrame() won't return early due to !running_
+        try {
+            // Wolf's streaming engine needs to know about active sessions
+            // This should set the GStreamer pipeline to PLAYING state
+            m_wolfServer->startStreamingForSession(session_id);
+            Debug::log(WARN, "CMoonlightManager: Wolf StreamingEngine activated for session {} (active sessions: {})", session_id, m_activeSessionCount.load());
+        } catch (const std::exception& e) {
+            Debug::log(ERR, "CMoonlightManager: Failed to start Wolf streaming for session {}: {}", session_id, e.what());
+            // Rollback session count on failure
+            m_activeSessionCount.fetch_sub(1);
+        }
+    } else {
+        Debug::log(ERR, "CMoonlightManager: Wolf server not ready for session management");
+        // Rollback session count on failure
+        m_activeSessionCount.fetch_sub(1);
+    }
+}
+
+void CMoonlightManager::stopStreamingSession(const std::string& session_id) {
+    Debug::log(WARN, "CMoonlightManager: Stopping streaming session: {}", session_id);
+
+    if (!m_wolfServer || !m_initialized) {
+        return;
+    }
+
+    // Tell Wolf to stop streaming for this session
+    try {
+        m_wolfServer->stopStreamingForSession(session_id);
+        Debug::log(WARN, "CMoonlightManager: Wolf StreamingEngine deactivated for session {}", session_id);
+    } catch (const std::exception& e) {
+        Debug::log(ERR, "CMoonlightManager: Failed to stop Wolf streaming for session {}: {}", session_id, e.what());
+    }
+
+    // PROPER WOLF ARCHITECTURE: Session-based frame generation cleanup
+    int newCount = m_activeSessionCount.fetch_sub(1) - 1;
+    Debug::log(WARN, "CMoonlightManager: Active session count after stopping {}: {}", session_id, newCount);
+
+    // Stop frame generation when the last session ends
+    if (newCount == 0) {
+        Debug::log(WARN, "CMoonlightManager: Last session stopped - ending frame generation");
+        stopSyntheticFrameGeneration();
+    }
 }
 
 bool CMoonlightManager::onFrameReady(CMonitor* monitor, wlr_buffer* buffer) {

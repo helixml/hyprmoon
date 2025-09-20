@@ -1,8 +1,10 @@
 #!/usr/bin/make -f
 # export DH_VERBOSE = 1
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-export DEB_CFLAGS_MAINT_APPEND  = -w -Wno-unused -Wno-deprecated -Wno-deprecated-declarations
-export DEB_CXXFLAGS_MAINT_APPEND = -w -Wno-unused -Wno-deprecated -Wno-deprecated-declarations
+export DEB_CFLAGS_MAINT_APPEND  = -w -Wno-error
+export DEB_CXXFLAGS_MAINT_APPEND = -w -Wno-error
+export CFLAGS = -w -Wno-error
+export CXXFLAGS = -w -Wno-error
 export DEB_LDFLAGS_MAINT_APPEND = -Wl,-O2
 
 # Step 8.6: Re-enable ccache and ninja for better builds

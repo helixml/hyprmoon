@@ -631,6 +631,21 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
             logs::log(logs::warning, "[LAUNCH DEBUG] Starting MoonlightManager streaming for session {}", new_session->session_id);
             g_pMoonlightManager->startStreaming();
             logs::log(logs::warning, "[LAUNCH DEBUG] MoonlightManager streaming activated - startStreaming() includes synthetic frame generation");
+
+            // CRITICAL: Create session in Wolf's MoonlightState (where StreamingEngine expects it)
+            logs::log(logs::warning, "[LAUNCH DEBUG] Creating Wolf session for client cert: {}", current_client.client_cert);
+            std::string wolf_session_id = g_pMoonlightManager->createWolfSession(current_client.client_cert, client_ip);
+
+            if (wolf_session_id.empty()) {
+                logs::log(logs::error, "[LAUNCH DEBUG] CRITICAL: Failed to create Wolf session - streaming will not work");
+            } else {
+                logs::log(logs::warning, "[LAUNCH DEBUG] Created Wolf session {} in MoonlightState", wolf_session_id);
+
+                // Tell Wolf about the active session so frames aren't dropped
+                logs::log(logs::warning, "[LAUNCH DEBUG] Starting Wolf streaming engine for session {}", wolf_session_id);
+                g_pMoonlightManager->startStreamingSession(wolf_session_id);
+                logs::log(logs::warning, "[LAUNCH DEBUG] Wolf streaming engine activated for session {} - frames will now flow through", wolf_session_id);
+            }
         } else {
             logs::log(logs::error, "[LAUNCH DEBUG] CRITICAL: g_pMoonlightManager is null - cannot activate frame capture");
         }
@@ -890,6 +905,14 @@ void cancel(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
       logs::log(logs::warning, "[CANCEL DEBUG] Firing stop stream event for session: {}", client_session->session_id);
       state->event_bus->fire_event(
           immer::box<events::StopStreamEvent>(events::StopStreamEvent{.session_id = client_session->session_id}));
+
+      // CRITICAL: Stop Wolf streaming engine for this session
+      if (g_pMoonlightManager) {
+        std::string session_id_str = std::to_string(client_session->session_id);
+        logs::log(logs::warning, "[CANCEL DEBUG] Stopping Wolf streaming engine for session: {}", session_id_str);
+        g_pMoonlightManager->stopStreamingSession(session_id_str);
+        logs::log(logs::warning, "[CANCEL DEBUG] Wolf streaming engine stopped for session: {}", session_id_str);
+      }
 
       logs::log(logs::warning, "[CANCEL DEBUG] Updating running sessions to remove session");
       state->running_sessions->update([&client_session](const immer::vector<events::StreamSession> &ses_v) {

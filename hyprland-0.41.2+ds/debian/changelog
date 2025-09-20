@@ -1,3 +1,57 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.166) unstable; urgency=medium
+
+  * ITERATION 2: Fix session_id type conversion error
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 05:17:22 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.165) unstable; urgency=medium
+
+  * ITERATION 1: CMAKE warning suppression + architectural fixes
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 05:13:33 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.164) unstable; urgency=medium
+
+  * FORCE BUILD: Complete architectural session bridging fix
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:55:24 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.163) unstable; urgency=medium
+
+  * Architectural fix + aggressive warning suppression
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:54:20 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.162) unstable; urgency=medium
+
+  * COMPLETE ARCHITECTURAL FIX: Bridge Wolf session stores + zero-copy frame integration
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:53:04 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.161) unstable; urgency=medium
+
+  * Session-based zero-copy architecture + suppress unused function warnings
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:49:42 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.160) unstable; urgency=medium
+
+  * Session-based architecture + suppress all compiler warnings as errors
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:48:49 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.159) unstable; urgency=medium
+
+  * ARCHITECTURAL FIX: Session-based frame generation aligned with Wolf design + fix immer warnings
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:47:32 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.158) unstable; urgency=medium
+
+  * CRITICAL FIX: Bridge Wolf StreamingEngine session management to prevent frame dropping
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:44:10 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.157) unstable; urgency=medium
 
   * Add Wolf streaming engine status debugging

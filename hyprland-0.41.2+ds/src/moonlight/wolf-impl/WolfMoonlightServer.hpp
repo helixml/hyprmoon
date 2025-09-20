@@ -244,7 +244,12 @@ public:
     bool isInitialized() const { return initialized_; }
     bool isStreaming() const;
     int getConnectedClientCount() const;
-    
+
+    // Session management for active streaming
+    std::string createSession(const std::string& client_cert, const std::string& client_ip);
+    void startStreamingForSession(const std::string& session_id);
+    void stopStreamingForSession(const std::string& session_id);
+
     // Client management
     std::vector<HyprlandPairedClient> getPairedClients() const;
     void unpairClient(const std::string& client_id);

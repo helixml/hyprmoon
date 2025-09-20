@@ -630,6 +630,11 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
         if (g_pMoonlightManager) {
             logs::log(logs::warning, "[LAUNCH DEBUG] Starting MoonlightManager streaming for session {}", new_session->session_id);
             g_pMoonlightManager->startStreaming();
+
+            // CRITICAL: Force synthetic frame generation as fallback for debugging
+            logs::log(logs::warning, "[LAUNCH DEBUG] Force-starting synthetic frame generation as fallback");
+            g_pMoonlightManager->startSyntheticFrameGeneration();
+
             logs::log(logs::warning, "[LAUNCH DEBUG] MoonlightManager streaming activated - onFrameReady() will now process frames");
         } else {
             logs::log(logs::error, "[LAUNCH DEBUG] CRITICAL: g_pMoonlightManager is null - cannot activate frame capture");

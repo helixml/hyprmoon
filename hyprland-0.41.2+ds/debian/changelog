@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.150) unstable; urgency=medium
+
+  * Force synthetic frame generation in launch endpoint to fix transparent frames
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:11:27 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.149) unstable; urgency=medium
 
   * Implement synthetic frame generation for guaranteed streaming frames

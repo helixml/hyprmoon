@@ -865,22 +865,28 @@ std::vector<std::pair<std::string, std::string>> CMoonlightManager::getVoiceComm
 
 // Synthetic frame generation implementation
 void CMoonlightManager::startSyntheticFrameGeneration() {
+    Debug::log(WARN, "CMoonlightManager: startSyntheticFrameGeneration() called - m_syntheticFrameRunning={}, m_streaming={}, m_initialized={}",
+              m_syntheticFrameRunning.load(), m_streaming, m_initialized);
+
     if (m_syntheticFrameRunning) {
         Debug::log(WARN, "CMoonlightManager: Synthetic frame generation already running");
         return;
     }
 
-    Debug::log(LOG, "CMoonlightManager: Starting synthetic frame generation for streaming");
+    Debug::log(WARN, "CMoonlightManager: Starting synthetic frame generation for streaming");
     m_syntheticFrameRunning = true;
 
     m_syntheticFrameThread = std::thread([this]() {
-        Debug::log(LOG, "CMoonlightManager: Synthetic frame generation thread started");
-
         int frame_count = 0;
         const int width = 2360;  // Match server advertised resolution
         const int height = 1640; // Match server advertised resolution
         const int fps = 30; // 30 FPS
         const auto frame_duration = std::chrono::milliseconds(1000 / fps);
+
+        // Use printf for thread-safe logging inside lambda
+        printf("[SYNTHETIC THREAD] Started - m_syntheticFrameRunning=%d, m_streaming=%d\n",
+               m_syntheticFrameRunning ? 1 : 0, m_streaming ? 1 : 0);
+        fflush(stdout);
 
         while (m_syntheticFrameRunning && m_streaming) {
             try {
@@ -907,8 +913,9 @@ void CMoonlightManager::startSyntheticFrameGeneration() {
                     m_wolfServer->onFrameReady(frame_data.data(), frame_size, width, height, 0x34325258);
 
                     if (frame_count % (fps * 2) == 0) { // Log every 2 seconds
-                        Debug::log(LOG, "CMoonlightManager: Sent synthetic frame #{} ({}x{}, {} bytes)",
-                                  frame_count, width, height, frame_size);
+                        printf("[SYNTHETIC THREAD] Sent frame #%d (%dx%d, %zu bytes)\n",
+                               frame_count, width, height, frame_size);
+                        fflush(stdout);
                     }
                 }
 
@@ -916,12 +923,14 @@ void CMoonlightManager::startSyntheticFrameGeneration() {
                 std::this_thread::sleep_for(frame_duration);
 
             } catch (const std::exception& e) {
-                Debug::log(ERR, "CMoonlightManager: Error in synthetic frame generation: {}", e.what());
+                printf("[SYNTHETIC THREAD] Error: %s\n", e.what());
+                fflush(stdout);
                 break;
             }
         }
 
-        Debug::log(LOG, "CMoonlightManager: Synthetic frame generation thread ended");
+        printf("[SYNTHETIC THREAD] Thread ended\n");
+        fflush(stdout);
     });
 }
 

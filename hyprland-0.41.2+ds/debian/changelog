@@ -1,3 +1,21 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.154) unstable; urgency=medium
+
+  * Fix atomic bool formatting in debug logs
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:23:34 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.153) unstable; urgency=medium
+
+  * Fix synthetic frame thread with printf debug logging
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:23:04 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.152) unstable; urgency=medium
+
+  * Add debug logging to synthetic frame generation startup
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:21:57 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.151) unstable; urgency=medium
 
   * Fix synthetic frame resolution mismatch - use 2360x1640 not 1920x1080

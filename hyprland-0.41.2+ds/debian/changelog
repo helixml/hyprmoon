@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.172) unstable; urgency=medium
+
+  * Auto-build step8.9.172 - ensures code changes are deployed
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 09:49:49 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.171) unstable; urgency=medium
+
+  * manually test previous commit
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 09:47:32 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.170) unstable; urgency=medium
 
   * Fix critical Moonlight protocol ports - use 47998/48000 for streaming instead of ping ports 48100/48200, enable NVENC hardware encoding

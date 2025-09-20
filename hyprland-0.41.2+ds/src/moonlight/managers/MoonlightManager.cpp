@@ -898,7 +898,7 @@ void CMoonlightManager::startSyntheticFrameGeneration() {
                m_syntheticFrameRunning ? 1 : 0, m_streaming ? 1 : 0);
         fflush(stdout);
 
-        while (m_syntheticFrameRunning && m_streaming) {
+        while (m_syntheticFrameRunning) {
             try {
                 // Generate test pattern frame
                 size_t frame_size = width * height * 4; // RGBA

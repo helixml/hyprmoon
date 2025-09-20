@@ -656,9 +656,9 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 .height = new_session->display_mode.height,
                 .refreshRate = new_session->display_mode.refreshRate
             },
-            .gst_pipeline = "x264enc", // Default H264 pipeline (software encoding)
+            .gst_pipeline = "nvh264enc", // Hardware H264 encoding for better performance
             .session_id = new_session->session_id,
-            .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT)),
+            .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_STREAM_PORT)),
             .timeout_ms = 2000,
             .wait_for_ping = true
         };
@@ -671,14 +671,14 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 // Create video socket for RTP streaming
                 auto io_context = std::make_shared<boost::asio::io_context>();
                 auto video_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
-                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_PING_PORT)));
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_STREAM_PORT)));
 
                 // Start Wolf's video streaming pipeline directly
                 streaming::start_streaming_video(
                     immer::box<events::VideoSession>(video_session),
                     state->event_bus,
                     client_ip,
-                    state::get_port(state::VIDEO_PING_PORT),
+                    state::get_port(state::VIDEO_STREAM_PORT),
                     video_socket
                 );
 
@@ -695,7 +695,7 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
             .encrypt_audio = true,
             .aes_key = new_session->aes_key,
             .aes_iv = new_session->aes_iv,
-            .port = static_cast<std::uint16_t>(state::get_port(state::AUDIO_PING_PORT))
+            .port = static_cast<std::uint16_t>(state::get_port(state::AUDIO_STREAM_PORT))
         };
 
         logs::log(logs::warning, "[LAUNCH DEBUG] Starting Wolf audio streaming directly");
@@ -706,14 +706,14 @@ void launch(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 // Create audio socket for RTP streaming
                 auto io_context = std::make_shared<boost::asio::io_context>();
                 auto audio_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
-                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::AUDIO_PING_PORT)));
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::AUDIO_STREAM_PORT)));
 
                 // Start Wolf's audio streaming pipeline directly
                 streaming::start_streaming_audio(
                     immer::box<events::AudioSession>(audio_session),
                     state->event_bus,
                     client_ip,
-                    state::get_port(state::AUDIO_PING_PORT),
+                    state::get_port(state::AUDIO_STREAM_PORT),
                     audio_socket,
                     "default", // sink name
                     "unix:path=/tmp/pulse-socket" // server name
@@ -805,7 +805,7 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 .height = new_session->display_mode.height,
                 .refreshRate = new_session->display_mode.refreshRate
             },
-            .gst_pipeline = "x264enc", // Software encoding (hardware encoders not available in container)
+            .gst_pipeline = "nvh264enc", // Hardware H264 encoding for better performance
             .session_id = new_session->session_id,
             .port = static_cast<std::uint16_t>(state::get_port(state::VIDEO_PING_PORT))
         };
@@ -818,14 +818,14 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 // Create video socket for RTP streaming
                 auto io_context = std::make_shared<boost::asio::io_context>();
                 auto video_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
-                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_PING_PORT)));
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::VIDEO_STREAM_PORT)));
 
                 // Start Wolf's video streaming pipeline directly
                 streaming::start_streaming_video(
                     immer::box<events::VideoSession>(video_session),
                     state->event_bus,
                     client_ip,
-                    state::get_port(state::VIDEO_PING_PORT),
+                    state::get_port(state::VIDEO_STREAM_PORT),
                     video_socket
                 );
 
@@ -842,7 +842,7 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
             .encrypt_audio = true,
             .aes_key = new_session->aes_key,
             .aes_iv = new_session->aes_iv,
-            .port = static_cast<std::uint16_t>(state::get_port(state::AUDIO_PING_PORT))
+            .port = static_cast<std::uint16_t>(state::get_port(state::AUDIO_STREAM_PORT))
         };
 
         logs::log(logs::warning, "[RESUME DEBUG] Starting Wolf audio streaming directly");
@@ -853,14 +853,14 @@ void resume(const std::shared_ptr<typename SimpleWeb::Server<SimpleWeb::HTTPS>::
                 // Create audio socket for RTP streaming
                 auto io_context = std::make_shared<boost::asio::io_context>();
                 auto audio_socket = std::make_shared<boost::asio::ip::udp::socket>(*io_context,
-                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::AUDIO_PING_PORT)));
+                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), state::get_port(state::AUDIO_STREAM_PORT)));
 
                 // Start Wolf's audio streaming pipeline directly
                 streaming::start_streaming_audio(
                     immer::box<events::AudioSession>(audio_session),
                     state->event_bus,
                     client_ip,
-                    state::get_port(state::AUDIO_PING_PORT),
+                    state::get_port(state::AUDIO_STREAM_PORT),
                     audio_socket,
                     "default", // sink name
                     "unix:path=/tmp/pulse-socket" // server name

@@ -33,8 +33,10 @@ enum STANDARD_PORTS_MAPPING {
   HTTPS_PORT = 47984,
   HTTP_PORT = 47989,
   CONTROL_PORT = 47999,
-  VIDEO_PING_PORT = 48100,
-  AUDIO_PING_PORT = 48200,
+  VIDEO_STREAM_PORT = 47998,      // Actual Moonlight video RTP streaming port
+  AUDIO_STREAM_PORT = 48000,      // Actual Moonlight audio RTP streaming port
+  VIDEO_PING_PORT = 48100,        // Video RTP discovery/ping port
+  AUDIO_PING_PORT = 48200,        // Audio RTP discovery/ping port
   RTSP_SETUP_PORT = 48010
 };
 
@@ -46,6 +48,10 @@ inline int get_port(STANDARD_PORTS_MAPPING port) {
     return utils::get_env("WOLF_HTTP_PORT") ? std::stoi(utils::get_env("WOLF_HTTP_PORT")) : HTTP_PORT;
   case CONTROL_PORT:
     return utils::get_env("WOLF_CONTROL_PORT") ? std::stoi(utils::get_env("WOLF_CONTROL_PORT")) : CONTROL_PORT;
+  case VIDEO_STREAM_PORT:
+    return utils::get_env("WOLF_VIDEO_STREAM_PORT") ? std::stoi(utils::get_env("WOLF_VIDEO_STREAM_PORT")) : VIDEO_STREAM_PORT;
+  case AUDIO_STREAM_PORT:
+    return utils::get_env("WOLF_AUDIO_STREAM_PORT") ? std::stoi(utils::get_env("WOLF_AUDIO_STREAM_PORT")) : AUDIO_STREAM_PORT;
   case VIDEO_PING_PORT:
     return utils::get_env("WOLF_VIDEO_PING_PORT") ? std::stoi(utils::get_env("WOLF_VIDEO_PING_PORT")) : VIDEO_PING_PORT;
   case AUDIO_PING_PORT:

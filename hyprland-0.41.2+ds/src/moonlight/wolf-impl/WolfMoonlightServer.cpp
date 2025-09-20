@@ -367,16 +367,9 @@ std::string StreamingEngine::buildPipelineDescription() const {
     ss << "appsrc name=hyprland_src ! ";
     ss << "videoconvert ! ";
     
-    // Choose encoder based on config
-    if (config.video.encoder == "nvenc" || config.video.encoder == "auto") {
-        ss << "nvh264enc bitrate=" << config.video.bitrate << " ! ";
-    } else if (config.video.encoder == "vaapi") {
-        ss << "vaapih264enc bitrate=" << config.video.bitrate << " ! ";
-    } else if (config.video.encoder == "qsv") {
-        ss << "qsvh264enc bitrate=" << config.video.bitrate << " ! ";
-    } else {
-        ss << "x264enc bitrate=" << config.video.bitrate << " tune=zerolatency ! ";
-    }
+    // Force software encoding in container environments (always available)
+    // Hardware encoders (nvenc/vaapi/qsv) often not available in containers
+    ss << "x264enc bitrate=" << config.video.bitrate << " tune=zerolatency ! ";
     
     ss << "h264parse ! ";
     ss << "rtph264pay ! ";

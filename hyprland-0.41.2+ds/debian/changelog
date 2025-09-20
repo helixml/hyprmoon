@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.174) unstable; urgency=medium
+
+  * Fix x264enc parameters - remove invalid tune=zerolatency
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 08:04:29 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.173) unstable; urgency=medium
+
+  * Fix hanging: revert nvh264enc to x264enc in all files
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 08:03:04 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.172) unstable; urgency=medium
 
   * Add GStreamer NVIDIA hardware encoder support for nvh264enc

@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.155) unstable; urgency=medium
+
+  * Fix m_streaming state synchronization and monitor detection
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sat, 20 Sep 2025 04:27:53 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.154) unstable; urgency=medium
 
   * Fix atomic bool formatting in debug logs

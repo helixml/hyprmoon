@@ -148,29 +148,38 @@ void CMoonlightManager::reloadConfig() {
 }
 
 void CMoonlightManager::startStreaming(CMonitor* monitor) {
+    Debug::log(WARN, "CMoonlightManager: startStreaming() called - m_initialized={}, m_streaming={}", m_initialized, m_streaming);
+
     if (!m_initialized) {
         Debug::log(ERR, "CMoonlightManager: Not initialized, cannot start streaming");
         return;
     }
-    
+
     if (m_streaming) {
         Debug::log(WARN, "CMoonlightManager: Already streaming");
         return;
     }
-    
+
     // Use primary monitor if none specified
     if (!monitor) {
+        Debug::log(WARN, "CMoonlightManager: No monitor provided, attempting to get primary monitor");
         monitor = g_pCompositor->getMonitorFromName("");
         if (!monitor) {
-            Debug::log(ERR, "CMoonlightManager: No monitor available for streaming");
-            return;
+            Debug::log(WARN, "CMoonlightManager: No monitor available - continuing with synthetic streaming anyway");
+            // DON'T return here - allow synthetic frame generation to work without a monitor
+            monitor = nullptr;
+        } else {
+            Debug::log(WARN, "CMoonlightManager: Got primary monitor: {}", monitor->szName);
         }
+    } else {
+        Debug::log(WARN, "CMoonlightManager: Using provided monitor: {}", monitor->szName);
     }
-    
+
     m_streamingMonitor = monitor;
     m_streaming = true;
 
-    Debug::log(LOG, "CMoonlightManager: Starting stream for monitor: {}", monitor->szName);
+    Debug::log(WARN, "CMoonlightManager: Set m_streaming=true, starting stream for monitor: {}",
+              monitor ? monitor->szName : "NULL (synthetic only)");
 
     // Start GStreamer pipeline
     if (m_pipeline) {
@@ -179,6 +188,7 @@ void CMoonlightManager::startStreaming(CMonitor* monitor) {
 
     // CRITICAL: Start synthetic frame generation as fallback
     // This ensures we always have frames to stream even when Hyprland isn't rendering
+    Debug::log(WARN, "CMoonlightManager: About to call startSyntheticFrameGeneration() - m_streaming={}", m_streaming);
     startSyntheticFrameGeneration();
 }
 

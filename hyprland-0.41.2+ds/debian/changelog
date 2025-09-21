@@ -1,3 +1,15 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.178) unstable; urgency=medium
+
+  * Build master with complete Wolf pairing - removed conflicting stubs
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sun, 21 Sep 2025 11:34:07 +0100
+
+hyprmoon (0.41.2+ds-1.3+step8.9.177) unstable; urgency=medium
+
+  * Deploy master branch with complete 4-phase Wolf pairing implementation
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sun, 21 Sep 2025 11:33:05 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.176) unstable; urgency=medium
 
   * Fix get_port switch statement - remove VIDEO_STREAM_PORT/AUDIO_STREAM_PORT cases

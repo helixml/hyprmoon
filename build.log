@@ -1,0 +1,703 @@
+=== HyprMoon Build Trigger ===
+Starting build at Thu Sep 18 09:51:52 AM BST 2025
+Auto-bumping version: 0.41.2+ds-1.3+step8.9.53 → 0.41.2+ds-1.3+step8.9.54
+✓ Version bumped to step8.9.54
+Pre-build: Found existing deb hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb - extracting Hyprland binary for comparison
+Pre-build: Previous Hyprland binary from hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb
+Pre-build: Binary size: 9087576 bytes, md5: 96e91b2964558b5a...
+Executing container build...
+Build logs will be saved to: container-build-*.log
+About to run docker container...
+Docker command: docker run --rm --name hyprmoon-builder -v /home/luke/pm/hyprmoon:/workspace -v /home/luke/.ccache:/ccache hyprmoon-build-env /workspace/container-build.sh
+=== HyprMoon Container Build Script ===
+Working directory: /workspace
+Build timestamp: Thu Sep 18 08:51:53 UTC 2025
+Container log file: /workspace/container-build-1758185513.log
+🔍 DEBUG: Checking for incremental build files (BEFORE any cleaning)...
+  build dir exists: YES
+  ninja log exists: YES
+  build.ninja exists: YES
+🚀 INCREMENTAL BUILD: Using direct ninja + ccache
+INCREMENTAL MODE: Using pre-installed dependencies from enhanced container
+=== COLLECTING BUILD METRICS ===
+Pre-build - ccache: 69.25,0,0.2, ninja: 602,22
+=== CCACHE STATS BEFORE BUILD ===
+Cacheable calls:    2488 / 9058 (27.47%)
+  Hits:             1723 / 2488 (69.25%)
+    Direct:         1696 / 1723 (98.43%)
+    Preprocessed:     27 / 1723 ( 1.57%)
+  Misses:            765 / 2488 (30.75%)
+Uncacheable calls:  6570 / 9058 (72.53%)
+Local storage:
+  Cache size (GiB):  0.2 /  5.0 ( 3.68%)
+  Hits:             1723 / 2488 (69.25%)
+  Misses:            765 / 2488 (30.75%)
+Fixing CMake compiler paths for ccache...
+-- Export file name: export_static.h
+CMake Warning (dev) at /usr/share/cmake-3.31/Modules/FetchContent.cmake:1953 (message):
+  Calling FetchContent_Populate(nanors) is deprecated, call
+  FetchContent_MakeAvailable(nanors) instead.  Policy CMP0169 can be set to
+  OLD to allow FetchContent_Populate(nanors) to be called directly for now,
+  but the ability to call it with declared details will be removed completely
+  in a future version.
+Call Stack (most recent call first):
+  CMakeLists.txt:63 (FetchContent_Populate)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Warning (dev) at /usr/share/cmake-3.31/Modules/FetchContent.cmake:1953 (message):
+  Calling FetchContent_Populate(peglib) is deprecated, call
+  FetchContent_MakeAvailable(peglib) instead.  Policy CMP0169 can be set to
+  OLD to allow FetchContent_Populate(peglib) to be called directly for now,
+  but the ability to call it with declared details will be removed completely
+  in a future version.
+Call Stack (most recent call first):
+  CMakeLists.txt:91 (FetchContent_Populate)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+CMake Deprecation Warning at build/_deps/simplewebserver-src/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Warning (dev) at build/_deps/simplewebserver-src/CMakeLists.txt:44 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake (found suitable version "1.83.0", minimum required is "1.53.0") found components: system
+-- Gathering git info
+-- Setting up wlroots
+-- Found WaylandScanner at /usr/bin/wayland-scanner
+-- Found wayland-protocols at //usr/share/wayland-protocols
+-- Configuring Hyprland in Release with CMake
+-- Checking deps...
+-- Checking for modules 'xkbcommon;uuid;wayland-server;wayland-client;wayland-cursor;wayland-protocols;cairo;pango;pangocairo;pixman-1;libdrm;libinput;hwdata;libseat;libdisplay-info;libliftoff;libudev;gbm;hyprlang>=0.3.2;hyprcursor>=0.1.7;hyprutils>=0.1.5;udis86;gstreamer-1.0;gstreamer-plugins-base-1.0'
+--   Found xkbcommon, version 1.7.0
+--   Found uuid, version 2.40.2
+--   Found wayland-server, version 1.23.1
+--   Found wayland-client, version 1.23.1
+--   Found wayland-cursor, version 1.23.1
+--   Found wayland-protocols, version 1.41
+--   Found cairo, version 1.18.4
+--   Found pango, version 1.56.3
+--   Found pangocairo, version 1.56.3
+--   Found pixman-1, version 0.44.0
+--   Found libdrm, version 2.4.124
+--   Found libinput, version 1.27.1
+--   Found hwdata, version 0.393
+--   Found libseat, version 0.8.0
+--   Found libdisplay-info, version 0.2.0
+--   Found libliftoff, version 0.5.0
+--   Found libudev, version 257
+--   Found gbm, version 25.0.7-0ubuntu0.25.04.2
+--   Found hyprlang, version 0.5.2
+--   Found hyprcursor, version 0.1.9
+--   Found hyprutils, version 0.1.5
+--   Found udis86, version 1.7.2
+--   Found gstreamer-1.0, version 1.26.0
+--   Found gstreamer-plugins-base-1.0, version 1.26.0
+CMake Warning (dev) at CMakeLists.txt:246 (find_package):
+  Policy CMP0167 is not set: The FindBoost module is removed.  Run "cmake
+  --help-policy CMP0167" for policy details.  Use the cmake_policy command to
+  set the policy and suppress this warning.
+
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+-- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0/BoostConfig.cmake (found suitable version "1.83.0", minimum required is "1.77") found components: log locale
+-- Configuration supports execinfo
+-- Checking for module 'epoll-shim'
+--   Package 'epoll-shim', required by 'virtual:world', not found
+-- XWAYLAND Enabled (NO_XWAYLAND not defined) checking deps...
+-- SYSTEMD support is requested (NO_SYSTEMD not defined)...
+-- Setting precompiled headers
+-- Setting link libraries
+-- Debian patch found!!!
+-- Debian patch found!!!
+-- Debian patch found!!!
+-- Checking for module 'hyprutils>=0.1.1'
+--   Found hyprutils, version 0.1.5
+-- Checking for modules 'tomlplusplus;hyprutils>=0.1.1'
+--   Found tomlplusplus, version 3.4.0
+--   Found hyprutils, version 0.1.5
+-- Configuring done (2.4s)
+-- Generating done (0.1s)
+-- Build files have been written to: /workspace/hyprland-0.41.2+ds/build
+[0/2] Re-checking globbed directories...
+[1/6] Performing build step for 'wlroots-hyprland'
+ninja: Entering directory `build'
+ninja: no work to do.
+[2/6] Performing install step for 'wlroots-hyprland'
+wlroots-hyprland: install not needed
+[3/6] Completed 'wlroots-hyprland'
+[4/6] Building CXX object CMakeFiles/Hyprland.dir/src/main.cpp.o
+[5/6] Linking CXX executable Hyprland
+🛠️ DEBUG: Sleeping 5 minutes to test live build detection...
+✓ Binary built and copied: Hyprland-0.41.2+ds-1.3+step8.9.54
+✓ Version file created: HYPRMOON_VERSION.txt
+dpkg-buildpackage completed successfully
+Post-build - duration: 313s, ccache: 69.25,0,0.2, ninja: 602,22, objects: 229, binary_md5: 72c2d7cb60b3c12d, git: 4a09863c, changed: 31, deploy: unknown
+=== CCACHE STATS AFTER BUILD ===
+Cacheable calls:    2488 / 9060 (27.46%)
+  Hits:             1723 / 2488 (69.25%)
+    Direct:         1696 / 1723 (98.43%)
+    Preprocessed:     27 / 1723 ( 1.57%)
+  Misses:            765 / 2488 (30.75%)
+Uncacheable calls:  6572 / 9060 (72.54%)
+Local storage:
+  Cache size (GiB):  0.2 /  5.0 ( 3.68%)
+  Hits:             1723 / 2488 (69.25%)
+  Misses:            765 / 2488 (30.75%)
+=== Build completed successfully ===
+Generated files:
+-rw-r--r-- 1 root root 46700074 Sep 17 07:57 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.10_all.deb
+-rw-r--r-- 1 root root 46700134 Sep 17 08:06 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.11_all.deb
+-rw-r--r-- 1 root root 46700220 Sep 17 08:52 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.12_all.deb
+-rw-r--r-- 1 root root 46700208 Sep 17 15:03 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.13_all.deb
+-rw-r--r-- 1 root root 46700288 Sep 17 15:14 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.14_all.deb
+-rw-r--r-- 1 root root 46700306 Sep 17 15:24 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.15_all.deb
+-rw-r--r-- 1 root root 46700298 Sep 17 16:29 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.16_all.deb
+-rw-r--r-- 1 root root      896 Sep 17 16:53 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.20_all.deb
+-rw-r--r-- 1 root root 46700398 Sep 17 16:57 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.22_all.deb
+-rw-r--r-- 1 root root 46700412 Sep 17 17:00 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.23_all.deb
+-rw-r--r-- 1 root root 46700534 Sep 18 07:09 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.39_all.deb
+-rw-r--r-- 1 root root 46700296 Sep 17 04:22 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.6_all.deb
+-rw-r--r-- 1 root root 46700034 Sep 17 04:36 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.7_all.deb
+-rw-r--r-- 1 root root 46700166 Sep 17 04:43 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.8_all.deb
+-rw-r--r-- 1 root root 46700254 Sep 17 04:58 /workspace/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.9_all.deb
+-rw-r--r-- 1 root root   233064 Sep 17 07:57 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.10_amd64.deb
+-rw-r--r-- 1 root root   233102 Sep 17 08:06 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.11_amd64.deb
+-rw-r--r-- 1 root root   233174 Sep 17 08:52 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.12_amd64.deb
+-rw-r--r-- 1 root root   233182 Sep 17 15:03 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.13_amd64.deb
+-rw-r--r-- 1 root root   233218 Sep 17 15:14 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.14_amd64.deb
+-rw-r--r-- 1 root root   233228 Sep 17 15:24 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.15_amd64.deb
+-rw-r--r-- 1 root root   233250 Sep 17 16:28 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.16_amd64.deb
+-rw-r--r-- 1 root root   233276 Sep 17 16:54 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.20_amd64.deb
+-rw-r--r-- 1 root root   233268 Sep 17 16:57 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.22_amd64.deb
+-rw-r--r-- 1 root root   233310 Sep 17 17:00 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.23_amd64.deb
+-rw-r--r-- 1 root root   233518 Sep 18 07:09 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.39_amd64.deb
+-rw-r--r-- 1 root root   232054 Sep 17 04:21 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.6_amd64.deb
+-rw-r--r-- 1 root root   232178 Sep 17 04:36 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.7_amd64.deb
+-rw-r--r-- 1 root root   232322 Sep 17 04:43 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.8_amd64.deb
+-rw-r--r-- 1 root root   232622 Sep 17 04:58 /workspace/hyprland-dev_0.41.2+ds-1.3+step8.9.9_amd64.deb
+-rw-r--r-- 1 root root  2883814 Sep 17 07:57 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.10_amd64.deb
+-rw-r--r-- 1 root root  2883428 Sep 17 08:06 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.11_amd64.deb
+-rw-r--r-- 1 root root  2883572 Sep 17 08:52 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.12_amd64.deb
+-rw-r--r-- 1 root root  2883686 Sep 17 15:03 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.13_amd64.deb
+-rw-r--r-- 1 root root  2883432 Sep 17 15:13 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.14_amd64.deb
+-rw-r--r-- 1 root root  2883792 Sep 17 15:24 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.15_amd64.deb
+-rw-r--r-- 1 root root  2883736 Sep 17 16:28 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.16_amd64.deb
+-rw-r--r-- 1 root root  2883966 Sep 17 16:54 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.20_amd64.deb
+-rw-r--r-- 1 root root  2883390 Sep 17 16:57 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.22_amd64.deb
+-rw-r--r-- 1 root root  2883854 Sep 17 17:00 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.23_amd64.deb
+-rw-r--r-- 1 root root  2883604 Sep 18 07:09 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb
+-rw-r--r-- 1 root root  2875750 Sep 17 04:21 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.6_amd64.deb
+-rw-r--r-- 1 root root  2876864 Sep 17 04:36 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.7_amd64.deb
+-rw-r--r-- 1 root root  2876396 Sep 17 04:43 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.8_amd64.deb
+-rw-r--r-- 1 root root  2877176 Sep 17 04:58 /workspace/hyprmoon_0.41.2+ds-1.3+step8.9.9_amd64.deb
+Package details:
+=== hyprmoon_0.41.2+ds-1.3+step8.9.10_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883814 bytes: control archive=1553 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.11_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883428 bytes: control archive=1552 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.12_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883572 bytes: control archive=1553 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.13_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883686 bytes: control archive=1550 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.14_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883432 bytes: control archive=1555 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.15_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883792 bytes: control archive=1556 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.16_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883736 bytes: control archive=1554 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.20_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883966 bytes: control archive=1557 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.22_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883390 bytes: control archive=1552 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.23_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883854 bytes: control archive=1554 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2883604 bytes: control archive=1552 bytes.
+    1887 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.6_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2875750 bytes: control archive=1554 bytes.
+    1886 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.7_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2876864 bytes: control archive=1553 bytes.
+    1886 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.8_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2876396 bytes: control archive=1553 bytes.
+    1886 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+=== hyprmoon_0.41.2+ds-1.3+step8.9.9_amd64.deb ===
+ new Debian package, version 2.0.
+ size 2877176 bytes: control archive=1554 bytes.
+    1886 bytes,    20 lines      control
+    1124 bytes,    16 lines      md5sums
+ Package: hyprmoon
+
+Container build log saved to: /workspace/container-build-1758185513.log
+=== CONTAINER BUILD SCRIPT COMPLETED SUCCESSFULLY ===
+Exiting with code 0
+
+🔍 === CRITICAL DEBUG: Docker command completed ===
+Docker run command returned with exit code: 0
+Host script continuing after docker run...
+Current directory: /home/luke/pm/hyprmoon
+Script PID: 1435167
+Bash version: 5.2.21(1)-release
+Time: Thu Sep 18 09:57:06 AM BST 2025
+
+🔍 DOCKER_EXIT_CODE captured as: 0
+
+=== POST-CONTAINER DEBUG INFO ===
+Docker container exit code: 0
+Current working directory: /home/luke/pm/hyprmoon
+Available .deb files in current directory:
+-rw-r--r-- 1 root root 46700074 Sep 17 08:57 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.10_all.deb
+-rw-r--r-- 1 root root 46700134 Sep 17 09:06 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.11_all.deb
+-rw-r--r-- 1 root root 46700220 Sep 17 09:52 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.12_all.deb
+-rw-r--r-- 1 root root 46700208 Sep 17 16:03 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.13_all.deb
+-rw-r--r-- 1 root root 46700288 Sep 17 16:14 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.14_all.deb
+-rw-r--r-- 1 root root 46700306 Sep 17 16:24 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.15_all.deb
+-rw-r--r-- 1 root root 46700298 Sep 17 17:29 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.16_all.deb
+-rw-r--r-- 1 root root      896 Sep 17 17:53 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.20_all.deb
+-rw-r--r-- 1 root root 46700398 Sep 17 17:57 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.22_all.deb
+-rw-r--r-- 1 root root 46700412 Sep 17 18:00 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.23_all.deb
+-rw-r--r-- 1 root root 46700534 Sep 18 08:09 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.39_all.deb
+-rw-r--r-- 1 root root 46700296 Sep 17 05:22 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.6_all.deb
+-rw-r--r-- 1 root root 46700034 Sep 17 05:36 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.7_all.deb
+-rw-r--r-- 1 root root 46700166 Sep 17 05:43 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.8_all.deb
+-rw-r--r-- 1 root root 46700254 Sep 17 05:58 hyprland-backgrounds_0.41.2+ds-1.3+step8.9.9_all.deb
+-rw-r--r-- 1 root root   233064 Sep 17 08:57 hyprland-dev_0.41.2+ds-1.3+step8.9.10_amd64.deb
+-rw-r--r-- 1 root root   233102 Sep 17 09:06 hyprland-dev_0.41.2+ds-1.3+step8.9.11_amd64.deb
+-rw-r--r-- 1 root root   233174 Sep 17 09:52 hyprland-dev_0.41.2+ds-1.3+step8.9.12_amd64.deb
+-rw-r--r-- 1 root root   233182 Sep 17 16:03 hyprland-dev_0.41.2+ds-1.3+step8.9.13_amd64.deb
+-rw-r--r-- 1 root root   233218 Sep 17 16:14 hyprland-dev_0.41.2+ds-1.3+step8.9.14_amd64.deb
+-rw-r--r-- 1 root root   233228 Sep 17 16:24 hyprland-dev_0.41.2+ds-1.3+step8.9.15_amd64.deb
+-rw-r--r-- 1 root root   233250 Sep 17 17:28 hyprland-dev_0.41.2+ds-1.3+step8.9.16_amd64.deb
+-rw-r--r-- 1 root root   233276 Sep 17 17:54 hyprland-dev_0.41.2+ds-1.3+step8.9.20_amd64.deb
+-rw-r--r-- 1 root root   233268 Sep 17 17:57 hyprland-dev_0.41.2+ds-1.3+step8.9.22_amd64.deb
+-rw-r--r-- 1 root root   233310 Sep 17 18:00 hyprland-dev_0.41.2+ds-1.3+step8.9.23_amd64.deb
+-rw-r--r-- 1 root root   233518 Sep 18 08:09 hyprland-dev_0.41.2+ds-1.3+step8.9.39_amd64.deb
+-rw-r--r-- 1 root root   232054 Sep 17 05:21 hyprland-dev_0.41.2+ds-1.3+step8.9.6_amd64.deb
+-rw-r--r-- 1 root root   232178 Sep 17 05:36 hyprland-dev_0.41.2+ds-1.3+step8.9.7_amd64.deb
+-rw-r--r-- 1 root root   232322 Sep 17 05:43 hyprland-dev_0.41.2+ds-1.3+step8.9.8_amd64.deb
+-rw-r--r-- 1 root root   232622 Sep 17 05:58 hyprland-dev_0.41.2+ds-1.3+step8.9.9_amd64.deb
+-rw-r--r-- 1 root root  2883814 Sep 17 08:57 hyprmoon_0.41.2+ds-1.3+step8.9.10_amd64.deb
+-rw-r--r-- 1 root root  2883428 Sep 17 09:06 hyprmoon_0.41.2+ds-1.3+step8.9.11_amd64.deb
+-rw-r--r-- 1 root root  2883572 Sep 17 09:52 hyprmoon_0.41.2+ds-1.3+step8.9.12_amd64.deb
+-rw-r--r-- 1 root root  2883686 Sep 17 16:03 hyprmoon_0.41.2+ds-1.3+step8.9.13_amd64.deb
+-rw-r--r-- 1 root root  2883432 Sep 17 16:13 hyprmoon_0.41.2+ds-1.3+step8.9.14_amd64.deb
+-rw-r--r-- 1 root root  2883792 Sep 17 16:24 hyprmoon_0.41.2+ds-1.3+step8.9.15_amd64.deb
+-rw-r--r-- 1 root root  2883736 Sep 17 17:28 hyprmoon_0.41.2+ds-1.3+step8.9.16_amd64.deb
+-rw-r--r-- 1 root root  2883966 Sep 17 17:54 hyprmoon_0.41.2+ds-1.3+step8.9.20_amd64.deb
+-rw-r--r-- 1 root root  2883390 Sep 17 17:57 hyprmoon_0.41.2+ds-1.3+step8.9.22_amd64.deb
+-rw-r--r-- 1 root root  2883854 Sep 17 18:00 hyprmoon_0.41.2+ds-1.3+step8.9.23_amd64.deb
+-rw-r--r-- 1 root root  2883604 Sep 18 08:09 hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb
+-rw-r--r-- 1 root root  2875750 Sep 17 05:21 hyprmoon_0.41.2+ds-1.3+step8.9.6_amd64.deb
+-rw-r--r-- 1 root root  2876864 Sep 17 05:36 hyprmoon_0.41.2+ds-1.3+step8.9.7_amd64.deb
+-rw-r--r-- 1 root root  2876396 Sep 17 05:43 hyprmoon_0.41.2+ds-1.3+step8.9.8_amd64.deb
+-rw-r--r-- 1 root root  2877176 Sep 17 05:58 hyprmoon_0.41.2+ds-1.3+step8.9.9_amd64.deb
+Expected deb file: hyprmoon_0.41.2+ds-1.3+step8.9.54_amd64.deb
+Pre-build binary MD5: 96e91b2964558b5a6c70c332de613385
+Checking if expected deb exists: NO
+=== END DEBUG INFO ===
+
+=== Build SUCCESS ===
+Generated deb file(s):
+-rw-r--r-- 1 root root 2883814 Sep 17 08:57 hyprmoon_0.41.2+ds-1.3+step8.9.10_amd64.deb
+-rw-r--r-- 1 root root 2883428 Sep 17 09:06 hyprmoon_0.41.2+ds-1.3+step8.9.11_amd64.deb
+-rw-r--r-- 1 root root 2883572 Sep 17 09:52 hyprmoon_0.41.2+ds-1.3+step8.9.12_amd64.deb
+-rw-r--r-- 1 root root 2883686 Sep 17 16:03 hyprmoon_0.41.2+ds-1.3+step8.9.13_amd64.deb
+-rw-r--r-- 1 root root 2883432 Sep 17 16:13 hyprmoon_0.41.2+ds-1.3+step8.9.14_amd64.deb
+-rw-r--r-- 1 root root 2883792 Sep 17 16:24 hyprmoon_0.41.2+ds-1.3+step8.9.15_amd64.deb
+-rw-r--r-- 1 root root 2883736 Sep 17 17:28 hyprmoon_0.41.2+ds-1.3+step8.9.16_amd64.deb
+-rw-r--r-- 1 root root 2883966 Sep 17 17:54 hyprmoon_0.41.2+ds-1.3+step8.9.20_amd64.deb
+-rw-r--r-- 1 root root 2883390 Sep 17 17:57 hyprmoon_0.41.2+ds-1.3+step8.9.22_amd64.deb
+-rw-r--r-- 1 root root 2883854 Sep 17 18:00 hyprmoon_0.41.2+ds-1.3+step8.9.23_amd64.deb
+-rw-r--r-- 1 root root 2883604 Sep 18 08:09 hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb
+-rw-r--r-- 1 root root 2875750 Sep 17 05:21 hyprmoon_0.41.2+ds-1.3+step8.9.6_amd64.deb
+-rw-r--r-- 1 root root 2876864 Sep 17 05:36 hyprmoon_0.41.2+ds-1.3+step8.9.7_amd64.deb
+-rw-r--r-- 1 root root 2876396 Sep 17 05:43 hyprmoon_0.41.2+ds-1.3+step8.9.8_amd64.deb
+-rw-r--r-- 1 root root 2877176 Sep 17 05:58 hyprmoon_0.41.2+ds-1.3+step8.9.9_amd64.deb
+Package details:
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.10_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.10
+Size: 2883814 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.10
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.11_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.11
+Size: 2883428 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.11
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.12_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.12
+Size: 2883572 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.12
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.13_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.13
+Size: 2883686 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.13
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.14_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.14
+Size: 2883432 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.14
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.15_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.15
+Size: 2883792 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.15
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.16_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.16
+Size: 2883736 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.16
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.20_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.20
+Size: 2883966 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.20
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.22_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.22
+Size: 2883390 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.22
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.23_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.23
+Size: 2883854 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.23
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.39
+Size: 2883604 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.39
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.6_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.6
+Size: 2875750 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.6
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.7_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.7
+Size: 2876864 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.7
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.8_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.8
+Size: 2876396 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.8
+Package: hyprmoon_0.41.2+ds-1.3+step8.9.9_amd64.deb
+Version: 0.41.2+ds-1.3+step8.9.9
+Size: 2877176 bytes
+Package info: hyprmoon 0.41.2+ds-1.3+step8.9.9
+
+Build completed successfully!
+Build log file: ./container-build-1758185513.log
+
+=== AUTO-DEPLOY: Deploying to Helix ===
+Current directory: /home/luke/pm/hyprmoon
+Checking for helix directory...
+Expected helix path: ../helix
+Absolute helix path: /home/luke/pm/helix
+1. Copying build artifacts to ../helix/
+   Copied .deb: hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb (timestamp preserved)
+   Copied binary: Hyprland-0.41.2+ds-1.3+step8.9.54 (timestamp preserved)
+   Copied version file: HYPRMOON_VERSION.txt
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.10_all.deb (size: 46700074 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.11_all.deb (size: 46700134 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.12_all.deb (size: 46700220 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.13_all.deb (size: 46700208 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.14_all.deb (size: 46700288 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.15_all.deb (size: 46700306 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.16_all.deb (size: 46700298 bytes)
+   ⚠️ Skipping corrupted backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.20_all.deb (size: 896 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.22_all.deb (size: 46700398 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.23_all.deb (size: 46700412 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.39_all.deb (size: 46700534 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.6_all.deb (size: 46700296 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.7_all.deb (size: 46700034 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.8_all.deb (size: 46700166 bytes)
+   Copying backgrounds package: hyprland-backgrounds_0.41.2+ds-1.3+step8.9.9_all.deb (size: 46700254 bytes)
+2. Updating Dockerfile.zed-agent-vnc with new version and deployment strategy
+   📊 STRATEGY DEBUG: LATEST_BINARY='Hyprland-0.41.2+ds-1.3+step8.9.54' BINARY_TIME=1758185826
+   📊 STRATEGY DEBUG: LATEST_DEB='hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb' DEB_TIME=1758179383
+   📊 STRATEGY DEBUG: Binary exists: YES
+   📊 STRATEGY DEBUG: Binary newer: YES
+   🔥 INCREMENTAL STRATEGY: Binary newer than .deb - will clobber
+   Deployment mode: INCREMENTAL, Version: 0.41.2+ds-1.3+step8.9.54
+   ✓ Dockerfile .deb references updated to: 0.41.2+ds-1.3+step8.9.39
+   Enabling binary clobbering in Dockerfile...
+   ✓ Dockerfile updated for INCREMENTAL deployment with version 0.41.2+ds-1.3+step8.9.54
+✓ Deployment info saved for metrics logging
+3. Checking if zed-runner container is running...
+   Container is running - will restart after rebuild
+4. Rebuilding zed-runner container with new HyprMoon packages...
+#1 [internal] load local bake definitions
+#1 reading from stdin 978B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile.zed-agent-vnc
+#2 transferring dockerfile: 15.04kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/ubuntu:25.04
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/golang:1.24
+#4 DONE 0.6s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 87B done
+#5 DONE 0.0s
+
+#6 [internal] preparing inline document
+#6 DONE 0.0s
+
+#7 [internal] preparing inline document
+#7 DONE 0.0s
+
+#8 [go-build-env  1/10] FROM docker.io/library/golang:1.24@sha256:87916acb3242b6259a26deaa7953bdc6a3a6762a28d340e4f1448e7b5c27c009
+#8 DONE 0.0s
+
+#9 [stage-1  1/37] FROM docker.io/library/ubuntu:25.04
+#9 DONE 0.0s
+
+#10 [internal] load build context
+#10 transferring context: 76.48MB 0.6s done
+#10 DONE 0.7s
+
+#11 [stage-1  6/37] RUN <<_ADD_NVRTC (#!/bin/bash...)
+#11 CACHED
+
+#12 [stage-1  4/37] RUN apt-get update && apt-get install -y     libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 libgstreamer-plugins-bad1.0-0     libhyprcursor0 libhyprlang2 libhyprutils0 libudis86-0     libboost-locale1.83.0 libboost-log1.83.0 libboost-thread1.83.0     libenet7 libfmt10     && rm -rf /var/lib/apt/lists/*
+#12 CACHED
+
+#13 [stage-1 17/37] RUN mkdir -p /usr/share/icons/hicolor/512x512/apps     && curl -L 'https://zed.dev/_next/static/media/stable-app-logo.9b5f959f.png' -o /usr/share/icons/hicolor/512x512/apps/zed.png     && gtk-update-icon-cache /usr/share/icons/hicolor/ 2>/dev/null || true
+#13 CACHED
+
+#14 [stage-1 16/37] RUN sed -i 's|Exec=/usr/bin/google-chrome-stable|Exec=/usr/bin/google-chrome-stable --enable-wayland-ime --ozone-platform=wayland|g' /usr/share/applications/google-chrome.desktop
+#14 CACHED
+
+#15 [stage-1 22/37] RUN chmod +x /start-helix-agent.sh
+#15 CACHED
+
+#16 [stage-1 30/37] COPY hyprland-backgrounds_0.41.2+ds-1.3+step8.9.39_all.deb /tmp/hyprland-backgrounds_0.41.2+ds-1.3+step8.9.39_all.deb
+#16 CACHED
+
+#17 [stage-1  9/37] RUN ln -sf /zed-build/zed /usr/local/bin/zed
+#17 CACHED
+
+#18 [stage-1 11/37] RUN groupadd -f -g 992 render && usermod -aG video,render ubuntu
+#18 CACHED
+
+#19 [stage-1 26/37] RUN npm install -g typescript &&     cd /tmp &&     git clone https://github.com/end-4/ii-agsv1.git &&     cd ii-agsv1 &&     npm install &&     meson setup build --libdir "lib/ii-agsv1" -Dbuild_types=true &&     meson compile -C build &&     meson install -C build &&     rm -f /usr/bin/ags &&     ln -sf /usr/local/share/com.github.Aylur.ags/com.github.Aylur.ags /usr/bin/agsv1 &&     rm -rf /tmp/ii-agsv1
+#19 CACHED
+
+#20 [stage-1 29/37] COPY hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb /tmp/hyprmoon_0.41.2+ds-1.3+step8.9.39_amd64.deb
+#20 CACHED
+
+#21 [stage-1 27/37] RUN apt-get update && apt-get install -y     sass     build-essential     libnotify-bin libnotify-dev gir1.2-notify-0.7     libdbusmenu-gtk3-dev gir1.2-dbusmenu-glib-0.4 gir1.2-dbusmenu-gtk3-0.4     libgtksourceview-3.0-dev gir1.2-gtksource-3.0     && rm -rf /var/lib/apt/lists/*
+#21 CACHED
+
+#22 [stage-1 21/37] COPY <<EOF /start-helix-agent.sh
+#22 CACHED
+
+#23 [stage-1 28/37] RUN mkdir -p /home/ubuntu/.config/ags &&     echo '{"dock": {"enabled": true, "pinnedApps": ["google-chrome", "firefox", "org.gnome.Nautilus", "foot", "ghostty"]}}' > /home/ubuntu/.config/ags/user_options.jsonc &&     chown -R ubuntu:ubuntu /home/ubuntu/.config
+#23 CACHED
+
+#24 [stage-1  7/37] RUN apt-get update && apt-get install -y     fuzzel python3-pip     && (apt-get install -y hypridle hyprlock hyprpicker 2>/dev/null || echo "Some Hyprland tools not available")     && python3 -m pip install --break-system-packages material-color-utilities || echo "matugen alternative install failed"     && apt-get clean && rm -rf /var/lib/apt/lists/*
+#24 CACHED
+
+#25 [stage-1  8/37] RUN git config --global --add safe.directory /workspace/helix
+#25 CACHED
+
+#26 [stage-1 20/37] RUN chmod +x /setup-illogical-impulse.sh
+#26 CACHED
+
+#27 [stage-1 14/37] RUN apt-get update && apt-get install -y curl     libgtk-4-dev libgtk-4-1 libadwaita-1-0     libgraphene-1.0-0 libcairo2 libcairo-gobject2     libgdk-pixbuf-2.0-0 libpango-1.0-0 libpangocairo-1.0-0     libfontconfig1 libfreetype6 libharfbuzz0b     libglib2.0-0 libgobject-2.0-0 libgio-2.0-0     libegl1 libgl1 libwayland-client0 libwayland-cursor0 libwayland-egl1     libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2     && wget -q -O /tmp/ghostty.deb "https://github.com/mkasberg/ghostty-ubuntu/releases/download/1.1.3-0-ppa2/ghostty_1.1.3-0.ppa2_amd64_25.04.deb" && dpkg -i /tmp/ghostty.deb && rm /tmp/ghostty.deb &&     rm -rf /var/lib/apt/lists/*
+#27 CACHED
+
+#28 [stage-1  3/37] RUN apt-get update && apt-get install -y     wayvnc cage sway-backgrounds weston     && rm -rf /var/lib/apt/lists/*
+#28 CACHED
+
+#29 [stage-1 19/37] COPY <<EOF /setup-illogical-impulse.sh
+#29 CACHED
+
+#30 [stage-1 23/37] COPY start-wayland-vnc.sh /start-wayland-vnc.sh
+#30 CACHED
+
+#31 [stage-1 18/37] RUN mkdir -p /usr/share/fonts/truetype/material-symbols     && curl -L 'https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL%2CGRAD%2Copsz%2Cwght%5D.ttf'        -o /usr/share/fonts/truetype/material-symbols/MaterialSymbolsRounded.ttf     && fc-cache -f -v
+#31 CACHED
+
+#32 [stage-1 10/37] RUN echo 'ubuntu:helix123' | chpasswd &&     usermod -aG sudo ubuntu 2>/dev/null || useradd -m -s /bin/bash ubuntu && echo 'ubuntu:helix123' | chpasswd && usermod -aG sudo ubuntu
+#32 CACHED
+
+#33 [stage-1 13/37] RUN mkdir -p /workspace && chmod 755 /workspace
+#33 CACHED
+
+#34 [stage-1 12/37] RUN npm install -g @modelcontextprotocol/server-filesystem || echo "MCP install failed, continuing..."
+#34 CACHED
+
+#35 [stage-1 15/37] RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list     && apt-get update     && apt-get install -y google-chrome-stable     && rm -rf /var/lib/apt/lists/*
+#35 CACHED
+
+#36 [stage-1 25/37] RUN apt-get update && apt-get install -y     git meson npm     libgjs-dev libgtk-3-dev libgtk-layer-shell-dev     libpulse-dev libpam0g-dev libglib2.0-dev     gir1.2-gtk-3.0 gir1.2-glib-2.0 gobject-introspection     libgirepository1.0-dev     gvfs gjs glib2.0-bin libglib2.0-0 libgtk-3-0     libgtk-layer-shell0 libpulse0 libpam0g     && rm -rf /var/lib/apt/lists/*
+#36 CACHED
+
+#37 [stage-1  5/37] RUN apt-get update && apt-get install -y     bc coreutils cmake curl rsync wget ripgrep jq meson xdg-user-dirs unzip     fontconfig eza fish kitty     glib2.0-bin wl-clipboard translate-shell     pipewire-audio pulseaudio-utils alsa-utils     python3 python3-pip python3-venv     && apt-get install -y     wget git unzip curl sqlite3 ca-certificates     build-essential cmake     nodejs npm python3 python3-pip     va-driver-all intel-media-va-driver-non-free     libva-drm2 libva-x11-2 libvpl2     mesa-utils mesa-utils-extra     libgl1-mesa-dri libglx-mesa0     libegl-mesa0 libgles2-mesa-dev     libgbm1 libdrm2     pciutils lshw usbutils kmod libkmod2     libwayland-dev libwayland-server0 libinput-dev libxkbcommon-dev     libfontconfig1 libfreetype6 libxcb1 libxcb-render0 libxcb-shape0     libxcb-xfixes0 libxcb-shm0 libxkbcommon0 libxkbcommon-x11-0     libasound2t64 libssl3 libgtk-3-0 libgdk-pixbuf2.0-0 libpango-1.0-0 libcairo2     dbus-x11 dbus     xwayland     supervisor nano vim     && rm -rf /var/lib/apt/lists/*
+#37 CACHED
+
+#38 [stage-1  2/37] RUN apt-get update && apt-get install -y     wget curl ca-certificates gnupg software-properties-common net-tools     git cmake build-essential     libcurl4-openssl-dev libssl-dev     libudev-dev libpci-dev jq     && rm -rf /var/lib/apt/lists/*
+#38 CACHED
+
+#39 [stage-1 24/37] RUN chmod +x /start-wayland-vnc.sh
+#39 CACHED
+
+#40 [stage-1 31/37] RUN dpkg -i /tmp/hyprmoon_*.deb     && (dpkg -i /tmp/hyprland-backgrounds_*.deb || echo "Backgrounds package install failed - continuing without backgrounds")     && rm /tmp/hyprmoon_*.deb /tmp/hyprland-backgrounds_*.deb     && echo "$(dpkg -l hyprmoon | grep hyprmoon | awk '{print $3}')" > /HYPRMOON_VERSION.txt
+#40 CACHED
+
+#41 [go-build-env  3/10] COPY go.mod go.sum ./
+#41 CACHED
+
+#42 [go-build-env  8/10] RUN apt-get update && apt-get install -y gcc g++ libc6-dev && rm -rf /var/lib/apt/lists/*
+#42 CACHED
+
+#43 [go-build-env  9/10] RUN --mount=type=cache,target=/go/pkg/mod     --mount=type=cache,target=/root/.cache/go-build     CGO_ENABLED=0 go build -buildvcs=false -ldflags "-s -w" -o /helix
+#43 CACHED
+
+#44 [go-build-env  5/10] COPY api ./api
+#44 CACHED
+
+#45 [go-build-env  4/10] RUN --mount=type=cache,target=/go/pkg/mod go mod download
+#45 CACHED
+
+#46 [go-build-env  6/10] COPY .git /.git
+#46 CACHED
+
+#47 [go-build-env  2/10] WORKDIR /app
+#47 CACHED
+
+#48 [go-build-env  7/10] WORKDIR /app/api
+#48 CACHED
+
+#49 [go-build-env 10/10] RUN --mount=type=cache,target=/go/pkg/mod     --mount=type=cache,target=/root/.cache/go-build     go install github.com/air-verse/air@v1.52.3
+#49 CACHED
+
+#50 [stage-1 32/37] COPY Hyprland-0.41.2+ds-1.3+step8.9.54 /tmp/Hyprland-incremental
+#50 DONE 0.2s
+
+#51 [stage-1 33/37] COPY HYPRMOON_VERSION.txt /tmp/
+#51 DONE 0.1s
+
+#52 [stage-1 34/37] RUN echo "🔥 INCREMENTAL DEPLOY: Clobbering with latest binary"     && cp /tmp/Hyprland-incremental /usr/bin/Hyprland     && chmod +x /usr/bin/Hyprland     && cp /tmp/HYPRMOON_VERSION.txt /HYPRMOON_VERSION.txt     && echo "✓ Binary clobbered with version: $(cat /HYPRMOON_VERSION.txt)"     && rm -f /tmp/Hyprland-incremental /tmp/HYPRMOON_VERSION.txt
+#52 0.256 🔥 INCREMENTAL DEPLOY: Clobbering with latest binary
+#52 0.307 ✓ Binary clobbered with version: 0.41.2+ds-1.3+step8.9.54
+#52 DONE 0.4s
+
+#53 [stage-1 35/37] COPY --from=go-build-env /usr/local/go /usr/local/go
+#53 DONE 2.7s
+
+#54 [stage-1 36/37] COPY --from=go-build-env /go/bin/air /usr/local/bin/air
+#54 DONE 0.2s
+
+#55 [stage-1 37/37] COPY --from=go-build-env /helix /usr/local/bin/helix
+#55 DONE 0.3s
+
+#56 exporting to image
+#56 exporting layers
+#56 exporting layers 1.9s done
+#56 writing image sha256:d31cb1400db55b56898fb86d1554fbabac55d0ba12d575463559d2f928163c73 done
+#56 naming to docker.io/library/helix-zed-runner done
+#56 DONE 1.9s
+
+#57 resolving provenance for metadata file
+#57 DONE 0.0s
+ helix-zed-runner  Built
+5. Recreating zed-runner container for clean state...
+ Container helix-zed-runner-1  Stopping
+ Container helix-zed-runner-1  Stopped
+ Container helix-zed-runner-1  Removing
+ Container helix-zed-runner-1  Removed
+ Network helix_default  Removing
+ Network helix_default  Resource is still in use
+ Container helix-postgres-1  Running
+ Container helix-postgres-mcp-1  Running
+ Container helix-keycloak-1  Running
+ Container helix-api-1  Running
+ Container helix-zed-runner-1  Creating
+ Container helix-zed-runner-1  Created
+ Container helix-zed-runner-1  Starting
+ Container helix-zed-runner-1  Started
+   ✓ Container recreated with new HyprMoon version 0.41.2+ds-1.3+step8.9.54
+
+🚀 AUTO-DEPLOY COMPLETED SUCCESSFULLY!
+   HyprMoon version: 0.41.2+ds-1.3+step8.9.54
+   Container status: RESTARTED
+
+Ready to test Moonlight pairing with certificate fixes!
+
+🎉 === BUILD.SH COMPLETED SUCCESSFULLY ===
+All tasks completed: build, deploy, and container restart
+Script finished normally at Thu Sep 18 09:57:18 AM BST 2025

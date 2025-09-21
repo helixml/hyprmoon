@@ -1,0 +1,3 @@
+# Hashes of file build rules.
+118960e5c27c18e0e66e9771604e0d2d protocols/wlr-screencopy-unstable-v1-client-protocol.h
+855caef16e9ca6099a0a9a9f20244af2 protocols/wlr-screencopy-unstable-v1-protocol.c

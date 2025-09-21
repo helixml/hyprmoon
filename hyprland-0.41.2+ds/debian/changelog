@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.179) unstable; urgency=medium
+
+  * Add screencopy frame capture support alongside existing renderer capture
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sun, 21 Sep 2025 11:49:03 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.178) unstable; urgency=medium
 
   * Build master with complete Wolf pairing - removed conflicting stubs

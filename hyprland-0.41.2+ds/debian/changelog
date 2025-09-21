@@ -1,3 +1,9 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.180) unstable; urgency=medium
+
+  * Add self-referential screencopy support (wayland-0)
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Sun, 21 Sep 2025 12:01:26 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.179) unstable; urgency=medium
 
   * Add screencopy frame capture support alongside existing renderer capture

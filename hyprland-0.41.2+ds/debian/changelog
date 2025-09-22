@@ -1,3 +1,10 @@
+hyprmoon (0.41.2+ds-1.3+step8.9.181+2d49b53dd) unstable; urgency=medium
+
+  * Auto-build step8.9.181 - ensures code changes are deployed
+  * Build from commit: 2d49b53dd
+
+ -- HyprMoon Builder <builder@hyprmoon.local>  Mon, 22 Sep 2025 05:43:34 +0100
+
 hyprmoon (0.41.2+ds-1.3+step8.9.180) unstable; urgency=medium
 
   * Add self-referential screencopy support (wayland-0)

@@ -22,7 +22,7 @@ RUNNING_BUILD_ROW=""
 if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "hyprmoon-builder"; then
     # Get container creation timestamp and calculate elapsed time
     CREATED_TIMESTAMP=$(docker inspect hyprmoon-builder --format='{{.Created}}' 2>/dev/null | sed 's/T/ /' | cut -d. -f1)
-    START_EPOCH=$(date -d "$CREATED_TIMESTAMP" +%s 2>/dev/null || echo "0")
+    START_EPOCH=$(date -d "$CREATED_TIMESTAMP UTC" +%s 2>/dev/null || echo "0")
     CURRENT_EPOCH=$(date +%s)
     ELAPSED_SECONDS=$((CURRENT_EPOCH - START_EPOCH))
 
@@ -65,8 +65,10 @@ BEGIN {
     # Format version (last part only)
     version = substr($2, length($2) - 4)
 
-    # Format timestamp
-    timestamp = strftime("%H:%M:%S", $1)
+    # Format timestamp (use system timezone)
+    cmd = "date -d @" $1 " +%H:%M:%S"
+    cmd | getline timestamp
+    close(cmd)
 
     printf "%2d|%8s|%11s|%7s|%8s|%11s|%6s|%5s|%10s|%8s|%5s|%s\n",
         NR, timestamp, type, version, $3 "s", improvement, $4 "%", $12, $14, $15, $16, status
@@ -85,7 +87,7 @@ RUNNING_BUILD=""
 if docker ps --format "table {{.Names}}\t{{.Status}}" | grep -q "hyprmoon-builder"; then
     # Get container creation timestamp and calculate elapsed time
     CREATED_TIMESTAMP=$(docker inspect hyprmoon-builder --format='{{.Created}}' 2>/dev/null | sed 's/T/ /' | cut -d. -f1)
-    START_EPOCH=$(date -d "$CREATED_TIMESTAMP" +%s 2>/dev/null || echo "0")
+    START_EPOCH=$(date -d "$CREATED_TIMESTAMP UTC" +%s 2>/dev/null || echo "0")
     CURRENT_EPOCH=$(date +%s)
     ELAPSED_SECONDS=$((CURRENT_EPOCH - START_EPOCH))
 

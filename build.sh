@@ -45,10 +45,16 @@ fi
 # Auto-bump version to ensure code changes are always deployed
 CURRENT_VERSION=$(grep -m1 '^hyprmoon (' hyprland-0.41.2+ds/debian/changelog | sed 's/hyprmoon (\([^)]*\)).*/\1/')
 
-# Extract current step number and increment it
+# Get current commit hash for version uniqueness across branches
+COMMIT_HASH=$(git rev-parse --short HEAD)
+
+# Extract current step number and increment it (handle both old and new formats)
 CURRENT_STEP=$(echo "$CURRENT_VERSION" | sed 's/.*step8\.9\.\([0-9]\+\).*/\1/')
 NEXT_STEP=$((CURRENT_STEP + 1))
-NEW_VERSION=$(echo "$CURRENT_VERSION" | sed "s/step8\.9\.[0-9]\+/step8.9.${NEXT_STEP}/")
+
+# Create new version with commit hash to prevent branch version clashes
+BASE_VERSION=$(echo "$CURRENT_VERSION" | sed "s/step8\.9\.[0-9]\+.*/step8.9.${NEXT_STEP}/")
+NEW_VERSION="${BASE_VERSION}+${COMMIT_HASH}"
 
 if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
     echo "Auto-bumping version: $CURRENT_VERSION → $NEW_VERSION"
@@ -59,6 +65,7 @@ if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
 hyprmoon ($NEW_VERSION) unstable; urgency=medium
 
   * $([ -n "$COMMIT_MESSAGE" ] && echo "$COMMIT_MESSAGE" || echo "Auto-build step8.9.${NEXT_STEP} - ensures code changes are deployed")
+  * Build from commit: ${COMMIT_HASH}
 
  -- HyprMoon Builder <builder@hyprmoon.local>  $(date -R)
 
@@ -336,14 +343,14 @@ if [ $DOCKER_EXIT_CODE -eq 0 ]; then
         DEPLOY_VERSION="$NEW_VERSION"
     fi
 
-    OLD_VERSION_PATTERN="step8\.9\.[0-9]\+"
+    OLD_VERSION_PATTERN="step8\.9\.[0-9]+(\+[a-f0-9]+)?"
     echo "   Deployment mode: $DEPLOY_MODE, Version: $NEW_VERSION"
 
     # Update .deb package references to use latest available .deb (not incremental version)
     if [ -n "$LATEST_DEB" ]; then
         DEB_VERSION=$(echo "$LATEST_DEB" | sed 's/hyprmoon_\(.*\)_amd64.deb/\1/')
-        sed -i "s/hyprmoon_0\.41\.2+ds-1\.3+${OLD_VERSION_PATTERN}_amd64\.deb/hyprmoon_${DEB_VERSION}_amd64.deb/g" Dockerfile.zed-agent-vnc
-        sed -i "s/hyprland-backgrounds_0\.41\.2+ds-1\.3+${OLD_VERSION_PATTERN}_all\.deb/hyprland-backgrounds_${DEB_VERSION}_all.deb/g" Dockerfile.zed-agent-vnc
+        sed -i -E "s/hyprmoon_0\.41\.2\+ds-1\.3\+${OLD_VERSION_PATTERN}_amd64\.deb/hyprmoon_${DEB_VERSION}_amd64.deb/g" Dockerfile.zed-agent-vnc
+        sed -i -E "s/hyprland-backgrounds_0\.41\.2\+ds-1\.3\+${OLD_VERSION_PATTERN}_all\.deb/hyprland-backgrounds_${DEB_VERSION}_all.deb/g" Dockerfile.zed-agent-vnc
         echo "   ✓ Dockerfile .deb references updated to: $DEB_VERSION"
     fi
 

@@ -117,3 +117,6 @@ timestamp,version,duration_seconds,ccache_hit_rate_before,ccache_files_before,cc
 1758351784,0.41.2+ds-1.3+step8.9.173,70,68.95,0,0.2,68.95,0,0.2,602,22,229,63a1cc35da15f6bf,52cbba44,6,INCREMENTAL,unknown,unknown
 1758351869,0.41.2+ds-1.3+step8.9.174,62,68.95,0,0.2,68.95,0,0.2,602,22,229,8535b7fd352afe73,52cbba44,8,INCREMENTAL,unknown,unknown
 1758352700,0.41.2+ds-1.3+step8.9.176,81,68.95,0,0.2,68.95,0,0.2,602,22,229,6603344779fa8902,19f2776a,6,INCREMENTAL,unknown,unknown
+1758522043,0.41.2+ds-1.3+step8.9.178,566,64.12,0,0.3,64.46,0,0.3,0,0,229,df15aa683491a9ea,af1e03481,18,FULL,unknown,unknown
+1758524000,0.41.2+ds-1.3+step8.9.179,1,64.46,0,0.3,64.46,0,0.3,680,22,229,df15aa683491a9ea,af1e03481,20,INCREMENTAL,unknown,unknown
+1758524301,0.41.2+ds-1.3+step8.9.180+af1e03481,0,64.46,0,0.3,64.46,0,0.3,680,22,229,df15aa683491a9ea,af1e03481,21,INCREMENTAL,unknown,unknown

@@ -9,5 +9,16 @@ deb-output/
 ccache-vol/
 meson-cache/
 gmonOutput
+# Source build directories (prevent accidental commits)
+hyprland-*/build/
+# Debian packaging artifacts
+hyprland-*/debian/tmp/
+hyprland-*/debian/.debhelper/
+# Compiled object files and precompiled headers
+*.gch
+*.o
+*.a
+# Large binaries
+*.bin
 # Container build logs
 container-build-*.log

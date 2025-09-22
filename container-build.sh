@@ -87,9 +87,10 @@ if [ -d build ] && [ -f build/.ninja_log ] && [ -f build/build.ninja ]; then
     # Run ninja directly for incremental compilation
     cd build
 
-    # Fix CMake compiler cache issue for ccache
-    echo "Fixing CMake compiler paths for ccache..."
-    cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .
+    # Fix CMake compiler cache issue for ccache - disabled to improve
+    # incremental build performance (avoid reconfiguring)
+    #echo "Fixing CMake compiler paths for ccache..."
+    #cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .
 
     if ! ninja; then
         echo "=== NINJA BUILD FAILED ==="

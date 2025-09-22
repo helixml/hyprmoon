@@ -62,8 +62,31 @@ BEGIN {
     else if ($3 < 100) status = "🚀 FAST"
     else if ($3 < 300) status = "🏃 GOOD"
 
-    # Format version (last part only)
-    version = substr($2, length($2) - 4)
+    # Extract step version and embedded git hash from version string
+    # Version format: 0.41.2+ds-1.3+step8.9.13+a1b2c3d4
+    # Want to show: 8.9+a1b
+    split($2, version_parts, "\\+step")
+    if (length(version_parts) >= 2) {
+        step_and_hash = version_parts[2]  # e.g., "8.9.13+a1b2c3d4"
+
+        # Split on + to separate step version from git hash
+        split(step_and_hash, parts, "\\+")
+        step_with_suffix = parts[1]  # e.g., "8.9.13"
+        embedded_hash = parts[2]     # e.g., "a1b2c3d4"
+
+        # Keep the full step version (8.9.13)
+        step_version = step_with_suffix
+
+        # Get first 3 characters of embedded git hash
+        if (embedded_hash != "") {
+            git_prefix = substr(embedded_hash, 1, 3)
+            version = step_version "+" git_prefix
+        } else {
+            version = step_version
+        }
+    } else {
+        version = $2
+    }
 
     # Format timestamp (use system timezone)
     cmd = "date -d @" $1 " +%H:%M:%S"
